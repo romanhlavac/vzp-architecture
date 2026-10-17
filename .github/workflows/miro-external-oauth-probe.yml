@@ -1,6 +1,6 @@
-name: Miro external OAuth metadata probe
+name: Miro – ověření OAuth přístupu (pouze čtení)
 
-# Safe for a public repository: never print Miro identifiers, token, or API responses.
+# Bezpečné pro veřejný repozitář: nevypisovat identifikátory Miro, token ani odpovědi API.
 on:
   workflow_dispatch:
 
@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   check:
-    name: Check OAuth and board metadata access (no write)
+    name: Kontrola OAuth tokenu a přístupu k boardu (bez zápisu)
     runs-on: ubuntu-latest
     environment: miro-external-probe
     timeout-minutes: 5
@@ -21,7 +21,7 @@ jobs:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
     steps:
-      - name: OAuth and board access probe (suppress identifiers and responses)
+      - name: Ověřit autorizaci a přístup k boardu bez výpisu citlivých údajů
         shell: bash
         run: |
           python3 - <<'PY'
@@ -35,7 +35,7 @@ jobs:
           token = os.environ.get('MIRO_DIAGNOSTIC_TOKEN', '').strip()
           board_id = os.environ.get('MIRO_DIAGNOSTIC_BOARD_ID', '').strip()
           if not token or not board_id:
-              print('FAIL: required environment secrets are missing.')
+              print('CHYBA: chybí požadované tajné hodnoty prostředí.')
               sys.exit(2)
 
           def read_json(url):
@@ -47,10 +47,10 @@ jobs:
                   },
                   method='GET',
               )
-              # Do not print request URLs, response bodies, headers or exceptions.
+              # Nezveřejňovat adresy požadavků, obsah odpovědí, hlavičky ani detaily výjimek.
               with urllib.request.urlopen(req, timeout=20) as response:
                   if response.status != 200:
-                      raise ValueError('non-200 API response')
+                      raise ValueError('neočekávaná odpověď API')
                   return json.loads(response.read())
 
           def extract_id(obj):
@@ -61,7 +61,7 @@ jobs:
           try:
               context = read_json('https://api.miro.com/v1/oauth-token')
           except Exception:
-              print('FAIL: OAuth token context unavailable or token invalid.')
+              print('CHYBA: nelze ověřit OAuth token nebo je token neplatný.')
               sys.exit(3)
 
           scope_value = context.get('scopes', context.get('scope', []))
@@ -72,25 +72,25 @@ jobs:
           else:
               scopes = set()
           if not {'boards:read', 'boards:write'}.issubset(scopes):
-              print('FAIL: token does not confirm both boards:read and boards:write.')
+              print('CHYBA: token nepotvrzuje oprávnění boards:read a boards:write.')
               sys.exit(4)
 
           try:
               safe_board_id = urllib.parse.quote(board_id, safe='')
               board = read_json('https://api.miro.com/v2/boards/' + safe_board_id)
           except Exception:
-              print('FAIL: cannot read board metadata with this OAuth token.')
+              print('CHYBA: s tímto tokenem nelze číst metadata boardu.')
               sys.exit(5)
 
           context_team = extract_id(context.get('team') or context.get('team_id'))
           board_team = extract_id(board.get('team') or board.get('team_id'))
           if not context_team or not board_team:
-              print('FAIL: team identity not available for strict comparison.')
+              print('CHYBA: chybí identifikace týmu pro jednoznačné porovnání.')
               sys.exit(6)
           if context_team != board_team:
-              print('FAIL: OAuth team does not match board team.')
+              print('CHYBA: tým autorizovaného tokenu neodpovídá týmu boardu.')
               sys.exit(7)
 
-          # Intentionally do NOT print or upload any team/board/user metadata.
-          print('PASS: OAuth scopes confirmed; board metadata readable; team matches; no Miro write performed.')
+          # Úmyslně nevypisovat ani neukládat metadata týmu, boardu nebo uživatele.
+          print('ÚSPĚCH: oprávnění OAuth ověřena, metadata boardu dostupná, tým souhlasí; v Miro nebyl proveden zápis.')
           PY
