@@ -1,0 +1,42 @@
+name: VZP 1A · Event Storming arrow semantics
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1a-arrows.yml"
+      - "automatizace/miro/ces1a_arrow_semantics.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Audit only or approved semantic update"
+        required: true
+        type: choice
+        default: audit
+        options: [audit, apply]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vzp-miro-ces1a-arrows
+  cancel-in-progress: false
+
+jobs:
+  run:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 18
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      MIRO_ARROW_MODE: ${{ github.event_name == 'push' && 'apply' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Compile and preflight
+        run: python3 -m py_compile automatizace/miro/ces1a_arrow_semantics.py
+      - name: Reconcile Event Storming semantics through Miro REST v2
+        run: python3 automatizace/miro/ces1a_arrow_semantics.py
