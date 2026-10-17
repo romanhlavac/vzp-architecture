@@ -1,6 +1,12 @@
 name: Miro – sjednocení rohů doménových kontejnerů
 
 on:
+  # Po začlenění workflow do main se bezpečně spustí právě pilotní změna.
+  # Další změny vyžadují explicitní ruční režim (bez následné samovolné opravy).
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/miro-sjednoceni-rohu.yml'
   workflow_dispatch:
     inputs:
       rezim:
@@ -36,7 +42,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
-      REZIM: ${{ inputs.rezim }}
+      REZIM: ${{ github.event_name == 'push' && 'pilot' || inputs.rezim }}
       VIZUALNI_REVIZE_SCHVALENA: ${{ inputs.vizualni_revize_schvalena && 'ano' || 'ne' }}
     steps:
       - name: Načíst bezpečně pouze zdrojový kód
