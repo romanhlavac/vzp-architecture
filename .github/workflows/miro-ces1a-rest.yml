@@ -1,0 +1,41 @@
+name: VZP 1A · Miro REST normalization and methodology references
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1a-rest.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Audit bez zápisu, nebo řízený zápis do existujícího 1A"
+        required: true
+        type: choice
+        default: inspect
+        options: [inspect, apply]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vzp-miro-ces1a-rest
+  cancel-in-progress: false
+
+jobs:
+  update:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    environment: miro-external-probe
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      MIRO_CHANGE_MODE: ${{ github.event_name == 'push' && 'apply' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Compile REST controller
+        run: python3 -m py_compile automatizace/miro/ces1a_rest_apply.py automatizace/miro/ces1a_references.py
+      - name: Convert S0 events and add reference tables through REST API
+        run: python3 automatizace/miro/ces1a_rest_apply.py
