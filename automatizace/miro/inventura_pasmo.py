@@ -53,7 +53,7 @@ for item in items:
     d=item.get("data") or {}
     html=d.get("content") or ""
     plain=re.sub("<[^>]+>"," ",html)
-    key=re.search(r"(?:^|\s)([A-D][1-9])\s*[·.]",plain)
+    key=re.search(r"(?:^|\s)([A-D][1-9]|S0)\s*[·.]",plain)
     if key and "Aktéři" in plain:
         domains.append((key.group(1),item))
 print("POČET_DOMÉN:",len(domains))
