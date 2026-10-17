@@ -114,3 +114,28 @@ if connections:
 non_shapes=[x for x in items if x.get("type") not in {"shape","connector","sticky_note","text","frame"}]
 for x in non_shapes[:30]:
     print("OSTATNÍ",x.get("type"),"geometrie",geo(x),"styl_keys",sorted((x.get("style") or {}).keys()))
+
+# Inventura bezpečného znovuvytvoření překrytých oranžových událostí.
+# Nezveřejňovat interní text, IDs nebo hodnoty atributů.
+problem={k:d for k,d in domains if k in {"B7","B8","B9","C1","D1","D2","D3","D4","D5","D6"}}
+if len(problem)!=10:raise RuntimeError("Nesouhlasí počet problematických domén.")
+offenders=[]
+for code,d in problem.items():
+    y=float(d.get("position",{}).get("y",0))
+    aligned=[n for n in notes if abs(float(n.get("position",{}).get("y",0))-y)<=35]
+    older=[n for n in aligned if str(n.get("createdAt",""))<str(d.get("createdAt",""))]
+    offenders.extend(older)
+    print("VRSTVY",code,"události",len(aligned),"starší_než_pás",len(older))
+print("VRSTVY_CELKEM:",len(offenders))
+if offenders:
+    example=get("sticky_notes/"+str(offenders[0]["id"]))
+    print("KLÍČE_UDÁLOSTI:",sorted(example.keys()))
+    print("KLÍČE_DAT:",sorted((example.get("data") or {}).keys()))
+    print("KLÍČE_STYLU:",sorted((example.get("style") or {}).keys()))
+    print("KLÍČE_POZICE:",sorted((example.get("position") or {}).keys()))
+    print("KLÍČE_GEOMETRIE:",sorted((example.get("geometry") or {}).keys()))
+    print("TAG_COUNT:",len(example.get("tagIds") or []))
+    print("LINK_COUNT:",len(example.get("links") or []))
+    print("SKUPINY:",sum(1 for n in offenders if n.get("groupId")))
+    print("UZAMČENÉ:",sum(1 for n in offenders if n.get("locked")))
+    print("KONEKTORY_ZASAHUJÍCÍ_STARŠÍ:",sum(1 for c in all_conns if str((c.get("startItem") or {}).get("id")) in {str(x["id"]) for x in offenders} or str((c.get("endItem") or {}).get("id")) in {str(x["id"]) for x in offenders}))
