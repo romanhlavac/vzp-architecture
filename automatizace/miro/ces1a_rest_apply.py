@@ -27,7 +27,7 @@ def api(method,path,data=None,params=None):
         except urllib.error.HTTPError as e:
             if e.code in (429,502,503,504) and n<3:
                 time.sleep(2**n+1);continue
-            raise RuntimeError("Miro API returned HTTP "+str(e.code)) from None
+            raise RuntimeError("Miro API "+method+" "+path.split("/")[0]+" returned HTTP "+str(e.code)) from None
         except Exception:
             raise RuntimeError("Miro API request failed") from None
 
@@ -73,7 +73,15 @@ def discover():
     return frame,ev
 
 def connectors():
-    return [api("GET","connectors/"+str(z["id"])) for z in lst(type="connector")]
+    out=[];cursor=None
+    for _ in range(20):
+        params={"limit":50}
+        if cursor:params["cursor"]=cursor
+        obj=api("GET","connectors",params=params)
+        out.extend(obj.get("data",[]))
+        cursor=obj.get("cursor")
+        if not cursor:return out
+    raise RuntimeError("Connector pagination safety gate failed")
 
 def replace(events):
     mapping={};changed=0;changed_links=0
