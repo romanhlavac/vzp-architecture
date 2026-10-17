@@ -126,48 +126,97 @@ def replace(events):
     return changed,changed_links
 
 def references(frame):
-    # Place a native-editable methodology appendix immediately BELOW 1A on
-    # the same board. No new frame is required (avoids Miro frame-create 500).
-    # Idempotent: each stable Hxx/Sxx reference row is created only once.
-    cx,cy=xy(frame);x0=cx-w(frame)/2;y0=cy+h(frame)/2+180
-    existing=lst()
-    known={}
-    for z in existing:
+    """Two native text blocks with bullet lists replace 23 independent shapes.
+
+    Safe retries: create/verify both blocks first; delete exactly the 23
+    previously managed Hxx/Sxx shapes only after full readback.
+    """
+    expected={v[0] for v in HEURISTICS+SOURCES}
+    if len(expected)!=23:raise RuntimeError("Methodology source inventory drift")
+    cx,cy=xy(frame);left=cx-w(frame)/2;bottom=cy+h(frame)/2
+    items=lst()
+    old={}
+    for z in items:
         if z.get("type")!="shape":continue
-        match=re.match(r"^(H\d{2}|S\d{2})\s*\|",label(z))
-        if match:known.setdefault(match.group(1),[]).append(z)
-    if any(len(v)>1 for v in known.values()):
-        raise RuntimeError("Duplicated methodology labels; no write")
-    rows=[]
-    for i,(code,name,note) in enumerate(HEURISTICS):
-        rows.append((code,name,note,i//8,i%8,False))
-    for i,(code,name,note) in enumerate(SOURCES):
-        rows.append((code,name,note,i//4,i%4,True))
-    made=0
-    for code,name,note,col,row,is_source in rows:
-        if code in known:continue
-        x=x0+70+col*3380+1620
-        y=y0+(1530 if is_source else 160)+row*151+72
-        base={
-            "data":{"content":"<b>"+html.escape(code+" | "+name)+"</b><br/>"+html.escape(note),
-                    "shape":"round_rectangle"},
-            "geometry":{"width":3240,"height":144},
-            "position":{"x":x,"y":y,"origin":"center"},
-            "style":{"fillColor":"#E6F4F6" if is_source else "#F2F5F5"}
-        }
-        out=api("POST","shapes",data=base)
-        if not out.get("id"):raise RuntimeError("Methodology row creation failed")
-        made+=1
-    all_rows=lst()
-    fresh={}
-    for z in all_rows:
-        if z.get("type")!="shape":continue
+        x,y=xy(z)
+        if not(left<=x<=left+w(frame) and bottom<=y<=bottom+3400):continue
         m=re.match(r"^(H\d{2}|S\d{2})\s*\|",label(z))
-        if m:fresh.setdefault(m.group(1),[]).append(z)
-    expected={z[0] for z in HEURISTICS+SOURCES}
-    if any(len(fresh.get(k,[]))!=1 for k in expected):
-        raise RuntimeError("Reference appendix readback incomplete")
-    return bool(made),len(expected)
+        if m and m.group(1) in expected:old.setdefault(m.group(1),[]).append(z)
+    if any(len(v)!=1 for v in old.values()):
+        raise RuntimeError("Duplicate legacy reference IDs; refusing destructive change")
+    if len(old) not in (0,23):
+        # A partially deleted set is expected only after verified compact blocks exist.
+        print("RECOVERY: subset of legacy reference rows remains")
+
+    def bullets(section,values):
+        title="HEURISTIKY HRANIC DOMÉN (H01–H15)" if section=="heuristics" else "ZDROJE DEMO 1A (Sxx)"
+        rows=["<li><b>"+html.escape(code)+" · "+html.escape(name)+"</b> — "+html.escape(note)+"</li>"
+              for code,name,note in values]
+        return "<p><b>"+title+"</b></p><ul>"+"".join(rows)+"</ul>"+(
+            "<p><i>Heuristiky jsou indicie; samy neurčují hranice domén.</i></p>"
+            if section=="heuristics" else
+            "<p><i>Sxx = Source ID, nikoli schválení VZP. Vychází z VZP Source Index v5.0.</i></p>"
+        )
+    specs=[
+        ("heuristics",HEURISTICS,left+1710,bottom+590,3260),
+        ("sources",SOURCES,left+5190,bottom+470,3260),
+    ]
+    blocks={}
+    for section,values,x,y,width in specs:
+        title="HEURISTIKY HRANIC DOMÉN" if section=="heuristics" else "ZDROJE DEMO 1A"
+        candidates=[
+            z for z in items if z.get("type")=="text"
+            and title in str((z.get("data") or {}).get("content") or "")
+            and left<=xy(z)[0]<=left+w(frame) and bottom<=xy(z)[1]<=bottom+2100
+        ]
+        if len(candidates)>1:raise RuntimeError("Duplicate compact text blocks")
+        desired=bullets(section,values)
+        if candidates:
+            obj=api("GET","texts/"+str(candidates[0]["id"]))
+            if obj.get("data",{}).get("content")!=desired:
+                api("PATCH","texts/"+str(obj["id"]),data={"data":{"content":desired}})
+                obj=api("GET","texts/"+str(obj["id"]))
+        else:
+            new=api("POST","texts",data={
+                "data":{"content":desired},
+                "style":{"color":"#273C46","fontFamily":"open_sans","fontSize":"24","textAlign":"left"},
+                "geometry":{"width":width},
+                "position":{"x":x,"y":y,"origin":"center"}
+            })
+            if not new.get("id"):raise RuntimeError("Text block create returned no ID")
+            obj=api("GET","texts/"+str(new["id"]))
+        actual=str((obj.get("data") or {}).get("content") or "")
+        if obj.get("type")!="text" or len(actual)<200:
+            raise RuntimeError("Text block readback failed")
+        if any(code not in actual for code,_,_ in values):
+            raise RuntimeError("Text block lost methodology references")
+        blocks[section]=obj
+
+    # Only after BOTH new blocks have passed content verification,
+    # retire the former Hxx/Sxx reference shapes.
+    deleted=0
+    for code,matches in old.items():
+        z=matches[0]
+        original=api("GET","shapes/"+str(z["id"]))
+        if original.get("type")!="shape" or not re.match(r"^"+re.escape(code)+r"\s*\|",label(original)):
+            raise RuntimeError("Legacy row changed during migration; deletion aborted")
+        api("DELETE","shapes/"+str(z["id"]))
+        deleted+=1
+
+    after=lst()
+    remaining=[]
+    for z in after:
+        if z.get("type")!="shape":continue
+        x,y=xy(z)
+        if left<=x<=left+w(frame) and bottom<=y<=bottom+3400:
+            m=re.match(r"^(H\d{2}|S\d{2})\s*\|",label(z))
+            if m and m.group(1) in expected:remaining.append(z)
+    if remaining:raise RuntimeError("Old reference shapes remain")
+    for obj in blocks.values():
+        fresh=api("GET","texts/"+str(obj["id"]))
+        if fresh.get("type")!="text":raise RuntimeError("Compact text missing after cleanup")
+    print("REFERENCE COMPACT PASS: 2 native text blocks, H01–H15 and 8 sources, %d legacy shapes removed"%deleted)
+    return bool(deleted),2
 
 def run():
     frame,ev=discover()
