@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/miro-inventura-pasmo.yml'
+      - 'automatizace/miro/inventura_pasmo.py'
   workflow_dispatch:
 
 permissions:
