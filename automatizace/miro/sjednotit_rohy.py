@@ -23,7 +23,7 @@ HLAVICKY = {"Accept": "application/json"}
 token = os.environ.get("MIRO_DIAGNOSTIC_TOKEN", "").strip()
 board = os.environ.get("MIRO_DIAGNOSTIC_BOARD_ID", "").strip()
 rezim = os.environ.get("REZIM", "kontrola").strip()
-if not token or not board or rezim not in {"kontrola", "pilot", "oprava", "prepnuti_pilot", "prepnuti_oprava"}:
+if not token or not board or rezim not in {"kontrola", "pilot", "oprava", "prepnuti_pilot", "prepnuti_oprava", "diagnostika"}:
     print("CHYBA: chybí tajné hodnoty nebo je neplatný režim.")
     sys.exit(2)
 
@@ -138,6 +138,21 @@ try:
     ))
     if rezim == "kontrola":
         print("Pouze čtení: na boardu nebyla provedena žádná změna.")
+    elif rezim == "diagnostika":
+        # Vypisujeme pouze NÁZVY technických stylových atributů, nikoli jejich
+        # hodnoty, identifikátory, souřadnice, texty ani metadata klienta.
+        serazene = sorted(tvary, key=lambda x: int(x["id"]))
+        starsi, novejsi = serazene[:9], serazene[9:]
+        vsechny_klice = sorted(set().union(*(set(x.get("style", {})) for x in tvary)))
+        rozdily = [
+            k for k in vsechny_klice
+            if len({repr(t.get("style", {}).get(k)) for t in starsi}) == 1
+            and len({repr(t.get("style", {}).get(k)) for t in novejsi}) == 1
+            and repr(starsi[0].get("style", {}).get(k)) != repr(novejsi[0].get("style", {}).get(k))
+        ]
+        print("Stylové atributy odlišné mezi původními a novějšími tvary:", ", ".join(rozdily) or "žádné jednoznačné")
+        print("Přítomné klíče stylu:", ", ".join(vsechny_klice))
+        print("Kontrolní režim: bez zápisu do Miro.")
     elif rezim == "prepnuti_pilot":
         if len(zaculene) != 19 or nevyhovujici:
             raise RuntimeError("Nativní výchozí typy nejsou jednotné; nejdříve nutno zkontrolovat.")
