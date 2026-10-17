@@ -23,7 +23,7 @@ HLAVICKY = {"Accept": "application/json"}
 token = os.environ.get("MIRO_DIAGNOSTIC_TOKEN", "").strip()
 board = os.environ.get("MIRO_DIAGNOSTIC_BOARD_ID", "").strip()
 rezim = os.environ.get("REZIM", "kontrola").strip()
-if not token or not board or rezim not in {"kontrola", "pilot", "oprava"}:
+if not token or not board or rezim not in {"kontrola", "pilot", "oprava", "prepnuti_pilot", "prepnuti_oprava"}:
     print("CHYBA: chybí tajné hodnoty nebo je neplatný režim.")
     sys.exit(2)
 
@@ -103,16 +103,30 @@ def podpis(t):
 
 
 def zmenit(t):
+    return zmenit_na(t, "round_rectangle")
+
+
+def zmenit_na(t, cil):
     identifikator = str(t["id"])
-    # Měnit pouze nativní typ tvaru. Text a ostatní vlastnosti neposílat do PATCH.
+    # Typ se mění přes REST API, nikoli přes atribut SVG rx.
     pozadavek(
         "shapes/" + identifikator,
         metoda="PATCH",
-        telo={"data": {"shape": "round_rectangle"}},
+        telo={"data": {"shape": cil}},
     )
     nova = pozadavek("shapes/" + identifikator)
-    if nova.get("data", {}).get("shape") != "round_rectangle" or podpis(nova) != podpis(t):
+    if nova.get("data", {}).get("shape") != cil or podpis(nova) != podpis(t):
         raise RuntimeError("Změna nebyla beze zbytku ověřena; zastavuji další úpravy.")
+    return nova
+
+
+def novejsi_kontejnery(tvary):
+    # Live inventura CES-1A prokázala nejprve vytvořených devět
+    # a deset novějších tvarů. Nedávat identifikátory VZP do veřejného kódu.
+    serazene = sorted(tvary, key=lambda x: int(x["id"]))
+    if len(serazene) != 19:
+        raise RuntimeError("Nedostatečný nebo nejednoznačný inventář.")
+    return serazene[9:]
 
 
 try:
@@ -124,6 +138,25 @@ try:
     ))
     if rezim == "kontrola":
         print("Pouze čtení: na boardu nebyla provedena žádná změna.")
+    elif rezim == "prepnuti_pilot":
+        if len(zaculene) != 19 or nevyhovujici:
+            raise RuntimeError("Nativní výchozí typy nejsou jednotné; nejdříve nutno zkontrolovat.")
+        pilotni = novejsi_kontejnery(tvary)[0]
+        # Dvojí přechod přinutí Miro kanonicky uložit existující tvar.
+        prosty = zmenit_na(pilotni, "rectangle")
+        zmenit_na(prosty, "round_rectangle")
+        print("PILOT PROVEDEN: jeden novější tvar byl přepnut na rectangle a zpět na round_rectangle.")
+        print("Než se změní další, je nutno ověřit jeho skutečné vizuální vykreslení.")
+    elif rezim == "prepnuti_oprava":
+        if len(zaculene) != 19 or nevyhovujici:
+            raise RuntimeError("Nativní výchozí typy nejsou jednotné; bez dalšího zápisu.")
+        # První z deseti novějších byl již přepnut a nezávisle ověřen.
+        for t in novejsi_kontejnery(tvary)[1:]:
+            prosty = zmenit_na(t, "rectangle")
+            zmenit_na(prosty, "round_rectangle")
+        if any(t["data"]["shape"] != "round_rectangle" for t in nacti_tvary()):
+            raise RuntimeError("Neprošla závěrečná kontrola všech nativních typů.")
+        print("OPRAVA PROVEDENA: zbývajících devět novějších tvarů bylo znovu uloženo jako round_rectangle.")
     elif rezim == "pilot":
         if len(zaculene) == 19 and len(nevyhovujici) == 0:
             print("Pilot není potřeba: všechny kontejnery již mají nativní typ round_rectangle.")
