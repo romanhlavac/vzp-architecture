@@ -41,7 +41,7 @@ def geo(x):
     return {k:round(float(v),1) for k,v in (("x",p.get("x")),("y",p.get("y")),("w",g.get("width")),("h",g.get("height"))) if v is not None}
 
 frames=listing({"type":"frame"})
-candidates=[f for f in frames if abs(float(f.get("geometry",{}).get("width",0))-4470)<3 and abs(float(f.get("geometry",{}).get("height",0))-5650)<3]
+candidates=[f for f in frames if abs(float(f.get("geometry",{}).get("width",0))-6920)<20 and abs(float(f.get("geometry",{}).get("height",0))-7160)<20]
 if len(candidates)!=1: raise RuntimeError("Cílový rámec nelze jednoznačně identifikovat")
 fid=str(candidates[0]["id"])
 items=listing({"parent_item_id":fid})
@@ -57,6 +57,7 @@ for item in items:
     if key and "Aktéři" in plain:
         domains.append((key.group(1),item))
 print("POČET_DOMÉN:",len(domains))
+print("GEOMETRIE_RÁMCE:",geo(candidates[0]))
 for code,item in sorted(domains,key=lambda x:(x[1].get("position",{}).get("y",0),x[0])):
     d=item.get("data") or {}
     st=item.get("style") or {}
