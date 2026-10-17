@@ -86,19 +86,19 @@ def conn_full(c):return api("GET","connectors/"+ident(c))
 
 def discover():
     fr=[v for v in page("items",{"type":"frame"})
-        if close(width(v),6920,20) and close(height(v),7160,20)]
+        if close(width(v),6075,20) and close(height(v),7746,20)]
     if len(fr)!=1:raise RuntimeError("1A frame not unique")
     frame=api("GET","frames/"+ident(fr[0]))
     ch=page("items",{"parent_item_id":ident(frame)})
-    domains=sorted([v for v in ch if v.get("type")=="shape" and close(width(v),1250,10)
-                    and close(height(v),220,10)],key=lambda z:xy(z)[1])
+    domains=sorted([v for v in ch if v.get("type")=="shape"
+                    and close(height(v),224,5) and 2900<width(v)<4600],key=lambda z:xy(z)[1])
     if len(domains)!=ROW_COUNT:raise RuntimeError("domain band count drift")
     rows=[]
     for idx,d in enumerate(domains):
         y=xy(d)[1];x=xy(d)[0]
         events=sorted([v for v in ch if v.get("type")=="sticky_note"
                        and close(width(v),258,10) and close(height(v),168,12)
-                       and close(xy(v)[1],y,55) and xy(v)[0]>x+450],
+                       and close(xy(v)[1],y,40) and xy(v)[0]>(x-width(d)/2)+450],
                        key=lambda z:xy(z)[0])
         if len(events)!=EXPECTED_COUNTS[idx]:
             raise RuntimeError("event row inventory drift at row "+str(idx))
