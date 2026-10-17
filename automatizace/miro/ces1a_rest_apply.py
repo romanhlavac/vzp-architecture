@@ -180,6 +180,17 @@ def run():
     if len(final)!=8 or any(z["type"]!="sticky_note" for z in final):
         raise RuntimeError("Eight native sticky acceptance failed")
     created,count=references(frame)
+    children=lst(parent_item_id=str(frame["id"]))
+    all_stickies=[z for z in children if z.get("type")=="sticky_note"]
+    if len(all_stickies)!=130:
+        raise RuntimeError("Global 1A sticky inventory mismatch")
+    member_ids={str(z["id"]) for z in children}
+    linked=[z for z in connectors()
+            if str((z.get("startItem") or {}).get("id")) in member_ids
+            and str((z.get("endItem") or {}).get("id")) in member_ids]
+    if len(linked)!=34:
+        raise RuntimeError("1A connector inventory differs from accepted baseline")
+    print("FINAL STRUCTURAL READBACK PASS: 130 native sticky events, 34 in-frame connectors")
     print("REST WRITE PASS: %d events converted; %d connector endpoints updated"%(changed,edges))
     print("REFERENCE PASS: %d methodology rows; newly created=%s"%(count,str(created).lower()))
 
