@@ -42,7 +42,9 @@ def geo(x):
 
 frames=listing({"type":"frame"})
 candidates=[f for f in frames if abs(float(f.get("geometry",{}).get("width",0))-6920)<20 and abs(float(f.get("geometry",{}).get("height",0))-7160)<20]
-if len(candidates)!=1: raise RuntimeError("Cílový rámec nelze jednoznačně identifikovat")
+if len(candidates)!=1:
+    print("ROZMĚRY_RÁMCŮ:",[geo(f) for f in frames])
+    raise RuntimeError("Cílový rámec nelze jednoznačně identifikovat")
 fid=str(candidates[0]["id"])
 items=listing({"parent_item_id":fid})
 counts=collections.Counter(str(x.get("type")) for x in items)
