@@ -126,43 +126,48 @@ def replace(events):
     return changed,changed_links
 
 def references(frame):
-    title="1A · Referenční tabulky heuristik a zdrojů"
-    matches=[z for z in lst(type="frame") if (z.get("data") or {}).get("title")==title]
-    if len(matches)>1:raise RuntimeError("Multiple reference frames")
-    if matches:f=api("GET","frames/"+str(matches[0]["id"]))
-    else:
-        cx,cy=xy(frame)
-        f=api("POST","frames",data={
-            "data":{"title":title},"geometry":{"width":6920,"height":2700},
-            "position":{"x":cx,"y":cy+h(frame)/2+180+1350,"origin":"center"}
-        })
-        f=api("GET","frames/"+str(f["id"]))
-    existing=lst(parent_item_id=str(f["id"]))
-    if existing:
-        if len(existing)<23:raise RuntimeError("Partial reference layout requires reconciliation")
-        return False,len(existing)
-    cx,cy=xy(f);x0=cx-w(f)/2;y0=cy-h(f)/2
+    # Place a native-editable methodology appendix immediately BELOW 1A on
+    # the same board. No new frame is required (avoids Miro frame-create 500).
+    # Idempotent: each stable Hxx/Sxx reference row is created only once.
+    cx,cy=xy(frame);x0=cx-w(frame)/2;y0=cy+h(frame)/2+180
+    existing=lst()
+    known={}
+    for z in existing:
+        if z.get("type")!="shape":continue
+        match=re.match(r"^(H\d{2}|S\d{2})\s*\|",label(z))
+        if match:known.setdefault(match.group(1),[]).append(z)
+    if any(len(v)>1 for v in known.values()):
+        raise RuntimeError("Duplicated methodology labels; no write")
     rows=[]
     for i,(code,name,note) in enumerate(HEURISTICS):
-        rows.append((i//8,i%8,code+" | "+name,note,False))
+        rows.append((code,name,note,i//8,i%8,False))
     for i,(code,name,note) in enumerate(SOURCES):
-        rows.append((i//4,i%4,code+" | "+name,note,True))
-    for col,row,name,note,is_source in rows:
+        rows.append((code,name,note,i//4,i%4,True))
+    made=0
+    for code,name,note,col,row,is_source in rows:
+        if code in known:continue
         x=x0+70+col*3380+1620
         y=y0+(1530 if is_source else 160)+row*151+72
-        payload={
-            "data":{"content":"<b>"+html.escape(name)+"</b><br/>"+html.escape(note),"shape":"round_rectangle"},
-            "style":{"fillColor":"#E6F4F6" if is_source else "#F2F5F5",
-                     "fontFamily":"open_sans","fontSize":"18","textAlign":"left"},
+        base={
+            "data":{"content":"<b>"+html.escape(code+" | "+name)+"</b><br/>"+html.escape(note),
+                    "shape":"round_rectangle"},
             "geometry":{"width":3240,"height":144},
             "position":{"x":x,"y":y,"origin":"center"},
-            "parent":{"id":str(f["id"])}
+            "style":{"fillColor":"#E6F4F6" if is_source else "#F2F5F5"}
         }
-        out=api("POST","shapes",data=payload)
-        if not out.get("id"):raise RuntimeError("Reference item creation failed")
-    count=len(lst(parent_item_id=str(f["id"])))
-    if count<23:raise RuntimeError("Reference table readback incomplete")
-    return True,count
+        out=api("POST","shapes",data=base)
+        if not out.get("id"):raise RuntimeError("Methodology row creation failed")
+        made+=1
+    all_rows=lst()
+    fresh={}
+    for z in all_rows:
+        if z.get("type")!="shape":continue
+        m=re.match(r"^(H\d{2}|S\d{2})\s*\|",label(z))
+        if m:fresh.setdefault(m.group(1),[]).append(z)
+    expected={z[0] for z in HEURISTICS+SOURCES}
+    if any(len(fresh.get(k,[]))!=1 for k in expected):
+        raise RuntimeError("Reference appendix readback incomplete")
+    return bool(made),len(expected)
 
 def run():
     frame,ev=discover()
