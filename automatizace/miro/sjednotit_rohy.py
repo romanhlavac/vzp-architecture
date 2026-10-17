@@ -104,10 +104,12 @@ def podpis(t):
 
 def zmenit(t):
     identifikator = str(t["id"])
-    data = {"shape": "round_rectangle"}
-    if "content" in t.get("data", {}):
-        data["content"] = t["data"]["content"]
-    pozadavek("shapes/" + identifikator, metoda="PATCH", telo={"data": data})
+    # Měnit pouze nativní typ tvaru. Text a ostatní vlastnosti neposílat do PATCH.
+    pozadavek(
+        "shapes/" + identifikator,
+        metoda="PATCH",
+        telo={"data": {"shape": "round_rectangle"}},
+    )
     nova = pozadavek("shapes/" + identifikator)
     if nova.get("data", {}).get("shape") != "round_rectangle" or podpis(nova) != podpis(t):
         raise RuntimeError("Změna nebyla beze zbytku ověřena; zastavuji další úpravy.")
@@ -123,20 +125,29 @@ try:
     if rezim == "kontrola":
         print("Pouze čtení: na boardu nebyla provedena žádná změna.")
     elif rezim == "pilot":
-        if not nevyhovujici:
-            print("Pilot není potřeba: všechny kontejnery jsou již zaoblené.")
-        else:
+        if len(zaculene) == 19 and len(nevyhovujici) == 0:
+            print("Pilot není potřeba: všechny kontejnery již mají nativní typ round_rectangle.")
+        elif len(zaculene) == 10 and len(nevyhovujici) == 9:
+            print("Pilot už byl proveden. Opakované spuštění další objekt nezmění.")
+        elif len(zaculene) == 9 and len(nevyhovujici) == 10:
             zmenit(sorted(nevyhovujici, key=lambda x: str(x["id"]))[0])
             print("Pilot: změněn právě jeden původní objekt. Požadována vizuální revize.")
+        else:
+            raise RuntimeError("Výchozí stav pilotu není očekávaný. Bez zápisu.")
     else:
-        if len(zaculene) < 10 or not nevyhovujici:
-            raise RuntimeError("Chybí ověřený pilot nebo již není co měnit. Bez zápisu.")
-        for t in sorted(nevyhovujici, key=lambda x: str(x["id"])):
-            zmenit(t)
-        tvary_po = nacti_tvary()
-        if sum(t.get("data", {}).get("shape") == "round_rectangle" for t in tvary_po) != 19:
-            raise RuntimeError("Kontrola celkového výsledku neprošla.")
-        print("Hotovo: všech 19 kontejnerů má typ round_rectangle.")
+        if len(zaculene) == 19 and len(nevyhovujici) == 0:
+            print("Hotovo: všech 19 kontejnerů již má typ round_rectangle.")
+        else:
+            if len(zaculene) != 10 or len(nevyhovujici) != 9:
+                raise RuntimeError("Chybí přesně jeden dokončený pilot. Bez zápisu.")
+            if os.environ.get("VIZUALNI_REVIZE_SCHVALENA", "") != "ano":
+                raise RuntimeError("Není potvrzena vizuální revize pilotu. Bez zápisu.")
+            for t in sorted(nevyhovujici, key=lambda x: str(x["id"])):
+                zmenit(t)
+            tvary_po = nacti_tvary()
+            if sum(t.get("data", {}).get("shape") == "round_rectangle" for t in tvary_po) != 19:
+                raise RuntimeError("Kontrola celkového výsledku neprošla.")
+            print("Hotovo: všech 19 kontejnerů má nativní typ round_rectangle.")
 except RuntimeError as err:
     print("CHYBA: " + str(err))
     sys.exit(1)
