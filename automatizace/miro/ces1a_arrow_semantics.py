@@ -15,7 +15,7 @@ MODE=os.getenv("MIRO_ARROW_MODE","audit")
 if not TOKEN or not BOARD or MODE not in ("audit","apply"):
     sys.exit("FAIL: missing OAuth or invalid mode")
 BASE="https://api.miro.com/v2/boards/"+urllib.parse.quote(BOARD,safe="")
-INK="#1A1A1A"
+INK="#000000"
 ROW_COUNT=20
 EXPECTED_COUNTS=[4,6,6,8,8,8,8,8,8,8,6,6,8,6,6,4,6,6,4,6]
 RELATED=(3,4,5,6,9,11,12)
@@ -193,7 +193,7 @@ def legend(frame,ch):
         if v.get("type")!="text":continue
         data=str((v.get("data") or {}).get("content") or "")
         if any(term in data.upper() for term in
-               ("HNĚDÁ ŠIPKA","MODRÁ ŠIPKA","BUSINESS BIG PICTURE","HYPOTÉZA RELEVANCE","ZLEVA DOPRAVA")):
+               ("HNĚDÁ ŠIPKA","MODRÁ ŠIPKA","ČERNÁ ŠIPKA","ZLEVA DOPRAVA")):
             txts.append(api("GET","texts/"+ident(v)))
     candidates={ident(v):v for v in txts}
     if len(candidates)<2:raise RuntimeError("arrow legend entries unavailable")
@@ -203,10 +203,10 @@ def legend(frame,ch):
         up=plain(v).upper()
         revised=None
         if "HNĚDÁ ŠIPKA" in up or "ČERNÁ ŠIPKA" in up:
-            revised="ČERNÁ ŠIPKA = VÝZNAMNÁ VĚCNÁ NÁVAZNOST (NE AUTOMATICKÁ INVOKACE)"
+            revised="ČERNÁ ŠIPKA = VĚCNÁ NÁVAZNOST (NE INVOKACE)"
             blackLegend+=1
         elif "MODRÁ ŠIPKA" in up or "ZLEVA DOPRAVA" in up:
-            revised="ZLEVA DOPRAVA = ORIENTAČNÍ ČAS V ILUSTROVANÉM SCÉNÁŘI"
+            revised="ZLEVA DOPRAVA = ORIENTAČNÍ ČAS SCÉNÁŘE"
             timeLegend+=1
         if revised is not None and plain(v)!=revised:
             api("PATCH","texts/"+ident(v),data={"data":{"content":revised}})
