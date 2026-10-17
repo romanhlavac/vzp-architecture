@@ -1,0 +1,37 @@
+name: Miro – sjednocení rohů doménových kontejnerů
+
+on:
+  workflow_dispatch:
+    inputs:
+      rezim:
+        description: "Postup: kontrola bez zápisu, jeden pilotní tvar nebo dokončení po pilotu"
+        required: true
+        default: kontrola
+        type: choice
+        options:
+          - kontrola
+          - pilot
+          - oprava
+
+permissions:
+  contents: read
+
+concurrency:
+  group: miro-uprava-rohu
+  cancel-in-progress: false
+
+jobs:
+  kontrola:
+    name: Ověřit a případně upravit stávající tvary
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 10
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      REZIM: ${{ inputs.rezim }}
+    steps:
+      - name: Načíst bezpečně pouze zdrojový kód
+        uses: actions/checkout@v4
+      - name: Provést vybranou kontrolu nebo opravu
+        run: python3 automatizace/miro/sjednotit_rohy.py
