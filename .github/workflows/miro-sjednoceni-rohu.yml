@@ -12,6 +12,11 @@ on:
           - kontrola
           - pilot
           - oprava
+      vizualni_revize_schvalena:
+        description: "Potvrzuji, že vzhled pilotního tvaru byl vizuálně ověřen v Miro (nutné pro režim oprava)"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -22,6 +27,8 @@ concurrency:
 
 jobs:
   kontrola:
+    # Tajné hodnoty používat jen pro workflow spuštěné z hlavní větve.
+    if: github.ref == 'refs/heads/main'
     name: Ověřit a případně upravit stávající tvary
     runs-on: ubuntu-latest
     environment: miro-external-probe
@@ -30,6 +37,7 @@ jobs:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
       REZIM: ${{ inputs.rezim }}
+      VIZUALNI_REVIZE_SCHVALENA: ${{ inputs.vizualni_revize_schvalena && 'ano' || 'ne' }}
     steps:
       - name: Načíst bezpečně pouze zdrojový kód
         uses: actions/checkout@v4
