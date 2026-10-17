@@ -1,0 +1,96 @@
+name: Miro – ověření OAuth přístupu (pouze čtení)
+
+# Bezpečné pro veřejný repozitář: nevypisovat identifikátory Miro, token ani odpovědi API.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: miro-external-oauth-probe
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Kontrola OAuth tokenu a přístupu k boardu (bez zápisu)
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 5
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+    steps:
+      - name: Ověřit autorizaci a přístup k boardu bez výpisu citlivých údajů
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          token = os.environ.get('MIRO_DIAGNOSTIC_TOKEN', '').strip()
+          board_id = os.environ.get('MIRO_DIAGNOSTIC_BOARD_ID', '').strip()
+          if not token or not board_id:
+              print('CHYBA: chybí požadované tajné hodnoty prostředí.')
+              sys.exit(2)
+
+          def read_json(url):
+              req = urllib.request.Request(
+                  url,
+                  headers={
+                      'Authorization': 'Bearer ' + token,
+                      'Accept': 'application/json',
+                  },
+                  method='GET',
+              )
+              # Nezveřejňovat adresy požadavků, obsah odpovědí, hlavičky ani detaily výjimek.
+              with urllib.request.urlopen(req, timeout=20) as response:
+                  if response.status != 200:
+                      raise ValueError('neočekávaná odpověď API')
+                  return json.loads(response.read())
+
+          def extract_id(obj):
+              if isinstance(obj, dict):
+                  return str(obj.get('id', '')).strip()
+              return str(obj or '').strip()
+
+          try:
+              context = read_json('https://api.miro.com/v1/oauth-token')
+          except Exception:
+              print('CHYBA: nelze ověřit OAuth token nebo je token neplatný.')
+              sys.exit(3)
+
+          scope_value = context.get('scopes', context.get('scope', []))
+          if isinstance(scope_value, str):
+              scopes = set(scope_value.replace(',', ' ').split())
+          elif isinstance(scope_value, list):
+              scopes = {str(v) for v in scope_value}
+          else:
+              scopes = set()
+          if not {'boards:read', 'boards:write'}.issubset(scopes):
+              print('CHYBA: token nepotvrzuje oprávnění boards:read a boards:write.')
+              sys.exit(4)
+
+          try:
+              safe_board_id = urllib.parse.quote(board_id, safe='')
+              board = read_json('https://api.miro.com/v2/boards/' + safe_board_id)
+          except Exception:
+              print('CHYBA: s tímto tokenem nelze číst metadata boardu.')
+              sys.exit(5)
+
+          context_team = extract_id(context.get('team') or context.get('team_id'))
+          board_team = extract_id(board.get('team') or board.get('team_id'))
+          if not context_team or not board_team:
+              print('CHYBA: chybí identifikace týmu pro jednoznačné porovnání.')
+              sys.exit(6)
+          if context_team != board_team:
+              print('CHYBA: tým autorizovaného tokenu neodpovídá týmu boardu.')
+              sys.exit(7)
+
+          # Úmyslně nevypisovat ani neukládat metadata týmu, boardu nebo uživatele.
+          print('ÚSPĚCH: oprávnění OAuth ověřena, metadata boardu dostupná, tým souhlasí; v Miro nebyl proveden zápis.')
+          PY
