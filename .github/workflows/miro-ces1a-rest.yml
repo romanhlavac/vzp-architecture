@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/miro-ces1a-rest.yml"
+      - "automatizace/miro/ces1a_rest_apply.py"
   workflow_dispatch:
     inputs:
       mode:
