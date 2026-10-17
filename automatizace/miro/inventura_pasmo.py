@@ -41,7 +41,7 @@ def geo(x):
     return {k:round(float(v),1) for k,v in (("x",p.get("x")),("y",p.get("y")),("w",g.get("width")),("h",g.get("height"))) if v is not None}
 
 frames=listing({"type":"frame"})
-candidates=[f for f in frames if abs(float(f.get("geometry",{}).get("width",0))-6920)<20 and abs(float(f.get("geometry",{}).get("height",0))-7160)<20]
+candidates=[f for f in frames if abs(float(f.get("geometry",{}).get("width",0))-6075)<20 and abs(float(f.get("geometry",{}).get("height",0))-7746)<20]
 if len(candidates)!=1:
     print("ROZMĚRY_RÁMCŮ:",[geo(f) for f in frames])
     raise RuntimeError("Cílový rámec nelze jednoznačně identifikovat")
