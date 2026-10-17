@@ -1,0 +1,27 @@
+name: Miro – bezpečná inventura doménových pásů
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/miro-inventura-pasmo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inventura:
+    name: Načíst rozměry, oddělovače a styly spojnic bez zápisu do Miro
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: miro-external-probe
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+    steps:
+      - name: Načíst aktuální zdrojový kód
+        uses: actions/checkout@v4
+      - name: Provést bezpečnou inventuru
+        run: python3 automatizace/miro/inventura_pasmo.py
