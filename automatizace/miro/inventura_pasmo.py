@@ -74,6 +74,39 @@ for c in connections:
     st=c.get("style") or {}
     stylecount[(str(st.get("strokeColor")),str(st.get("strokeStyle")),str(st.get("strokeWidth")),str(c.get("shape")))]+=1
 print("KONEKTORY_STYLY:",json.dumps([{"barva":k[0],"čára":k[1],"síla":k[2],"trasa":k[3],"počet":n} for k,n in stylecount.items()],ensure_ascii=False))
+# Rozsah událostí pro každý řádek (bez jejich obsahu).
+notes=[x for x in items if x.get("type")=="sticky_note"]
+others=[x for x in items if x.get("type")=="shape" and not any(x.get("id")==d.get("id") for _,d in domains)]
+for code,d in sorted(domains,key=lambda z:z[1].get("position",{}).get("y",0)):
+    yy=float(d.get("position",{}).get("y",0))
+    aligned=[x for x in notes if abs(float(x.get("position",{}).get("y",0))-yy)<=35]
+    shape_aligned=[x for x in others if abs(float(x.get("position",{}).get("y",0))-yy)<=35]
+    edge=max((float(x.get("position",{}).get("x",0))+float(x.get("geometry",{}).get("width",0))/2 for x in aligned),default=0)
+    edge_o=max((float(x.get("position",{}).get("x",0))+float(x.get("geometry",{}).get("width",0))/2 for x in shape_aligned),default=0)
+    print("ŘÁDEK",code,"události",len(aligned),"další_tvary",len(shape_aligned),"události_do_x",round(edge,1),"další_tvary_do_x",round(edge_o,1))
+# Konektory se nezobrazují ve výpisu potomků rámce, čtou se zvlášť.
+all_conns=[]
+cursor=None
+for _ in range(20):
+    q={"limit":50}
+    if cursor:q["cursor"]=cursor
+    resp=get("connectors",q)
+    all_conns.extend(resp.get("data",[]))
+    cursor=resp.get("cursor")
+    if not cursor:break
+member_ids={str(x.get("id")) for x in items}
+inside=[x for x in all_conns if
+        str((x.get("startItem") or {}).get("id")) in member_ids and
+        str((x.get("endItem") or {}).get("id")) in member_ids]
+print("SPOJNICE_CELKEM_A_V_RÁMCI:",len(all_conns),len(inside))
+patterns=collections.Counter()
+for x in inside:
+    st=x.get("style") or {}
+    patterns[(str(st.get("strokeColor")),str(st.get("strokeStyle")),str(st.get("strokeWidth")),str(st.get("endStrokeCap")))] +=1
+print("SPOJNICE_STYLY_V_RÁMCI:",json.dumps([{"barva":k[0],"čára":k[1],"síla":k[2],"hrot":k[3],"počet":v} for k,v in patterns.items()],ensure_ascii=False))
+if inside:
+    print("SPOJNICE_STYL_KLÍČE:",sorted((inside[0].get("style") or {}).keys()))
+    print("SPOJNICE_PŘÍMÉ_KLÍČE:",sorted(inside[0].keys()))
 if connections:
     print("KONEKTORY_KLÍČE:",sorted(connections[0]))
     print("KONEKTORY_STYL_KLÍČE:",sorted((connections[0].get("style") or {}).keys()))
