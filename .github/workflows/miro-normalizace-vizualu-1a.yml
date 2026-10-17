@@ -1,0 +1,31 @@
+name: Miro – úprava vzhledu CES-1A
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/miro-normalizace-vizualu-1a.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: miro-ces-1a-visual-change
+  cancel-in-progress: false
+
+jobs:
+  uprava:
+    name: Provést řízenou úpravu a následnou kontrolu Miro
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 15
+    environment: miro-external-probe
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      REZIM: sipky
+    steps:
+      - name: Načíst schválenou automatizaci
+        uses: actions/checkout@v4
+      - name: Provést požadovaný režim
+        run: python3 automatizace/miro/normalizace_vizualu_1a.py
