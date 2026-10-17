@@ -1,12 +1,6 @@
 name: Miro – sjednocení rohů doménových kontejnerů
 
 on:
-  # Bezpečná závěrečná diagnostika stylů bez zásahu do objektů Miro.
-  # Další změny vyžadují explicitní ruční režim (bez následné samovolné opravy).
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/miro-sjednoceni-rohu.yml'
   workflow_dispatch:
     inputs:
       rezim:
@@ -42,7 +36,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
-      REZIM: ${{ github.event_name == 'push' && 'diagnostika' || inputs.rezim }}
+      REZIM: ${{ inputs.rezim }}
       VIZUALNI_REVIZE_SCHVALENA: ${{ inputs.vizualni_revize_schvalena && 'ano' || 'ne' }}
     steps:
       - name: Načíst bezpečně pouze zdrojový kód
