@@ -12,7 +12,7 @@ f=frames[0]
 items=page("items",{"parent_item_id":id(f)})
 D={}
 for z in items:
-    if z.get("type")=="shape" and ww(z)>2900 and "Aktéři" in txt(z):
+    if z.get("type")=="shape" and hh(z) in (224,480,680) and "Aktéři" in txt(z):
         c=tag(z)
         if c in CODES:
             if c in D:raise RuntimeError("duplicate domain")
