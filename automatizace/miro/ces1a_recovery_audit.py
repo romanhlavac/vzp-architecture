@@ -67,3 +67,21 @@ print("APPROVED READBACK PASS: 131 native event cards; 51 distinct black connect
 print("FOUR-TEST BOUNDARY RATIONALE PASS:",len(reason_map),"regions with Hxx IDs")
 print("INTERACTION ZOOM PASS: 5 event references; branch-label sample",branch)
 print("LAYER VISIBILITY RISK, heuristic count (not a render):",older)
+
+# Visual-layout metrics. No business text or object IDs printed.
+codes=["S0","B1","B2","B3","B6","B8","B9"]
+for code in codes:
+    d=next(z for z in dom if tag(z)==code)
+    rat=next(z for z in reasons if abs(yy(z)-yy(d))<40)
+    block=txt(d)
+    rtext=txt(rat)
+    font=(d.get("style") or {}).get("fontSize")
+    near=[z for z in children if z.get("type")=="text" and abs(yy(z)-yy(d)) < (hh(d)/2+85)
+          and not any(word in txt(z) for word in ("ZOOM", "D01", "D04", "D06", "D08", "D09"))]
+    labels=sorted([(round(xx(z)),round(yy(z)-yy(d)),round(ww(z)),len(txt(z)),(z.get("style") or {}).get("fontSize")) for z in near],key=lambda x:x[1])
+    print("LAYOUT",code,"domain",round(xx(d)),round(yy(d)),round(ww(d)),round(hh(d)),
+          "font",font,"chars",len(block),"lines",block.count("\n")+block.count("<br/>"),
+          "has4tests",all(t in block for t in ("Pravidla","Životní cyklus","Využití","Odpovědnost")),
+          "rationale",round(xx(rat)),round(yy(rat)),round(ww(rat)),round(hh(rat)),"chars",len(rtext),
+          "near_text",labels)
+print("SCENE TEXT COUNT",sum(z.get("type")=="text" for z in children))
