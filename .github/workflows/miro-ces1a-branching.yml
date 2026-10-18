@@ -1,0 +1,37 @@
+name: VZP 1A · Approved ES branching and boundary rationale
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1a-branching.yml"
+      - "automatizace/miro/ces1a_branch_approved.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Audit or apply approved CES-related DEMO branching"
+        required: true
+        type: choice
+        default: audit
+        options: [audit, apply]
+permissions:
+  contents: read
+concurrency:
+  group: vzp-ces1a-branching-live-write
+  cancel-in-progress: false
+jobs:
+  branching:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 25
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      CES_BRANCH_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Syntax check
+        run: python3 -m py_compile automatizace/miro/ces1a_branch_approved.py
+      - name: Audit and apply approved model
+        run: python3 automatizace/miro/ces1a_branch_approved.py
