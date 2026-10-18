@@ -84,7 +84,7 @@ def call(method,path,payload=None,params=None):
                 data=ans.read()
                 return json.loads(data) if data else {}
         except urllib.error.HTTPError as e:
-            if e.code in (429,502,503,504) and n<4:time.sleep(min(25,2**n+1));continue
+            if e.code in (429,500,502,503,504) and n<4:time.sleep(min(25,2**n+1));continue
             raise RuntimeError(method+" "+path.split("/")[0]+" HTTP "+str(e.code)) from None
         except Exception:
             raise RuntimeError(method+" "+path.split("/")[0]+" unavailable") from None
@@ -122,7 +122,7 @@ def moved(z,dy,geom=None,content=None):
     return v
 def read():
     frames=page("items",{"type":"frame"})
-    f=[x for x in frames if close(ww(x),6075,25) and close(hh(x),7746,25)]
+    f=[x for x in frames if close(ww(x),6075,25) and (close(hh(x),7746,25) or close(hh(x),7746+EXTRA+ZOOM_EXTRA,25))]
     if len(f)!=1:raise RuntimeError("Exact CES-1A frame geometry changed")
     frame=call("GET","frames/"+id(f[0]))
     items=page("items",{"parent_item_id":id(frame)})
@@ -312,15 +312,23 @@ def apply():
     before_connections=connector_list()
     inframe={id(z) for z in items}
     inside=[c for c in before_connections if edge(c,"startItem") in inframe and edge(c,"endItem") in inframe]
-    if len(inside)!=50:raise RuntimeError("Baseline 1A connector count changed; no write")
+    partial=close(hh(fr),7746+EXTRA+ZOOM_EXTRA,25)
+    if (not partial and len(inside)!=50) or (partial and len(inside)!=17):
+        raise RuntimeError("Baseline/recovery connector count changed; no write")
     # All 20 original row centers and their relative shifts are frozen before writes.
     oldY={c:yy(domains[c]) for c in CODES}
     shifts={c:gapbefore(i) for i,c in enumerate(CODES)}
     reference_moves=EXTRA+ZOOM_EXTRA
-    safe_frame_expand(fr)
-    relocate_reference_blocks(refs,reference_moves)
-    # Remove incident links BEFORE recreating any old S0/B8/B9 endpoints.
-    dropped=prune_relevant_connectors(inside,affected)
+    if not partial:
+        safe_frame_expand(fr)
+        relocate_reference_blocks(refs,reference_moves)
+        # Remove incident links BEFORE recreating any old S0/B8/B9 endpoints.
+        dropped=prune_relevant_connectors(inside,affected)
+    else:
+        if any(edge(z,"startItem") in affected or edge(z,"endItem") in affected for z in inside):
+            raise RuntimeError("Recovery connector baseline contains unreviewed links")
+        dropped=33
+        print("RECOVERY RESUME: frame and references already shifted; 33 impacted connectors already removed")
     placement=link_plan_for_rows(rows)
     done=0
     # Update non-event children. Domain shapes are underlay, rationale boxes follow.
@@ -395,7 +403,8 @@ def apply():
     cons=connector_list()
     valid_ids={id(z) for z in allitems}
     linked=[z for z in cons if edge(z,"startItem") in valid_ids and edge(z,"endItem") in valid_ids]
-    if len(linked)!=len(inside)-dropped+created:
+    expected_links=(17 if partial else len(inside)-dropped)+created
+    if len(linked)!=expected_links:
         raise RuntimeError("Connector count not conserved")
     if any(str((z.get("style") or {}).get("strokeColor") or "").lower()!="#000000" for z in linked):
         raise RuntimeError("Non-black in-frame connector")
