@@ -138,6 +138,19 @@ def preflight():
     cap={}
     for code in SCENARIO:
         cap[code]=len(rowlabels(ch,code))
+    if MODE=="audit":
+        merged=sum(id(dom[c])==id(why[c]) for c in CODES)
+        separate=20-merged
+        compact=0
+        for c,items in cap.items():
+            for label,short in zip(rowlabels(ch,c),SCENARIO[c]):
+                if (plain(label)==short and close(xx(label),1334,6)
+                    and close(ww(label),305,6)):
+                    compact+=1
+        if merged==20 and separate==0 and compact==17:
+            print("FINAL VISUAL-STRUCTURE PASS: 20 embedded rationales; 0 separate boxes; 17 compact captions")
+        else:
+            print("VISUAL-STRUCTURE INCOMPLETE: embedded",merged,"separate",separate,"compact",compact)
     print("PREFLIGHT PASS: 20 domain shapes, 131 events, 51 black connectors")
     print("SEPARATE_BOUNDARY_BOXES:",len(code_size),"MERGE_ESTIMATED_LINES:",code_size)
     print("CES_SCENARIO_CAPTIONS:",cap)
