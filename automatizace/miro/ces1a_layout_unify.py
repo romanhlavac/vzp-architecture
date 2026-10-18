@@ -7,7 +7,7 @@ Modes: audit, pilot (B1), apply (all remaining).
 """
 import os,sys,re,html,textwrap
 from ces1a_branch_approved import call,page,id,xx,yy,ww,hh,close,txt,tag,edge
-from ces1a_branch_resume import oldY
+oldY=dict(zip(["A1","A2","A3","S0","B1","B2","B3","B4","B5","B6","B7","B8","B9","C1","D1","D2","D3","D4","D5","D6"],[468,735,1004,1273,1542,1811,2080,2349,2618,2887,3156,3425,3694,3963,4232,4501,4770,5039,5308,5577]))
 from ces1a_branch_approved import CODES,HEIGHTS,LANES,BRANCH_LABELS,scenecenter
 
 MODE=os.environ.get("CES_LAYOUT_MODE","audit")
