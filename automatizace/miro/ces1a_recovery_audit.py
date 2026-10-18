@@ -29,3 +29,41 @@ print("STICKIES ON ORIGINAL ROW CENTERS:",[sum(abs(yy(n)-cy)<=40 for n in notes)
 reasons=[x for x in children if x.get("type")=="shape" and "BOUNDARY RATIONALE" in txt(x).upper()]
 print("RATIONALE SHAPES EXPANDED:",sum(hh(x)>300 for x in reasons),"TOTAL:",len(reasons))
 print("TEXT OUTSIDE TOP:",sum(yy(x)>7200 for x in children if x.get("type")=="text"))
+
+from collections import Counter
+alltexts=[x for x in children if x.get("type")=="text"]
+allnotes=[x for x in children if x.get("type")=="sticky_note"]
+testcodes=["S0","B1","B2","B3","B6","B8","B9"]
+expected_h=["H01","H03","H04","H07","H09","H10","H11","H12","H13","H14","H15"]
+reason_map={}
+for c in testcodes:
+    d=next(z for z in dom if tag(z)==c)
+    rats=[x for x in children if x.get("type")=="shape" and
+          "BOUNDARY RATIONALE" in txt(x).upper() and abs(yy(x)-yy(d))<40]
+    if len(rats)!=1:raise RuntimeError("Boundary rationale count changed")
+    t=txt(rats[0])
+    if not all(word in t for word in ("Pravidla","Životní cyklus","Využití","Odpovědnost","H15")):
+        raise RuntimeError("Four-test boundary rationale incomplete")
+    reason_map[c]=len(t)
+titlecount=sum("CES INTERACTION ZOOM" in txt(z).upper() for z in alltexts)
+xref=[c for c in ["D01","D04","D06","D08","D09"]
+      if any(c+" ·" in txt(z) for z in alltexts)]
+branch=sum(any(word in txt(z) for word in
+    ("Standardní ztotožnění","Kontraktace poskytovatele",
+     "Ukončení vztahu","Přerozdělování","Refundace a vyúčtování"))
+    for z in alltexts)
+if len(allnotes)!=131 or len(inside)!=51 or titlecount!=1 or len(xref)!=5 or branch<4:
+    raise RuntimeError("Final 1A acceptance inventory mismatch")
+if any((z.get("style") or {}).get("strokeColor")!="#000000" for z in inside):
+    raise RuntimeError("Non-black connector in approved 1A")
+if len({(edge(z,"startItem"),edge(z,"endItem")) for z in inside})!=len(inside):
+    raise RuntimeError("Duplicate connector endpoint pair")
+older=0
+for d in dom:
+    old=[n for n in allnotes if abs(yy(n)-yy(d))<380 and
+         str(n.get("createdAt",""))<str(d.get("createdAt",""))]
+    if tag(d) in testcodes:older+=len(old)
+print("APPROVED READBACK PASS: 131 native event cards; 51 distinct black connectors")
+print("FOUR-TEST BOUNDARY RATIONALE PASS:",len(reason_map),"regions with Hxx IDs")
+print("INTERACTION ZOOM PASS: 5 event references; branch-label sample",branch)
+print("LAYER VISIBILITY RISK, heuristic count (not a render):",older)
