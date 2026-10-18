@@ -157,6 +157,262 @@ def audit():
     print("REFERENCE TEXT BLOCKS:",len(possible))
     if len(possible)!=2:raise RuntimeError("Reference blocks are not unique")
     return fr,items,dom,rows,why,possible
-if __name__=="__main__" and MODE=="audit":
-    try:audit();print("AUDIT ONLY. No Miro write.")
-    except Exception as e:print("FAIL:",e);sys.exit(1)
+
+ZOOM_EXTRA=1500
+CHRONOLOGY={
+ "S0":[(0,1),(1,2),(3,4),(4,6),(6,7)],
+ "B1":[(0,1),(1,2),(2,3),(5,6)],
+ "B2":[(0,1),(1,2),(3,4),(4,5),(5,6)],
+ "B3":[(0,1),(1,2),(2,3),(3,4)],
+ "B6":[(0,1),(1,3),(3,4),(4,5),(5,7)],
+ "B8":[(0,1),(1,2),(3,4),(4,5)],
+ "B9":[(0,1),(1,2),(2,3),(3,4),(6,7)],
+}
+BRANCH_LABELS={
+ "S0":["Standardní ztotožnění","Výjimka: nejednoznačná identita","Oprava referenčního údaje"],
+ "B1":["Registrace a vznik vztahu","Změny během pojištění","Ukončení vztahu"],
+ "B2":["Stanovení povinnosti","Předpis, platby a saldo","Podmíněné vymáhání"],
+ "B3":["Kontraktace poskytovatele","Změna údajů a dodatky","Ukončení smlouvy"],
+ "B6":["Podání a věcné vyřízení","Změna referenčních údajů","Samostatná reklamace"],
+ "B8":["Zahraniční nárok a výpomoc","Refundace a vyúčtování"],
+ "B9":["Agenda CRP","Kapitační agenda","Přerozdělování"],
+}
+def gapbefore(index):
+    return sum(HEIGHTS.get(CODES[i],224)-224 for i in range(index))
+def scenecenter(rowcode,lane,y):
+    top=y-112+gapbefore(CODES.index(rowcode))
+    return top+120+lane*(228 if rowcode=="B8" else 218)
+def replace_event_text(o):
+    return (o.get("data") or {}).get("content") or ""
+def connector_list():
+    out=page("connectors")
+    return [call("GET","connectors/"+id(z)) for z in out]
+def edge(c,k):return str((c.get(k) or {}).get("id") or "")
+def link_plan_for_rows(rows):
+    result={}
+    for code,branch in LANES.items():
+        for lane,indices in enumerate(branch):
+            for j,index in enumerate(indices):
+                if index=="NEW":continue
+                x=1610+j*430
+                if code=="S0" and lane==0:
+                    x={0:1610,1:2040,2:3350}[index]
+                if code=="S0" and lane==1:
+                    x=2920
+                result[(code,index)]=(x,lane)
+    return result
+def rationale_content(code):
+    lines=["<p><b>BOUNDARY RATIONALE · DEMO / K BUSINESS VALIDACI</b></p>"]
+    for h,v in RATIONALE[code]:
+        lines.append("<p><b>"+html.escape(h)+"</b><br/>"+html.escape(v)+"</p>")
+    lines.append("<p><i>Zdroje: "+SOURCES[code]+"; owner/atributová autorita OPEN. Heuristiky ≠ schválení hranice.</i></p>")
+    return "".join(lines)
+def update_header_legend_text(items):
+    count=0
+    for obj in items:
+        if obj.get("type")!="text":continue
+        name=txt(obj).upper()
+        update=None
+        if "KANDIDÁTNÍ L1 DOMÉNY" in name and "METODICKÉ" not in name:
+            update=None
+        elif "HODNOCENÍ HRANIC" in name or "DOMÉNOVÉ HRANICE" in name:
+            update="VERTIKÁLNÍ VĚTVE = ALTERNATIVNÍ / SOUBĚŽNÉ BUSINESS SCÉNÁŘE"
+        elif "ČERNÁ ŠIPKA" in name:
+            update="ČERNÁ ŠIPKA = VÝZNAMNÁ BUSINESS NÁVAZNOST; NE INVOKACE"
+        elif "ZLEVA DOPRAVA" in name:
+            update="ZLEVA DOPRAVA = ORIENTAČNÍ ČAS V DANÉM SCÉNÁŘI"
+        if update and txt(obj)!=update:
+            call("PATCH","texts/"+id(obj),{"data":{"content":update}})
+            count+=1
+    return count
+def relocate_reference_blocks(refs,dy):
+    for z in refs:
+        moved(detail(z),dy)
+def safe_frame_expand(frame):
+    d={"geometry":{"width":ww(frame),"height":hh(frame)+EXTRA+ZOOM_EXTRA},
+       "position":{"x":xx(frame),"y":yy(frame)+(EXTRA+ZOOM_EXTRA)/2,"origin":"center"}}
+    call("PATCH","frames/"+id(frame),d)
+    readback=call("GET","frames/"+id(frame))
+    if not close(hh(readback),hh(frame)+EXTRA+ZOOM_EXTRA,4):
+        raise RuntimeError("Frame resize verification failed")
+    return readback
+def scenario_event_ids(rows):
+    return {id(z) for c in LANES for z in rows[c]}
+def prune_relevant_connectors(existing,related_event_ids):
+    # Only connectors incident to approved CES-related events are rebuilt;
+    # untouched other-area links remain unchanged.
+    dropped=0
+    for con in existing:
+        if edge(con,"startItem") in related_event_ids or edge(con,"endItem") in related_event_ids:
+            call("DELETE","connectors/"+id(con));dropped+=1
+    return dropped
+def add_new_subject_event(frame,x,y):
+    content="Více možných shod bylo zjištěno"
+    payload={"data":{"content":content,"shape":"rectangle"},
+             "style":{"fillColor":"orange","textAlign":"center","textAlignVertical":"middle"},
+             "geometry":{"width":258},"position":{"x":x,"y":y,"origin":"center"},
+             "parent":{"id":id(frame)}}
+    created=call("POST","sticky_notes",payload)
+    if not created.get("id"):raise RuntimeError("Approved new S0 event creation failed")
+    obj=call("GET","sticky_notes/"+id(created))
+    if txt(obj)!=content or parent(obj)!=id(frame):
+        raise RuntimeError("New subject-event readback mismatch")
+    return obj
+def create_link(a,b):
+    out=call("POST","connectors",{
+        "startItem":{"id":id(a),"snapTo":"auto"},
+        "endItem":{"id":id(b),"snapTo":"auto"},
+        "shape":"curved","style":{"strokeColor":"#000000","strokeWidth":2,
+                   "strokeStyle":"normal","startStrokeCap":"none",
+                   "endStrokeCap":"rounded_stealth"},"captions":[]})
+    if not out.get("id"):raise RuntimeError("No ID after connector creation")
+    ck=call("GET","connectors/"+id(out))
+    if edge(ck,"startItem")!=id(a) or edge(ck,"endItem")!=id(b):raise RuntimeError("New local connector mismatch")
+    return ck
+def clone_front(o,frame):
+    obj=call("GET","sticky_notes/"+id(o))
+    if not obj.get("data") or not obj.get("style") or parent(obj)!=id(frame):
+        raise RuntimeError("Cannot safely restore event stacking")
+    new=call("POST","sticky_notes",{
+       "data":obj["data"],"style":obj["style"],
+       "geometry":{"width":ww(obj)},
+       "position":{"x":xx(obj),"y":yy(obj),"origin":"center"},
+       "parent":{"id":id(frame)}})
+    restored=call("GET","sticky_notes/"+id(new))
+    if txt(restored)!=txt(obj) or not close(xx(restored),xx(obj),3) or not close(yy(restored),yy(obj),3):
+        raise RuntimeError("Z-layer replacement comparison failed")
+    call("DELETE","sticky_notes/"+id(obj))
+    return restored
+def text_create(frame,x,y,w,content,font=20):
+    obj=call("POST","texts",{
+        "data":{"content":content},
+        "style":{"color":"#26353A","fontFamily":"open_sans","fontSize":str(font),"textAlign":"left"},
+        "geometry":{"width":w},"position":{"x":x,"y":y,"origin":"center"},
+        "parent":{"id":id(frame)}})
+    if not obj.get("id"):raise RuntimeError("Text element creation failed")
+    return obj
+def zoom(frame,model):
+    title="<b>CES INTERACTION ZOOM – REFERENCE NA STEJNÉ BUSINESS UDÁLOSTI</b>"
+    sub="Následující řádky odkazují na původní Event Storming události. Nejsou to další event cards. Černá šipka = významná business návaznost; ne automatické spuštění."
+    text_create(frame,3000,10820,5100,title,28)
+    text_create(frame,3000,10885,5100,sub,18)
+    for j,(name,(a,ai),(b,bi),rationale) in enumerate(FIVE):
+        source=model[a][ai];target=model[b][bi]
+        # Render as neutral text references, not as orange events.
+        title="<b>"+name+" · "+html.escape(rationale)+"</b>"
+        pair=("<b>Zdroj:</b> "+html.escape(txt(source))+
+              "　<b>→</b>　<b>Cíl:</b> "+html.escape(txt(target)))
+        text_create(frame,3000,11005+145*j,5300,title+"<br/>"+pair,19)
+    text_create(frame,3000,11740,5300,
+        "Hranice S0 je vysvětlena kombinací H04/H09 (pravidla), H13/H14 (životní cyklus), H03/H11 (sdílené výsledky) a H01/H15 (odpovědnost). B8/B9: autorita a konkrétní scénář OPEN.",18)
+def apply():
+    fr,items,domains,rows,reasons,refs=audit()
+    original_rows={k:list(v) for k,v in rows.items()}
+    affected=scenario_event_ids(rows)
+    before_connections=connector_list()
+    inframe={id(z) for z in items}
+    inside=[c for c in before_connections if edge(c,"startItem") in inframe and edge(c,"endItem") in inframe]
+    if len(inside)!=50:raise RuntimeError("Baseline 1A connector count changed; no write")
+    # All 20 original row centers and their relative shifts are frozen before writes.
+    oldY={c:yy(domains[c]) for c in CODES}
+    shifts={c:gapbefore(i) for i,c in enumerate(CODES)}
+    reference_moves=EXTRA+ZOOM_EXTRA
+    relocate_reference_blocks(refs,reference_moves)
+    safe_frame_expand(fr)
+    # Remove incident links BEFORE recreating any old S0/B8/B9 endpoints.
+    dropped=prune_relevant_connectors(inside,affected)
+    placement=link_plan_for_rows(rows)
+    done=0
+    # Update non-event children. Domain shapes are underlay, rationale boxes follow.
+    domain_ids={id(d) for d in domains.values()}
+    why_ids={id(d) for d in reasons.values()}
+    event_ids={id(n) for row in rows.values() for n in row}
+    for c in CODES:
+        idx=CODES.index(c);shift=shifts[c]
+        d=detail(domains[c]);oldheight=hh(d);newheight=HEIGHTS.get(c,224)
+        moved(d,shift+(newheight-oldheight)/2,geom=newheight)
+        if c in reasons:
+            rat=detail(reasons[c])
+            moved(rat,shift+(newheight-224)/2,geom=newheight-16,content=rationale_content(c))
+            done+=1
+    # Other per-row shapes and texts are moved down to remain on their matching rows.
+    for item in items:
+        if id(item) in domain_ids|why_ids|event_ids:continue
+        typ=item.get("type")
+        if typ not in ("shape","text"):continue
+        y=yy(item)
+        if y<oldY["S0"]-130:continue
+        i=min(range(20),key=lambda j:abs(y-oldY[CODES[j]]))
+        code=CODES[i]
+        dy=gapbefore(i)
+        if y>oldY["D6"]+250:dy=EXTRA
+        # Move one small row-local auxiliary widget with each band.
+        if dy:moved(detail(item),dy)
+    # Reposition notes according to the exact approved branches.
+    rebuilt={}
+    for c in CODES:
+        if c not in LANES:
+            dy=shifts[c]
+            for z in original_rows[c]:
+                if dy:moved(detail(z),dy)
+            rebuilt[c]=original_rows[c]
+            continue
+        rebuilt[c]=list(original_rows[c])
+        for lane,indices in enumerate(LANES[c]):
+            for laneidx,index in enumerate(indices):
+                if index=="NEW":continue
+                obj=detail(original_rows[c][index])
+                x,l=placement[(c,index)]
+                y=scenecenter(c,l,oldY[c])
+                call("PATCH","sticky_notes/"+id(obj),{"position":{"x":x,"y":y,"origin":"center"}})
+                fresh=call("GET","sticky_notes/"+id(obj))
+                if not(close(xx(fresh),x,3) and close(yy(fresh),y,3)):
+                    raise RuntimeError("Scenario card position mismatch")
+                rebuilt[c][index]=fresh
+        # Refresh the two rows where backgrounds are known newer than the cards:
+        # create identical native Stickies ON TOP of the background, then retire old.
+        if c in ("B8","B9"):
+            for i,z in enumerate(rebuilt[c]):
+                rebuilt[c][i]=clone_front(z,fr)
+    # One user-approved new event in the identity ambiguity branch.
+    subj=add_new_subject_event(fr,2490,scenecenter("S0",1,oldY["S0"]))
+    created=0
+    for c,pairs in CHRONOLOGY.items():
+        for a,b in pairs:
+            create_link(rebuilt[c][a],rebuilt[c][b]);created+=1
+    create_link(rebuilt["S0"][1],subj);created+=1
+    create_link(subj,rebuilt["S0"][5]);created+=1
+    # The five selected cross-area business links are visible together in
+    # an explicit Zoom of REFERENCES, not drawn diagonally through other event cards.
+    zoom(fr,rebuilt)
+    leg=update_header_legend_text(items)
+    # Exact REST read-back
+    allitems=page("items",{"parent_item_id":id(fr)})
+    stickies=[z for z in allitems if z.get("type")=="sticky_note"]
+    if len(stickies)!=131:raise RuntimeError("Expected 131 native ES event cards")
+    if any(re.match(r"^(A\d|B\d|S0)\.\d{2}",txt(z)) for z in stickies):
+        raise RuntimeError("Domain identifier leaked into event text")
+    cons=connector_list()
+    valid_ids={id(z) for z in allitems}
+    linked=[z for z in cons if edge(z,"startItem") in valid_ids and edge(z,"endItem") in valid_ids]
+    if len(linked)!=len(inside)-dropped+created:
+        raise RuntimeError("Connector count not conserved")
+    if any(str((z.get("style") or {}).get("strokeColor") or "").lower()!="#000000" for z in linked):
+        raise RuntimeError("Non-black in-frame connector")
+    for c in LANES:
+        why=page("items",{"parent_item_id":id(fr)})
+        match=[x for x in why if x.get("type")=="shape" and "BOUNDARY RATIONALE" in txt(x).upper()
+               and c in CODES and close(yy(x),oldY[c]+shifts[c]+(HEIGHTS[c]-224)/2,35)]
+        if len(match)!=1 or "H15" not in txt(match[0]):raise RuntimeError("Boundary rationale readback failed")
+    print("LIVE WRITE PASS: 7 branched business areas; one approved new S0 event")
+    print("BUSINESS BOUNDARY PASS: 7 four-test rationales with H-IDs")
+    print("CONNECTORS: old relevant removed=%d, new scenario links=%d, final=%d"%(dropped,created,len(linked)))
+    print("CES INTERACTION ZOOM PASS: 5 cross-scenario textual references")
+    print("STRUCTURAL PASS: %d sticky events; frame enlarged by %d; legend changes=%d"%(len(stickies),EXTRA+ZOOM_EXTRA,leg))
+    print("VISUAL RENDER REVIEW: remains OPEN until human screenshot acceptance")
+if __name__=="__main__":
+    try:
+        if MODE=="audit":audit();print("AUDIT ONLY: no board mutations")
+        else:apply()
+    except Exception as e:
+        print("FAIL:",str(e));sys.exit(1)
