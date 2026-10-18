@@ -27,7 +27,7 @@ jobs:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
       CES_BRANCH_MODE: audit
-      CES_TYPO_MODE: ${{ github.event_name == 'push' && 'pilot' || inputs.mode }}
+      CES_TYPO_MODE: ${{ github.event_name == 'push' && 'apply' || inputs.mode }}
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
