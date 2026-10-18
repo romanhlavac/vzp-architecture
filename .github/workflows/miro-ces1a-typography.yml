@@ -1,0 +1,23 @@
+name: VZP 1A · Typography audit S0
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1a-typography.yml"
+      - "automatizace/miro/ces1a_format_audit.py"
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 10
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      CES_BRANCH_MODE: audit
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Audit
+        run: python3 automatizace/miro/ces1a_format_audit.py
