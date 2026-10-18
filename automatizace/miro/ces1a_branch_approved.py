@@ -317,8 +317,8 @@ def apply():
     oldY={c:yy(domains[c]) for c in CODES}
     shifts={c:gapbefore(i) for i,c in enumerate(CODES)}
     reference_moves=EXTRA+ZOOM_EXTRA
-    relocate_reference_blocks(refs,reference_moves)
     safe_frame_expand(fr)
+    relocate_reference_blocks(refs,reference_moves)
     # Remove incident links BEFORE recreating any old S0/B8/B9 endpoints.
     dropped=prune_relevant_connectors(inside,affected)
     placement=link_plan_for_rows(rows)
