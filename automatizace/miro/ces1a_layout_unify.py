@@ -122,8 +122,8 @@ def clone_short_label(frame,old,newtext):
     created=call("POST","texts",data)
     if not created.get("id"):raise RuntimeError("short caption creation failed")
     fresh=call("GET","texts/"+id(created))
-    if plain(fresh)!=newtext or not close(xx(fresh),x,3) or not close(yy(fresh),y,3) or
-       not close(ww(fresh),305,5) or par(fresh)!=id(frame):
+    if (plain(fresh)!=newtext or not close(xx(fresh),x,3) or not close(yy(fresh),y,3) or
+        not close(ww(fresh),305,5) or par(fresh)!=id(frame)):
         raise RuntimeError("short caption readback failed")
     call("DELETE","texts/"+id(old))
     return True
@@ -168,8 +168,8 @@ def execute(pilot):
             raise RuntimeError("remaining standalone rationale "+code)
     for c in (["B1"] if pilot else list(SCENARIO)):
         for item,text in zip(rowlabels(ch,c),SCENARIO[c]):
-            if plain(item)!=text or not close(xx(item),1334,6) or
-               not close(ww(item),305,6):
+            if (plain(item)!=text or not close(xx(item),1334,6) or
+                not close(ww(item),305,6)):
                 raise RuntimeError("caption acceptance failed "+c)
     print("LIVE LAYOUT REST PASS: domain rationale merged",changed,"compact captions",labels)
     print("UNMODIFIED MODEL PASS: 131 event cards and 51 black connectors")
