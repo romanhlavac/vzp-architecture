@@ -1,0 +1,37 @@
+name: VZP CES-1A · Compact domain rationale and scenario captions
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1a-layout.yml"
+      - "automatizace/miro/ces1a_layout_unify.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        required: true
+        type: choice
+        default: audit
+        options: [audit, pilot, apply]
+permissions:
+  contents: read
+concurrency:
+  group: vzp-ces1a-layout-edit
+  cancel-in-progress: false
+jobs:
+  run:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    environment: miro-external-probe
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      CES_BRANCH_MODE: audit
+      CES_LAYOUT_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Validate Python
+        run: python3 -m py_compile automatizace/miro/ces1a_layout_unify.py
+      - name: Audit then normalize CES-1A visuals through Miro REST v2
+        run: python3 automatizace/miro/ces1a_layout_unify.py
