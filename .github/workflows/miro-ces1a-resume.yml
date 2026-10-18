@@ -1,0 +1,37 @@
+name: VZP 1A · Restore approved scenario cards
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1a-resume.yml"
+      - "automatizace/miro/ces1a_branch_resume.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        required: true
+        type: choice
+        default: audit
+        options: [audit, apply]
+permissions:
+  contents: read
+concurrency:
+  group: vzp-ces1a-recovery-resume
+  cancel-in-progress: false
+jobs:
+  resume:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 25
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      CES_BRANCH_MODE: audit
+      CES_RECOVERY_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Compile
+        run: python3 -m py_compile automatizace/miro/ces1a_branch_resume.py
+      - name: Resume guarded CES scenario layout
+        run: python3 automatizace/miro/ces1a_branch_resume.py
