@@ -17,7 +17,10 @@ for z in items:
         if c in CODES:
             if c in D:raise RuntimeError("duplicate domain")
             D[c]=call("GET","shapes/"+id(z))
-if len(D)!=20:raise RuntimeError("wrong domain count")
+if len(D)!=20:
+    print("DOMAIN_DISCOVERY",len(D),"codes",sorted(D),"shape_count",sum(x.get("type")=="shape" for x in items))
+    print("CANDIDATES",[(tag(x),int(ww(x)),int(hh(x)),"Aktéři" in txt(x)) for x in items if x.get("type")=="shape" and ww(x)>2900])
+    raise RuntimeError("wrong domain count")
 def fingerprint(d):
     content=str((d.get("data") or {}).get("content") or "")
     style=d.get("style") or {}
