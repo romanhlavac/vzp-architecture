@@ -1,0 +1,37 @@
+name: VZP CES-1A · S0 typography and structure
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1a-s0-typography.yml"
+      - "automatizace/miro/ces1a_s0_typography.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        required: true
+        type: choice
+        default: audit
+        options: [audit,pilot,apply]
+permissions:
+  contents: read
+concurrency:
+  group: vzp-ces1a-s0-typography
+  cancel-in-progress: false
+jobs:
+  typography:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: miro-external-probe
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      CES_BRANCH_MODE: audit
+      CES_TYPO_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Compile visual normalization
+        run: python3 -m py_compile automatizace/miro/ces1a_s0_typography.py
+      - name: Validate and normalize typography against S0
+        run: python3 automatizace/miro/ces1a_s0_typography.py
