@@ -21,3 +21,11 @@ print("connectors",len(inside),"total on board",len(cs))
 print("reference blocks",len(ref),"positions",[(round(xx(x)),round(yy(x))) for x in ref])
 print("event count",sum(x.get("type")=="sticky_note" for x in children))
 print("metadata category counts",dict(Counter(tag(x) for x in dom)))
+
+old_centers=[468,735,1004,1273,1542,1811,2080,2349,2618,2887,3156,3425,3694,3963,4232,4501,4770,5039,5308,5577]
+print("CURRENT DOMAIN Y/HEIGHT:",[(tag(x),round(yy(x)),round(hh(x))) for x in sorted(dom,key=yy)])
+notes=[x for x in children if x.get("type")=="sticky_note"]
+print("STICKIES ON ORIGINAL ROW CENTERS:",[sum(abs(yy(n)-cy)<=40 for n in notes) for cy in old_centers])
+reasons=[x for x in children if x.get("type")=="shape" and "BOUNDARY RATIONALE" in txt(x).upper()]
+print("RATIONALE SHAPES EXPANDED:",sum(hh(x)>300 for x in reasons),"TOTAL:",len(reasons))
+print("TEXT OUTSIDE TOP:",sum(yy(x)>7200 for x in children if x.get("type")=="text"))
