@@ -1,0 +1,20 @@
+name: VZP ES v14 original grouping inventory
+on:
+  push:
+    branches: [main]
+    paths: ["automatizace/miro/ces1a_v14_regroup.py", ".github/workflows/miro-ces1a-v14-regroup.yml"]
+permissions: {contents: read}
+jobs:
+  regroup:
+    if: github.repository == 'romanhlavac/vzp-architecture'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 20
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/ces1a_v14_regroup.py
+      - run: python3 automatizace/miro/ces1a_v14_regroup.py
