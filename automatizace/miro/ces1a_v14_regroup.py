@@ -59,6 +59,8 @@ def main():
   print("COVERAGE_ANCHOR",c,"n",len(cards),"x",round(statistics.median(x(z) for z in cards)),"y",round(statistics.median(y(z) for z in cards)),
         "bounds",tuple(round(v) for v in (min(x(z) for z in cards),max(x(z) for z in cards),min(y(z) for z in cards),max(y(z) for z in cards))),
         "sizes",dict(collections.Counter(round(w(z)) for z in cards)))
+ print("ORIGINAL_STICKY_STYLES",dict(collections.Counter(str((z.get("style") or {}).get("fillColor")) for z in oldnotes)))
+ print("ORIGINAL_STICKY_GEOMETRY",dict(collections.Counter((round(w(z)),round(float((z.get("geometry") or {}).get("height") or 0))) for z in oldnotes)))
  print("READ_ONLY_NO_WRITES")
 if __name__=="__main__":
  try:main()
