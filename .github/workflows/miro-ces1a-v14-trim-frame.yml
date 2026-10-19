@@ -1,0 +1,21 @@
+name: VZP ES v14 frame compacting
+on:
+  push:
+    branches: [main]
+    paths: ["automatizace/miro/ces1a_v14_trim_frame.py", ".github/workflows/miro-ces1a-v14-trim-frame.yml"]
+permissions: {contents: read}
+jobs:
+  trim:
+    if: github.repository == 'romanhlavac/vzp-architecture'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 25
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      V14_TRIM_MODE: ${{ github.event_name == 'push' && 'audit' }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/ces1a_v14_trim_frame.py
+      - run: python3 automatizace/miro/ces1a_v14_trim_frame.py
