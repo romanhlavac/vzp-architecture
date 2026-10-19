@@ -308,7 +308,7 @@ def revalidate(s,st,mode):
         if any(not domain_count[c] for c in RULES["codes"]):raise RuntimeError("EMPTY_DOMAIN_AFTER_MAPPING")
         if any(z.get("shape")!="curved" for z in links):raise RuntimeError("NATIVE_CONNECTOR_MISMATCH")
         textitems=[z for z in target if z.get("type")=="text"]
-        if len(textitems)!=147+4+51:raise RuntimeError("DESCRIPTION_OR_REFERENCE_TEXT_MISSING")
+        if len(textitems)!=147+5+51:raise RuntimeError("DESCRIPTION_OR_REFERENCE_TEXT_MISSING")
         if len([z for z in target if z.get("type")=="shape"])!=40+102:raise RuntimeError("DOMAIN_OR_REFERENCE_SHAPES_MISSING")
         print("L1V3_VALIDATION_PASS","primary",len(cards),"descriptions",len(textitems)-55,
               "domain_rows",len(domain_count),"links",len(links),"source_protected",True,
