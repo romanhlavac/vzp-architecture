@@ -297,7 +297,7 @@ def revalidate(s,st,mode):
     cards=[z for z in target if z.get("type")=="sticky_note"]
     ids={oid(z) for z in target}
     links=[z for z in con if edge(z,"startItem") in ids and edge(z,"endItem") in ids]
-    ex=(len(s["events"]["A1"]),1) if mode=="pilot" else (147,51)
+    ex=(len(s["events"]["A1"]),0) if mode=="pilot" else (147,51)
     if len(cards)!=ex[0] or len(links)!=ex[1]:raise RuntimeError("L1V3_TARGET_COUNTS_"+str((len(cards),len(links))))
     if mode=="apply":
         original=collections.Counter(txt(z) for z in s["notes"])
@@ -341,12 +341,7 @@ def main():
     doms=["A1"] if MODE=="pilot" else RULES["codes"]
     for c in doms:dom(st,c)
     if MODE=="pilot":
-        # References can link to the first pilot event on each side.
-        ev=s["events"]["A1"][0]
-        fake= {"startItem":{"id":oid(ev)},"endItem":{"id":oid(ev)},
-               "style":{"strokeColor":"#111111","strokeWidth":"2"},
-               "shape":"curved","captions":[]}
-        relation(st,0,fake)
+        print("L1V3_PILOT_DOMAIN_ONLY_NO_INVALID_CONNECTORS",flush=True)
     else:
         for i,z in enumerate(s["links"]):relation(st,i,z)
     revalidate(s,st,MODE)
