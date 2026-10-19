@@ -226,6 +226,8 @@ def execute():
     already=sum(c.get("shape")=="curved" for c in links)
     print("PREFLIGHT PASS: v12 110 events 46 links; curved=%d; moved_notes=%d"%(already,sum(x[2] for x in moves.values())))
     if MODE=="audit":
+        shapes=[(v.get("startItem") or {},v.get("endItem") or {}) for v in links if v.get("shape")=="curved"]
+        print("CURVED_ENDPOINT_READBACK:",[{"s":{"snapTo":x.get("snapTo"),"position":x.get("position")},"e":{"snapTo":y.get("snapTo"),"position":y.get("position")}} for x,y in shapes[:2]])
         print("AUDIT ONLY: no Miro writes");return
     if MODE=="pilot":
         candidates=sorted([c for c in links if c.get("shape")!="curved"],
