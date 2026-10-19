@@ -235,6 +235,26 @@ def main():
   print("REGROUP_GEOMETRY_MISMATCHES",len(issues),"DETAIL",issues[:31],flush=True)
   print("REGROUP_AUDIT_LABELS",sum(txt(bykey[k][0])==SHORT[k] for k in SHORT),"/37",
         "generated_headers",len(extras),flush=True)
+  short_ok=sum(txt(bykey[k][0])==SHORT[k] for k in SHORT)
+  location_issues=[k for k,(px,py) in positions.items() if abs(x(bykey[k][0])-px)>2 or abs(y(bykey[k][0])-py)>2]
+  target_ids={oid(z) for z in tnotes}
+  valid_links=[z for z in old_edges if eid(z,"startItem") in target_ids and eid(z,"endItem") in target_ids]
+  if short_ok!=37 or location_issues or len(extras)!=4 or len(ttexts)!=22:
+   raise RuntimeError("FINAL_CONTENT_OR_POSITION_DRIFT")
+  if abs(width(v14)-18000)>2 or abs(height(v14)-13700)>2:raise RuntimeError("FINAL_FRAME_GEOMETRY_DRIFT")
+  if len(valid_links)!=51 or any(z.get("shape")!="curved" for z in valid_links):
+   raise RuntimeError("FINAL_NATIVE_CONNECTORS_DRIFT")
+  original110={txt(z) for z in source_notes if not re.match(r"^N\d\d\s+·",txt(z))}
+  if not original110.issubset({txt(z) for z in tnotes}):raise RuntimeError("ORIGINAL_110_DRIFT")
+  if any(re.match(r"^(EV\d\d|N\d\d)\s+·",txt(z)) for z in tnotes):
+   raise RuntimeError("VISIBLE_TECHNICAL_IDS_REMAIN")
+  for a,b in CAUSAL:
+   if not any(eid(z,"startItem")==oid(bykey[a][0]) and eid(z,"endItem")==oid(bykey[b][0]) for z in valid_links):
+    raise RuntimeError("NEW_BUSINESS_LINK_LOST")
+  print("REGROUP_FINAL_STRUCTURAL_PASS","147 events","37 short labels","31 positions","4 new headers",
+        "51 native arrows","compact frame 18000x13700",
+        "outstanding_width_exception",sum(abs(width(bykey[k][0])-387)>2 for k in positions),flush=True)
+
   print("REGROUP_PLAN","near_original_groups",len(ANCHORS),"new_blocks",len(PANELS),"concise_texts",len(SHORT),"EV_labels_removed",len(EVS),"N_labels_removed",len(NS))
   print("AUDIT_ONLY_NO_WRITES");return
  patchkeys=["EV06"] if MODE=="pilot" else list(SHORT)
