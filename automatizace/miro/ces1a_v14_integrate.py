@@ -247,6 +247,9 @@ def main():
            "style":{"fillColor":"orange","textAlign":"center"},
            "position":{"x":pos[0],"y":pos[1],"origin":"center"}}
   call("PATCH","sticky_notes/"+oid(z),payload)
+  # Miro REST sometimes retains geometry when patched alongside content/position.
+  # Re-issue only the width as its own guarded PATCH operation.
+  call("PATCH","sticky_notes/"+oid(z),{"geometry":{"width":387}})
   if seq%7==0:print("REGROUP_PATCH_PROGRESS",seq+1,flush=True)
  if MODE=="apply":
   # Eliminate the now-obsolete 14 isolated rows + obsolete big right-side header.
