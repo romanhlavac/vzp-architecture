@@ -246,39 +246,6 @@ def execute():
     if MODE=="audit":
         shapes=[(v.get("startItem") or {},v.get("endItem") or {}) for v in links if v.get("shape")=="curved"]
         print("CURVED_ENDPOINT_READBACK:",[{"s":{"snapTo":x.get("snapTo"),"position":x.get("position")},"e":{"snapTo":y.get("snapTo"),"position":y.get("position")}} for x,y in shapes[:2]])
-        # Read-only coverage signals for business-event candidates, no event text/IDs in logs.
-        import re, html, unicodedata
-        def plain(s):
-            s=html.unescape(re.sub(r"<[^>]+>"," ",str(s or ""))).lower()
-            return "".join(z for z in unicodedata.normalize("NFKD",s) if not unicodedata.combining(z))
-        labels=[plain((n.get("data") or {}).get("content")) for n in notes.values()]
-        tests={
-          "G01":["pohledav|dluh|nedoplat|preplat","zmen|oprav|zpetn"],
-          "G02":["dodatec|domer|kontrol|stanov","pojistn|povinnost"],
-          "G03":["regres|nahrad.*naklad|cizi zavin"],
-          "G04":["vymah|exekuc"],
-          "G05":["smlouv|rozsah|kapacit","zmen|dodat|rozsir"],
-          "G06":["vyuct|vykazan|uhrad|pece","odmit|neuzna|neproplac|kracen"],
-          "G07":["doplatk|limit","vracen|preplat|vyporad"],
-          "G08":["schval|souhlas|povol","uhrad|lec|sluzb|pece"],
-          "G09":["zam it|neschval|zam itn|nepovol|odmit","uhrad|lec|sluzb|pece"],
-          "G10":["neopravn|reviz|kontrol|podvod","vykazan|uhrad|pec"],
-          "G11":["prispev|bonus|benefit","prevenc|schval|priznan"],
-          "G12":["namit|odvolan|reklamac","zmen|vyhov|rozhod"],
-          "G13":["zahranic|jineho statu|cizi pojist","prislusn|narok"],
-          "G14":["zahranic|planovan","schval|povol|souhlas"],
-          "G15":["zahranic|mezistat|instituc","vyuct|vyporad|zavaz|pohledav"],
-          "G16":["registrac|registrovan","kapitac|praktick|poskytovat"],
-          "G17":["prerozdel|zvlastni ucet"],
-          "G18":["pausaln","osvc|rezim"],
-          "G19":["neposkytnut|nevykonan|zpochybn","pec|vykazan"],
-          "G20":["prestoup|preregistr|pojisteni vznik|vznikl.*pojist"],
-          "G21":["zastup|opravnen","subjekt|osob"],
-          "G22":["kategor|platce","zmen|vznik|ztratil"]
-        }
-        for name,groups in tests.items():
-            count=sum(all(re.search(p,t) for p in groups) for t in labels)
-            print("COVERAGE_SIGNAL",name,count)
         print("AUDIT ONLY: no Miro writes");return
     if MODE=="pilot":
         candidates=sorted([c for c in links if c.get("shape")!="curved"],
