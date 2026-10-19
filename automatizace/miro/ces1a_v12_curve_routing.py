@@ -82,7 +82,9 @@ def load():
     frames=listing("items",{"type":"frame"})
     choices=[f for f in frames if near(wh(f)[0],WIDTH,5) and near(wh(f)[1],HEIGHT,5)
              and near(xy(f)[0],FRAME_CX,8) and near(xy(f)[1],FRAME_CY,8)]
-    if len(choices)!=1: raise RuntimeError("V12 frame geometry / identity not unique: "+str(len(choices)))
+    if len(choices)!=1:
+        print("FRAME_GEOMETRY_DIAGNOSTIC:",[(round(wh(z)[0]),round(wh(z)[1]),round(xy(z)[0]),round(xy(z)[1])) for z in frames if 15000<wh(z)[0]<22000][:30])
+        raise RuntimeError("V12 frame geometry / identity not unique: "+str(len(choices)))
     f=choices[0];fid=ident(f)
     children=listing("items",{"parent_item_id":fid})
     notes={ident(x):x for x in children if x.get("type")=="sticky_note"}
