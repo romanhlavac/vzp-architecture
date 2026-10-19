@@ -47,6 +47,20 @@ def main():
         for k in known:
             if k in s:known[k]+=1
     print("ANCHOR_SIGNALS",known)
+    # Generalized semantic/row coverage, aggregate-only telemetry.
+    import pathlib
+    from landscape_build import RULES
+    def digest(s):return hashlib.sha256(s.encode()).hexdigest()
+    hnotes={digest(text(x)):x for x in notes}
+    print("RULE_HASH_COVERAGE",sum(len([h for h in vals if h in hnotes]) for vals in RULES["groups"].values()),"of",len(notes))
+    for c in ("B1","B2","B3","B4","B5","B6","B8","B9"):
+        xs=[hnotes[h] for h in RULES["groups"][c] if h in hnotes]
+        if xs:
+            ys=sorted(float((x.get("position") or {}).get("y") or 0) for x in xs)
+            xx=sorted(float((x.get("position") or {}).get("x") or 0) for x in xs)
+            print("LANE_STAT",c,"count",len(xs),"x",round(min(xx)),round(max(xx)),"y",round(min(ys)),round(ys[len(ys)//2]),round(max(ys)))
+    broad=["zdravot","vykaz","pec","lece","leku","uhrad","souhlas","zadost","platc","pojist","zahranic","planovan","prislus","leciv","doplat"]
+    for term in broad:print("BUSINESS_TERM",term,sum(term in text(x).lower() for x in notes))
     print("AUDIT_ONLY_NO_WRITES")
 if __name__=="__main__":
     try:main()
