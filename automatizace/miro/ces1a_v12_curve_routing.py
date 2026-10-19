@@ -114,7 +114,10 @@ def map_moves(frame,notes):
         moved=[v for v in notes.values() if near(xy(v)[0],nx,8) and near(xy(v)[1],ny,8)]
         if len(original)==1 and len(moved)==0: selected[ident(original[0])]=(nx,ny,True)
         elif len(original)==0 and len(moved)==1: selected[ident(moved[0])]=(nx,ny,False)
-        else: raise RuntimeError("V12 moved-note anchor ambiguous or manual drift")
+        else:
+            nearest=sorted(notes.values(),key=lambda v:abs(xy(v)[0]-ox)+abs(xy(v)[1]-oy))[:3]
+            print("MOVE_COORDINATE_DIAGNOSTIC:",old,"old",(round(ox),round(oy)),"nearest",[(round(xy(v)[0]),round(xy(v)[1])) for v in nearest])
+            raise RuntimeError("V12 moved-note anchor ambiguous or manual drift")
     if len(selected)!=4: raise RuntimeError("V12 move map incomplete")
     return selected
 
