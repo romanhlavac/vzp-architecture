@@ -25,7 +25,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
-      L1V3_DESC_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+      L1V3_DESC_MODE: ${{ github.event_name == 'push' && 'pilot' || inputs.mode }}
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
