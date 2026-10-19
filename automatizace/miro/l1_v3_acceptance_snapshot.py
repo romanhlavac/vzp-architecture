@@ -31,14 +31,14 @@ def main():
     for z in children:
         if z.get("type")!="text":continue
         raw=str((z.get("data") or {}).get("content") or "")
-        ref=re.search(r"\\?moveToWidget=(\\d+)",raw)
+        ref=re.search(r"\?moveToWidget=(\d+)",raw)
         if not ref or ref.group(1) not in source_by_id:continue
         sid=ref.group(1)
         title=txt(source_by_id[sid])
         domain=historical.get(hashlib.sha256(title.encode()).hexdigest()) or ADD.get(additions.get(title))
         if not domain:raise RuntimeError("DESCRIPTION_UNKNOWN_DOMAIN")
         decoded=html.unescape(raw)
-        decoded=re.sub(r'<p>\\s*<a\\b[^>]*>.*?</a>\\s*</p>','',decoded,flags=re.I|re.S)
+        decoded=re.sub(r'<p>\s*<a\b[^>]*>.*?</a>\s*</p>','',decoded,flags=re.I|re.S)
         existing=" ".join(html.unescape(re.sub(r"<[^>]+>"," ",decoded)).split())
         if existing!=describe(title,domain):
             raise RuntimeError("DESCRIPTION_SOURCE_CONTENT_MISMATCH")
