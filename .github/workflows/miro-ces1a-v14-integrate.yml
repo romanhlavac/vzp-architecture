@@ -1,0 +1,31 @@
+name: VZP ES v14 · integrate and shorten new events
+on:
+  push:
+    branches: [main]
+    paths: ["automatizace/miro/ces1a_v14_integrate.py", ".github/workflows/miro-ces1a-v14-integrate.yml"]
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        required: true
+        default: audit
+        options: [audit, pilot, apply]
+permissions: {contents: read}
+concurrency:
+  group: miro-v14-integrate
+  cancel-in-progress: false
+jobs:
+  integrate:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 40
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      V14_REGROUP_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/ces1a_v14_integrate.py
+      - run: python3 automatizace/miro/ces1a_v14_integrate.py
