@@ -190,6 +190,24 @@ def plan(frame,notes,links,moves):
     # Structural model is guaranteed; estimated geometry is NOT a render acceptance.
     return chosen
 
+def reported_side(endpoint):
+    snap=endpoint.get("snapTo")
+    if snap in SIDES:return snap
+    p=endpoint.get("position") or {}
+    x=str(p.get("x","")).strip().replace("%","")
+    y=str(p.get("y","")).strip().replace("%","")
+    try:x=float(x);y=float(y)
+    except ValueError:return "unknown"
+    if (x,y)==(50,0):return "top"
+    if (x,y)==(50,100):return "bottom"
+    if (x,y)==(0,50):return "left"
+    if (x,y)==(100,50):return "right"
+    if (x,y)==(.5,0):return "top"
+    if (x,y)==(.5,1):return "bottom"
+    if (x,y)==(0,.5):return "left"
+    if (x,y)==(1,.5):return "right"
+    return "unknown"
+
 def readback(baseline_nodes,baseline_links,moves,chosen,limit=None):
     frame,notes,links=load()
     if {x:digest_text(n) for x,n in notes.items()}!=baseline_nodes:
@@ -206,7 +224,7 @@ def readback(baseline_nodes,baseline_links,moves,chosen,limit=None):
     for id_ in targets:
         if current[id_].get("shape")!="curved":raise RuntimeError("curved connector readback mismatch")
         for key,side in (("startItem",chosen[id_][0]),("endItem",chosen[id_][1])):
-            if (current[id_].get(key) or {}).get("snapTo")!=side:
+            if reported_side(current[id_].get(key) or {})!=side:
                 raise RuntimeError("anchor side readback mismatch")
     if limit is None:
         for id_,(x,y,_) in moves.items():
