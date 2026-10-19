@@ -193,6 +193,8 @@ def main():
     header("<strong>ES BIG PICTURE · v14 · enterprise business events</strong>",22400,160,13100,44)
     header("31 nových kandidátních typů událostí · EV01 a EV04 se používají z původní části bez duplicity",22400,310,13100,25)
     header("DEMO / SCÉNÁŘE: minulé tvary popisují typ významné business skutečnosti, nikoli doložený historický výskyt. Zleva doprava pouze v jednom příběhu.",22400,460,13200,22)
+    if MODE=="apply":
+        header("EV31 → EV32: oznámení dotčeným osobám jen při zákonných podmínkách vysokého rizika; nikoli automaticky po každém incidentu.",23200,18600,13600,19)
     newObjs={}
     stories=STORIES[:1] if MODE=="pilot" else STORIES
     for row,(title,keys) in enumerate(stories):
@@ -212,7 +214,7 @@ def main():
             if i%12==0:print("V14_SOURCE_LINKS",i+1,flush=True)
         for frm,to in CAUSAL:
             ensure_edge(newObjs[frm],newObjs[to])
-        verify(before,147,35,51)
+        verify(before,147,36,51)
     else:
         verify(before,2,5,0)
     print("V14_TARGET_FRAME_ID",oid(target),flush=True)
