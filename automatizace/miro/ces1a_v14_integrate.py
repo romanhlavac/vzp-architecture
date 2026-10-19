@@ -227,6 +227,14 @@ def main():
  src_edge_snap={edge_sig(z) for z in src_links}
  print("REGROUP_PREFLIGHT_OK","mode",MODE,"events",len(bykey),"original",len(source_notes),"to_move",len(positions),"generated_headers",len(extras),"native_links",len(dst_links),flush=True)
  if MODE=="audit":
+  issues=[]
+  for key,(px,py) in positions.items():
+   z=bykey[key][0]
+   if abs(x(z)-px)>2 or abs(y(z)-py)>2 or abs(width(z)-387)>2:
+    issues.append((key,round(x(z)),round(y(z)),round(width(z)),round(px),round(py)))
+  print("REGROUP_GEOMETRY_MISMATCHES",len(issues),"DETAIL",issues[:31],flush=True)
+  print("REGROUP_AUDIT_LABELS",sum(txt(bykey[k][0])==SHORT[k] for k in SHORT),"/37",
+        "generated_headers",len(extras),flush=True)
   print("REGROUP_PLAN","near_original_groups",len(ANCHORS),"new_blocks",len(PANELS),"concise_texts",len(SHORT),"EV_labels_removed",len(EVS),"N_labels_removed",len(NS))
   print("AUDIT_ONLY_NO_WRITES");return
  patchkeys=["EV06"] if MODE=="pilot" else list(SHORT)
