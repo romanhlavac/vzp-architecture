@@ -101,15 +101,13 @@ def load():
     return f,notes,linked
 
 def map_moves(frame,notes):
-    xframe=xy(frame)[0]-WIDTH/2
-    yframe=xy(frame)[1]-HEIGHT/2
     selected={}
     used=set()
     for old,new in MOVES:
-        ox=xframe+old[0]+193.5
-        oy=yframe+old[1]+126
-        nx=xframe+new[0]+193.5
-        ny=yframe+new[1]+126
+        ox=old[0]+193.5
+        oy=old[1]+126
+        nx=new[0]+193.5
+        ny=new[1]+126
         original=[v for v in notes.values() if near(xy(v)[0],ox,8) and near(xy(v)[1],oy,8)]
         moved=[v for v in notes.values() if near(xy(v)[0],nx,8) and near(xy(v)[1],ny,8)]
         if len(original)==1 and len(moved)==0: selected[ident(original[0])]=(nx,ny,True)
