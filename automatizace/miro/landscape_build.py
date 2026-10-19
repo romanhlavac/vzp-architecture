@@ -157,7 +157,7 @@ class Builder:
 
 def main():
  if MODE not in ('audit','pilot','apply'):raise RuntimeError('Invalid mode')
- before=snapshot();plan=build_plan(before)
+ before=snapshot();encrypt({'snapshot':before,'mode':MODE,'verification':'PREFLIGHT_PENDING'});plan=build_plan(before)
  print('PREFLIGHT PASS: events=110 edges=46 domains=20 source/template hashes match')
  b=Builder(before,plan)
  if MODE=='audit':
