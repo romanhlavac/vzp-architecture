@@ -50,6 +50,15 @@ def main():
   print("HEADING",i+1,"x",round(x(z)),"y",round(y(z)),"w",round(w(z)),"tag",tag(tx(z)))
  for z in sorted(added,key=lambda z:tx(z)[:4]):
   print("EV_POSITION",tx(z)[:4],"x",round(x(z)),"y",round(y(z)),"width",round(w(z)))
+ import pathlib, statistics
+ rules=json.loads((pathlib.Path(__file__).parent/"landscape_rules.json").read_text())
+ notehash={hashlib.sha256(tx(z).encode()).hexdigest():z for z in oldnotes}
+ for c in rules["codes"]:
+  cards=[notehash[k] for k in rules["groups"][c] if k in notehash]
+  if not cards:continue
+  print("COVERAGE_ANCHOR",c,"n",len(cards),"x",round(statistics.median(x(z) for z in cards)),"y",round(statistics.median(y(z) for z in cards)),
+        "bounds",tuple(round(v) for v in (min(x(z) for z in cards),max(x(z) for z in cards),min(y(z) for z in cards),max(y(z) for z in cards))),
+        "sizes",dict(collections.Counter(round(w(z)) for z in cards)))
  print("READ_ONLY_NO_WRITES")
 if __name__=="__main__":
  try:main()
