@@ -1,0 +1,34 @@
+name: VZP ES BP v14 · native builder
+on:
+  push:
+    branches: [main]
+    paths:
+      - "automatizace/miro/ces1a_v14_build.py"
+      - ".github/workflows/miro-ces1a-v14-build.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: audit, pilot, apply
+        type: choice
+        required: true
+        default: audit
+        options: [audit, pilot, apply]
+permissions: {contents: read}
+concurrency:
+  group: miro-v14-native-builder
+  cancel-in-progress: false
+jobs:
+  build:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 45
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      V14_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/ces1a_v14_build.py
+      - run: python3 automatizace/miro/ces1a_v14_build.py
