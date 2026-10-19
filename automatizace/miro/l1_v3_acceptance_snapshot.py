@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Independent read-only encrypted v3 acceptance source for complete catalog deliverable."""
-import os,sys,json,pathlib,subprocess,collections
+import os,sys,json,pathlib,subprocess,collections,re,html,hashlib
 from landscape_snapshot import listing
-from l1_v3_native_build import TITLE,BP_TITLE,oid,parent,edge,txt
+from l1_v3_native_build import TITLE,BP_TITLE,oid,parent,edge,txt,SHORT,ADD
+from l1_v3_descriptions import describe
 from landscape_build import RULES
 ROOT=pathlib.Path(__file__).parent
 def main():
@@ -21,6 +22,30 @@ def main():
         raise RuntimeError("TARGET_COUNTS_FAIL_"+str(dict(totals))+"_links_"+str(len(link)))
     if len([z for z in bpchildren if z.get("type")=="sticky_note"])!=147:
         raise RuntimeError("BP_SOURCE_DRIFT")
+    # Independent content acceptance: all 147 descriptions must trace to exactly one
+    # source BP event and match the current runtime-generated business explanation.
+    source_by_id={oid(z):z for z in bpchildren if z.get("type")=="sticky_note"}
+    historical={digest:domain for domain,digests in RULES["groups"].items() for digest in digests}
+    additions={title:code for code,title in SHORT.items()}
+    seen=[]
+    for z in children:
+        if z.get("type")!="text":continue
+        raw=str((z.get("data") or {}).get("content") or "")
+        ref=re.search(r"\\?moveToWidget=(\\d+)",raw)
+        if not ref or ref.group(1) not in source_by_id:continue
+        sid=ref.group(1)
+        title=txt(source_by_id[sid])
+        domain=historical.get(hashlib.sha256(title.encode()).hexdigest()) or ADD.get(additions.get(title))
+        if not domain:raise RuntimeError("DESCRIPTION_UNKNOWN_DOMAIN")
+        decoded=html.unescape(raw)
+        decoded=re.sub(r'<p>\\s*<a\\b[^>]*>.*?</a>\\s*</p>','',decoded,flags=re.I|re.S)
+        existing=" ".join(html.unescape(re.sub(r"<[^>]+>"," ",decoded)).split())
+        if existing!=describe(title,domain):
+            raise RuntimeError("DESCRIPTION_SOURCE_CONTENT_MISMATCH")
+        seen.append(sid)
+    if len(seen)!=147 or len(set(seen))!=147 or set(seen)!=set(source_by_id):
+        raise RuntimeError("DESCRIPTION_SOURCE_TRACEABILITY_FAIL")
+    print("INDEPENDENT_DESCRIPTIONS_MATCH_PASS",len(seen),flush=True)
     paths=pathlib.Path("encrypted-v14-l1");paths.mkdir(exist_ok=True)
     plain=paths/"landscape-v3.json";cipher=paths/"landscape-v3.p7m"
     record={"source_bp":bp,"target_frame":target,"items":children,"connectors":link,"source_events":
