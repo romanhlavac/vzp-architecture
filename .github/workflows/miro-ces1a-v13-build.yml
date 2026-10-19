@@ -1,0 +1,34 @@
+name: VZP CES 1A V13 guarded native clone
+on:
+  push:
+    branches: [main]
+    paths:
+      - "automatizace/miro/ces1a_v13_build.py"
+      - ".github/workflows/miro-ces1a-v13-build.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Safe read-only audit, representative pilot, or approved full apply
+        required: true
+        type: choice
+        default: audit
+        options: [audit, pilot, apply]
+permissions: {contents: read}
+concurrency:
+  group: miro-ces1a-v13-clone
+  cancel-in-progress: false
+jobs:
+  clone:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 45
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      V13_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/ces1a_v13_build.py
+      - run: python3 automatizace/miro/ces1a_v13_build.py
