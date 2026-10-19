@@ -172,6 +172,39 @@ def main():
     before=setup()
     if MODE=="audit":
         print("DEDUPE_DECISIONS","REUSE_EV01_EV04","CREATE_NEW",len(NEW),"expected_v14=147","new_causal_relations",len(CAUSAL))
+        if target:
+            ns=[z for z in targetItems if z.get("type")=="sticky_note"]
+            tt=[z for z in targetItems if z.get("type")=="text"]
+            if (len(ns),len(tt),len(targetEdges))!=(147,36,51):
+                raise RuntimeError("INDEPENDENT_AUDIT_COUNTS_FAIL")
+            tx=collections.Counter(txt(z) for z in ns)
+            if any(tx[txt(z)]!=1 for z in source_notes):
+                raise RuntimeError("INDEPENDENT_AUDIT_SOURCE_CARD_MISMATCH")
+            if any(tx[k+" · "+v]!=1 for k,v in NEW.items()):
+                raise RuntimeError("INDEPENDENT_AUDIT_APPROVED_EVENT_MISMATCH")
+            if any(tx[k+" · "+v]!=0 for k,v in DATA if k in REUSE):
+                raise RuntimeError("INDEPENDENT_AUDIT_REUSE_DUPLICATE")
+            if any(z.get("shape")!="curved" for z in targetEdges):
+                raise RuntimeError("INDEPENDENT_AUDIT_NOT_NATIVE_CURVED")
+            cond=[z for z in tt if "EV31" in txt(z) and "EV32" in txt(z) and "vysok" in txt(z)]
+            if len(cond)!=1:raise RuntimeError("GDPR_CONDITION_ANNOTATION_MISSING")
+            by={key:next(z for z in ns if txt(z)==key+" · "+value) for key,value in NEW.items()}
+            for a,b in CAUSAL:
+                if not any(end(e,"startItem")==oid(by[a]) and end(e,"endItem")==oid(by[b]) for e in targetEdges):
+                    raise RuntimeError("BUSINESS_LINK_MISSING")
+            # Independent geometric sanity: no two new cards share a slot or visually overlap.
+            coords=[(key,x(z),y(z),w(z)) for key,z in by.items()]
+            for i,(ki,xi,yi,wi) in enumerate(coords):
+                for kj,xj,yj,wj in coords[i+1:]:
+                    if abs(xi-xj)<(wi+wj)/2+80 and abs(yi-yj)<max(wi,wj)+80:
+                        raise RuntimeError("NEW_CARDS_SPATIAL_OVERLAP")
+            for _,keys in STORIES:
+                sequence=[x(by[k]) for k in keys]
+                if sequence!=sorted(sequence):
+                    raise RuntimeError("LOCAL_TIMELINE_NOT_LEFT_TO_RIGHT")
+            print("V14_INDEPENDENT_AUDIT_PASS","events",len(ns),"texts",len(tt),
+                  "curved",len(targetEdges),"reused",len(REUSE),"new",len(NEW),
+                  "business_links",len(CAUSAL),"story_bands",len(STORIES),flush=True)
         print("AUDIT_ONLY_NO_WRITES");return
     if not target:
         right=max(x(f)+w(f)/2 for f in frames)
