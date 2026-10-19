@@ -164,6 +164,7 @@ def main():
   encrypt({'snapshot':before,'mode':MODE,'targetFrame':b.frame,'sourceTemplateVerified':True})
   print('AUDIT ONLY: no mutations');return
  edges=b.execute();after=snapshot()
+ encrypt({'mode':MODE,'targetFrame':b.frame,'events':b.mapping,'edges':edges,'snapshot':after,'before':before,'createdIDs':b.created,'verification':'IN_PROGRESS'})
  targetid=ident(b.frame);targetchildren={ident(z) for z in after['items'] if parent(z)==targetid}
  old={ident(x):semantic(x) for x in before['items']+before['connectors'] if ident(x)!=targetid and parent(x)!=targetid and not(edge(x,'startItem') in {ident(v) for v in b.items} or edge(x,'endItem') in {ident(v) for v in b.items})}
  aft={ident(x):semantic(x) for x in after['items']+after['connectors']}
