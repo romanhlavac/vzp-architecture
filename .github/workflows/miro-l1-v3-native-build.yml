@@ -1,0 +1,33 @@
+name: VZP CES L1 v3 · 147 complete native landscape
+on:
+  push:
+    branches: [main]
+    paths:
+      - "automatizace/miro/l1_v3_native_build.py"
+      - ".github/workflows/miro-l1-v3-native-build.yml"
+  workflow_dispatch:
+    inputs:
+      mode:
+        required: true
+        type: choice
+        default: audit
+        options: [audit, pilot, apply]
+permissions: {contents: read}
+concurrency:
+  group: miro-l1-v3-native
+  cancel-in-progress: false
+jobs:
+  landscape:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 55
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      L1V3_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/l1_v3_native_build.py
+      - run: python3 automatizace/miro/l1_v3_native_build.py
