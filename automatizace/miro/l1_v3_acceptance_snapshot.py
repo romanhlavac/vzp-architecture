@@ -31,7 +31,7 @@ def main():
     for z in children:
         if z.get("type")!="text":continue
         raw=str((z.get("data") or {}).get("content") or "")
-        ref=re.search(r"\?moveToWidget=(\d+)",raw)
+        ref=re.search(r"\?moveToWidget=(\d+)",html.unescape(raw))
         if not ref or ref.group(1) not in source_by_id:continue
         sid=ref.group(1)
         title=txt(source_by_id[sid])
@@ -44,7 +44,7 @@ def main():
             raise RuntimeError("DESCRIPTION_SOURCE_CONTENT_MISMATCH")
         seen.append(sid)
     if len(seen)!=147 or len(set(seen))!=147 or set(seen)!=set(source_by_id):
-        raise RuntimeError("DESCRIPTION_SOURCE_TRACEABILITY_FAIL")
+        raise RuntimeError("DESCRIPTION_SOURCE_TRACEABILITY_FAIL_"+str(len(seen))+"_"+str(len(set(seen))))
     print("INDEPENDENT_DESCRIPTIONS_MATCH_PASS",len(seen),flush=True)
     paths=pathlib.Path("encrypted-v14-l1");paths.mkdir(exist_ok=True)
     plain=paths/"landscape-v3.json";cipher=paths/"landscape-v3.p7m"
