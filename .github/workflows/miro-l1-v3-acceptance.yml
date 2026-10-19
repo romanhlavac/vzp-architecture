@@ -1,0 +1,29 @@
+name: VZP L1 v3 · independent encrypted acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-l1-v3-acceptance.yml"
+      - "automatizace/miro/l1_v3_acceptance_snapshot.py"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  acceptance:
+    if: github.repository == 'romanhlavac/vzp-architecture'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 22
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/l1_v3_acceptance_snapshot.py
+      - run: python3 automatizace/miro/l1_v3_acceptance_snapshot.py
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: encrypted-l1-v3-acceptance
+          path: encrypted-v14-l1/landscape-v3.p7m
+          retention-days: 1
