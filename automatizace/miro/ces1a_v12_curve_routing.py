@@ -14,10 +14,10 @@ if MODE not in ("audit","pilot","apply") or not TOKEN or not BOARD:
 BASE="https://api.miro.com/v2/boards/"+urllib.parse.quote(BOARD,safe="")
 EXPECTED_EVENTS=110
 EXPECTED_LINKS=46
-WIDTH=18500.0
+WIDTH=16746.0
 HEIGHT=10480.0
 # Only the expected geometric location of this specific frame, not a board ID.
-FRAME_CX=180250.0
+FRAME_CX=179373.0
 FRAME_CY=6540.0
 # Existing current-note coordinates are relative to the target frame's top-left.
 # Explicit pixel baseline guards avoid moving any manually edited/stale content.
