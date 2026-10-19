@@ -1,0 +1,298 @@
+{
+  "source_frame_id_hash": "2ea7655a20b9f137232eabbf3e620d70a5c28e58ad9480a0af990dd58699b003",
+  "template_frame_id_hash": "b567a0147979c892d73b47bef44b0cab34d6b652a3ea3e13928fdd808da28e7f",
+  "codes": [
+    "A1",
+    "A2",
+    "A3",
+    "S0",
+    "B1",
+    "B2",
+    "B3",
+    "B4",
+    "B5",
+    "B6",
+    "B7",
+    "B8",
+    "B9",
+    "C1",
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6"
+  ],
+  "groups": {
+    "A1": [
+      "1500cb80a5ce579d5067de30fe77b21b84fde95e78729b05f561642e1eec15aa"
+    ],
+    "A2": [
+      "a31179aaaf54500efbddec503fa9bb863a25c3c53458f00b9d9c0d4065fad5d3",
+      "ecfb2b4d49f153ae31a96af1b8819b294b09f75f8cee5c708ae60c4dc00ef25c",
+      "bb9e1c0b45ccabf6ba6ec1763e98d775b686323a774bdbf9ff2a74f03ba43d58",
+      "ebe41be836c3002166d2a38eaa11405a7197713cd1071396d87ca8604e6c717e"
+    ],
+    "A3": [
+      "8e2494b1e9b931d3101ab8c38664124a60a2dcc1dd3af614ce5fca955690d569",
+      "cf12bd17b6d0d0f1a3f7200940519cc47088328cdbdde29bef464e61e2f7dd45",
+      "5d862c0afb1ad8511af830c383c83e9dfcc86f13eb605238aa6c89cde8aee91a"
+    ],
+    "S0": [
+      "61c6b5399796e42472c739d49c05f8a5a80370165126b1d279dfdd243b7e1228",
+      "b8872dc27720cba6ac88cba784e32e2bbcfb2e3ff903c49d59461a2e7ced1589",
+      "3f9d5fc92d7daa5debd06e8d933b75626d1d7579b5c7dc5d3677e0a79fc168d5",
+      "8326e6d1bfd9ed2ecfe190958c25e8bb949182614c75509c3bc94a4aabbfa3a1",
+      "5413b41f16a0c313a60c75d8a5d1ef0c6a2be061b4f0864307c7b99a86cae3db",
+      "59fb14a89887b446100a156d74f4a69c05963c20c4f10dc6a8b3e32c11ff2a88",
+      "44d2dae4333bd22c9a13a55175e1fc20ef328c8128a9501c52f52a0ab07e1ea9",
+      "e4b3c2ea9545f6204859d68026cdf82f9c74463e8925efd1036567e2eb7325dd",
+      "97667bec39fbc4e1fc62d9ed8e9b8f373e4bed1b79de0253b8a3bacd774ad597",
+      "4c736007d99a38a331eb1b9d65adcdaf335b188dee4331259225be346b23fd0d",
+      "bf05fff1056a83410d97bc2e4bc00635cc2c3bf16cc33971bed4d25bb86e9547",
+      "2e6c4df555a092138bdde3e3d3a9ff6107cafd2182557f40f6e40d7ce0cd46f5",
+      "e49b392c73a053ae7ae143805696a1df7ddeb6572133f5cf201fe2f1e3eff0b6",
+      "f6bd3a63355317c6bd8ad8007f8d3c60b3903e666b50606e40734f1867b92daf",
+      "6ecf86306b6654658e1821b44f28f2dd4828fcd011a8d2eb493d2b7ef21359a4",
+      "5af21278b8b66b727c5584c75c10b4d8b8217dbc69051c2fef2161b879bc09ea",
+      "edc67974408d16d057bb8c9fcb64577b19dc1bd6eb0447bb6ae7670f955c8d88",
+      "9e6eac8f2a0667b88c29f3d498363d026d1f7e1f1167f45ed8c986ea1f8427ec",
+      "4d6412df7a8fec076d12cca77e196208a5395707db898c85bfda91d7c54f2902"
+    ],
+    "B1": [
+      "50a924a820f7ed5962123a7328b90684391bf7da43805d29ed5c41febe90acd0",
+      "778a549698205dbb3cec2bc549dbbf79da01f2116e3cff2cfa6cedec79c20325",
+      "025f362ae066b19a1c4b1d0b083893482f8ebcdcf02d6c9dee7d440905a9f187",
+      "855aadda8a6a7ddac871c0a76198ccf80b75affc727247f5662313f8b200d144",
+      "9c0b4727370bfdf8226fb17b3a68f57cf3335715744f2aab002df5e30eb5a10e",
+      "383781c1bea60ce634465c365a1f03523d6fb07da9cf4c4e4b6a052c03804030",
+      "67ea8be91b799563c981f79dfd9ff9f1010678b35055f9825de817899db0797a",
+      "884a370894920d26cb083063022f68bc2eca3247830186f1102784c0a416eb55",
+      "e5531a4c184165474c58a596a1a5016d6840ba1176da37e40793bd77d8f3b630",
+      "f1c29f1efb8c41b11d005579fa47e6a8971f26fa69aff78bec82ce50cad18271",
+      "46d76420a3f1087c6028833bcffccf38b1c6dae412a428219ad31dcbc7fc6602",
+      "17d1a087f543fefb0f76f52e954c2c16cd2051c5c8f8ca06545947836f902468"
+    ],
+    "B2": [
+      "de7fb85f867a16f5ed5ceb5b8c34b73ea166f3136e47ea4cefeec58fb95f7ef7",
+      "78155da013969416c5c14907dd9510f2751fdfd5622b4977652980835b4b3fc0",
+      "73b12a3e8d79cb47322072da28aafde99cbc24473c38a29530489925e541b36c",
+      "cd571b1fa71ae5bcc6e13834f152c94405af2a6208fb5d9f1554acbbe5388598",
+      "f899fcf4ed7547cfca909f5beb5bd45d2d6e86560031008a57c3c6b9567d104b",
+      "8b33da670abe26977b002b95c118b778ba5359e74c9733a73cd5763d9b36c3e5",
+      "1e0d837910ed67252a40db5f897b9edb9b5719d13bfd4a18490f2dd14da60acb",
+      "f10017dfb37a0b7a11febcdc0bb6042d6e2441670c92f2b9f0f6ec1fa5572ef7",
+      "a17e2cf0ca6b608486895276893d2f207c4325a48929630ce105e20bcafb1a88",
+      "738eef0e05db6c56074a74ace1bb689684f43a0927fb24704238033c3473f16c",
+      "c4c56510d0d90b7a6ca12d30c818d1633da8c70a26d934f6e09fed9b85590407",
+      "4aeb70fca47f78a13f32342fbacc70b3b3d374edab43c4b83cc717274c842c22",
+      "559b9526f0b9af5c43d42850cafdcdebfb03a1447f396306ec64a2d3bf897047",
+      "641d3c1ac86c53d43374abf7d617bc85cc45f1f25d3edd19d90d55f999abb0ce",
+      "ee7ebf4f96a99c843601b18f72ba2ebe09330d1f9db8ff6bd2f80d7662c03a43",
+      "0558e166097c99c7f6a776878f7c48cbb3baaecf41b18a4e4e48d556dcc51d2e",
+      "226e9caa3dcf2835250add4018c14b83dffca053e4ff6cce220deae060a33461",
+      "1df9d6a43a6ea1c6843d6cff19ee8cc4c2462e94d3907e0e8cf10c81cb6cf8b2",
+      "17642bf04aef42325e833429f6c48c3530186f8797afca635b4f76ea685f729d",
+      "7ead59c2368d1070b1bae6993f7c65f0251eea80e6186d2fa18ed80900397d74",
+      "1ef00eed55dd1dcf941a88df29a769094a21bfbd941ff54df9923914bf42ed0d",
+      "6b34814311671b874e38ecde4a3aaecb0e115d7f63490ba0730f86745a21a1ab"
+    ],
+    "B3": [
+      "585115daf966ddca466b6701ff97c32af49a21a580f3864b7250b921dd10f68c",
+      "66c99d3092e21bdcf3bc87dbf18ba5d7db21a90adf4a0d4d48bb28e66d396fcb",
+      "3ad224c933f82f74abe864c24b1a19f2755ca643e559fa024b0393d3ea955aa1",
+      "1afe552bdae96c262fa4a5226a4a6d67a939e3afade3858a3b45a08200ea8698",
+      "229af1123aa86ccb4039448e5465b3695c2342f7b7c8e4c69002223e855db0af",
+      "366ec4f46e50f4273c98995ad2e618cc451a6144e8076edcd4f4af91847649a3",
+      "cf532455b3ab3c12938d9cbd9d7fa9281bdeda1d744b6d15384e21828dfc8bbb",
+      "3652531c3507d7963f89da80170f3e140de9a60c35068926905af5becbb74354",
+      "8236ea35512b4b4061978c784a03259948e718c6a63e5f2d7a4e338119a53a46",
+      "5d7c0dbbf0fd3139ead41eb674f9ee6cd1247e525d3a0c25d4d389e22649b5e0",
+      "d7e72efbfd194c68cd49ab5f3c53adddb7ca24bb1016482f84bd4b412a201794"
+    ],
+    "B4": [
+      "3b19c3fe2c8b8b53ec6ff3e991ba86bc637c2eec5dbf55624196caf379dd9201",
+      "efe3ce373b2f25b8c20bbd589c91f594d83b5355725cb02bd23fca691a4bf101",
+      "bce0f4714804b9918b9c6f4f09b7020324eb52a75d6f8e138be709cc4c8b291d",
+      "139b41185cc69ffd645a386f006664f7e0e91441795ae71b6647f85aaafa4b51",
+      "61699fd64f29c7ec795973f5737661c35cdd0874057580e752030ff0344673b1",
+      "4e170823812d1b6dead18a520793161bb02d1fee9d76bf1e2651e5ec4ffe3d0c",
+      "06a81250376e933280600b7ca6403ab2e583287298d9df4723b54138811519ad",
+      "2916722b73d70f0709fa544634c5cfd352d8fffbc6dc9a6139a58bc69add5748",
+      "c6702ccbd1994a224da2532f33e2cc809f4a25599ba73f9c09f4f4f12fb4aa9e",
+      "c3e3ed678d39d46150ef3e9475acf6defb7e7c130df65f1dd823de284ff677ad",
+      "fd95dae61c8dcf852624114135586dfdb21fe2925a799fbbefe34b338d45b5e7",
+      "0ac25569ef6a95852084a33bd756d8146f44f915c9a230b21c2a7ee424cc4338",
+      "d9aaea9ba7b8dd43f5430989d7bafb091b4ed810f6daf966b350e5f28b7eeb4f",
+      "8002a8fe88f6684a3d92dd9b41c4e7dbc2c6fc4ff800e6a9b1d174439c9ba9c3"
+    ],
+    "B5": [
+      "23846cfa711dc46cbac1dfcee0f457ba1a3a9d7f092b4f5321f1b0090cecaad0",
+      "489e29d6b5c5f8ca43fc0b214ef03a98dae570148494b55c8c8522088cf267f9",
+      "d3f9f05324f61578af67da24020bffafe4e1f3c120594fe159013b7bc0396a6d",
+      "46c5c628f82a5f55d66b65208e81a94c62afd2fa6e18252aeedb5eb46df301d8"
+    ],
+    "B6": [
+      "24a6fd2cc925ac0e8eb79cb2deb1eacc315c408ba95dd3ee5c10367c2afd8552",
+      "bb3e8ed86a1ef3c9242237650cce9e3effb64e12f694e0d178f068bb964bad79",
+      "aa1880380f12beb90817c965ef2ecd0d0e56acee66bf34b2b2b324aaaddaf45c",
+      "46ce4c3ebeb12cc03a6fffce9f87602cdd80f549f251006a84f70db4c9537f5f",
+      "5ffa6b3f5275fb96969cedc7ff93914e8123f814bf34444e61e4ea15f75ce60d",
+      "1899b33dfb11e35c08e8046631369fbaf36e8a8d0d8df840c849163042a59c52",
+      "32d9fe99e5cdc353c25d75b1059bc9c007823708376fa87e51b77197c7cf778b"
+    ],
+    "B7": [],
+    "B8": [
+      "3af9f088cb16fc5fe7a8416fdc11c5870054fd90cad6698a76997fa91e7e6bc3",
+      "42967169ece5c1d1a7cebb34cc2058ca58fbad910f5f78ee032816cf9c60162c",
+      "7f0877cf34ea988c495f5343e1b3a3e6c2f11d25a26f78d1dc35fa1fef0fa63e",
+      "e1f5ac9fe5d40a52f9ce3f7a701fa95ecd5d6fcafde49f271f9170eb9b3df929",
+      "636cedf9f512347b2bbb38b762f7342b7246e02ec2c99266ebb8aa0cda7c9ae4",
+      "4c52302738437dfe93de84dc7d8e8330ffd2b0e0a6726bbaf0c5642f17f854a3"
+    ],
+    "B9": [
+      "4085571b5bb7ab32cdf76e6eae85635445ab3a857b8abe10629049ef7df5ad2a",
+      "5686badfbf85f6afd4d484d43415cb1bd04f0c6380164406e3d7be4c44a996d5",
+      "93773bbc10206d00c2bb1cab22690e1f854fc0762a3353f763e67c265995dbc7",
+      "7d27ba453d0c4e5ade39695dcc1309119857ac92c9130bec847a025f6b91a975"
+    ],
+    "C1": [
+      "d605e2ebf7173a798852b9dd1621b1bb810341ff79960d41b43272d7808f624b"
+    ],
+    "D1": [
+      "08be9ff031a72e77749787b7026712e6254438805dc6528c6693676a96488351"
+    ],
+    "D2": [],
+    "D3": [],
+    "D4": [
+      "c287c64ce1c2c9a74ae792c04b00eca2d5869b67884e89565a95e2786ac27e35"
+    ],
+    "D5": [],
+    "D6": []
+  },
+  "rationales": {
+    "A1": [
+      "Řízená strategie a schválený plán instituce.",
+      "Řídicí orgány potvrzují plán, jeho změny a platnost; rozhodná je schvalovací evidence.",
+      "Identitu aktérů lze čerpat ze S0; schválení plánu nevzniká v evidenci subjektů.",
+      "Výpočet jednotlivého pojistného a úhrady patří B2/B4."
+    ],
+    "A2": [
+      "Platný obecný rámec úhrad a preventivních programů.",
+      "Gestor politiky odpovídá za účinnost a změny pravidel i začátek a konec programu; autoritou je vydavatel pravidla.",
+      "S0 poskytuje společnou identitu dotčených aktérů, nikoli nárok nebo politiku.",
+      "Přiznání příspěvku konkrétnímu klientovi patří B6, individuální úhrada B4. Hranice programu vůči A3 je OPEN."
+    ],
+    "A3": [
+      "Dostupná a kvalitní péče a ověřený výsledek nápravného opatření.",
+      "Odborný garant vyhodnocuje ohrožení, schválení a dokončení opatření; rozhodná je evidence dostupnosti a účinnosti.",
+      "S0 identifikuje aktéry; odpovědnost za dostupnost zůstává odbornému gestorovi.",
+      "Změna konkrétní smlouvy patří B3 a individuální revize B5. A3/B3 pro operativní kapacitu OPEN."
+    ],
+    "S0": [
+      "Sdílená referenční identita FO/PO, společné adresní údaje, právní stavy a zastoupení v čase.",
+      "Právní skutečnost vzniká u příslušné externí autority; zde se odpovídá za její doloženou referenční projekci, původ a časovou platnost. První/poslední vztah je agregát všech agend, nikoli existence osoby.",
+      "Změny jména, pobytu a sídla patří ke společné identitě. B1/B2/B3 využívají referenci a samy určují agendové účinky.",
+      "Pojistná příslušnost, odvod, smlouva a úhrada sem nepatří. Doručovací adresa × B6, společné × agendové zastoupení a agregát prvního/posledního vztahu jsou OPEN. Matching a technické změny až 1B."
+    ],
+    "B1": [
+      "Správně určená účast, příslušnost, nárok a kategorie pojištěnce.",
+      "Gestor pojištění vyhodnocuje vznik, změnu, konec a zpětnou opravu podle rozhodných dokladů; účast a příslušnost mají různé podmínky.",
+      "S0 dodává identitu a právní životní skutečnosti. Změna role v referenci je až projekcí výsledku agendy.",
+      "Právní existence osoby patří S0; výše povinnosti a pohledávka B2; celostátní evidence B9. Kategorie × plátcovské postavení OPEN."
+    ],
+    "B2": [
+      "Správně stanovená a vypořádaná pojistná či regresní povinnost.",
+      "Gestor pojistného řídí titul, období, předpis, úhradu, saldo, vymáhání a zánik povinnosti. Pro regres se dokládá samostatný titul, nikoli pojistné.",
+      "S0 poskytuje identitu plátce a právní stavy; vznik odvodu, zálohy či salda je výsledkem finančních pravidel.",
+      "Obecný vztah osob není odvodová povinnost. Pojistná kategorie patří B1, státní paušální agenda B9 a účetní uzávěrka D1; zaměstnání/OSVČ a regres OPEN."
+    ],
+    "B3": [
+      "Platná a dostupná smluvní síť poskytovatelů a pracovišť.",
+      "Gestor kontraktace posuzuje oprávnění, vznik, změnu, přechod a konec smlouvy; licenční autorita zůstává externí, smluvní podmínky mají vlastní účinnost.",
+      "S0 dodává identitu PZS a právní nástupnictví. Přechod konkrétní smlouvy musí samostatně potvrdit smluvní agenda.",
+      "Sídlo nebo vznik PO patří S0; výpočet a provedení úhrady B4. Oprávnění PZS není automaticky smlouva."
+    ],
+    "B4": [
+      "Věcně správná úhrada péče a vypořádání nároků.",
+      "Úhradový gestor odpovídá za přijetí nároku, uznání/zamítnutí, korekci, platbu a opravné vyúčtování; péči poskytuje PZS, právní spor rozhoduje příslušná autorita.",
+      "S0 poskytuje identitu osoby a PZS k rozhodnému datu; úhrada identitu neurčuje.",
+      "Odborný kontrolní nález patří B5, smluvní pravidla B3 a účetní provedení D1. Výjimečná úhrada B4/B5 a spor B4/D4 OPEN."
+    ],
+    "B5": [
+      "Doložený kontrolní nález a náprava porušení v poskytované či vykázané péči.",
+      "Revizní lékař a kontrolor řídí dokazování, závazný nález, opatření a jeho splnění; zdrojem je kontrolní spis.",
+      "S0 pouze identifikuje kontrolovaného a dotčené osoby.",
+      "Peněžní korekce a vypořádání jsou v B4, vymáhání regresního titulu v B2. Přechod nálezu v úhradové rozhodnutí ověřit."
+    ],
+    "B6": [
+      "Vyřízená klientská věc a poskytnutý benefit.",
+      "Gestor klientské obsluhy vede podání, námitku/reklamaci, odpověď a klientský nárok; závazný věcný výsledek musí potvrdit příslušná agenda.",
+      "Identita a společné údaje se přebírají ze S0; podnět ke změně není sám potvrzenou referenční změnou.",
+      "Není automatickým vlastníkem každého správního rozhodnutí. Obecné námitky a právní moc bez předmětu jsou PROPOSED/OPEN; doručovací preference × S0 také."
+    ],
+    "B7": [
+      "Získaný a udržený vztah se zájemcem o pojištění.",
+      "Gestor akvizice vlastní záměr, kampaň a retenční výsledek; tyto milníky nejsou v tomto zdrojovém souboru doloženy.",
+      "Využití identity zájemce ze S0 je potřeba ověřit, nikoli předpokládat plošné vedení všech leadů.",
+      "Právní přestup a účast patří B1. Nulový počet je mezera pokrytí zdroje, nikoli zrušení domény."
+    ],
+    "B8": [
+      "Koordinovaný přeshraniční nárok a vypořádaná zahraniční péče.",
+      "Gestor mezistátní agendy vyhodnocuje nárokový doklad, výpomoc, refundaci a mezistátní pohledávku podle evidence zahraničních institucí.",
+      "S0 identifikuje osobu a instituci; zahraniční příslušnost a nárok nejsou odvozeny z identity.",
+      "Tuzemská účast patří B1, tuzemská úhrada B4 a celostátní přerozdělení B9."
+    ],
+    "B9": [
+      "Naplněný společný mandát evidence, kapitace a přerozdělení mezi pojišťovnami.",
+      "Gestor zákonných agend odpovídá za platnost registrace, mezipojišťovenskou koordinaci a schválení/vypořádání přerozdělení; zdroje jsou od příslušných agend a ZP.",
+      "S0 poskytuje identitu, nikoli autoritu nad celostátní registrací a výpočtem přerozdělení.",
+      "Konkrétní kapitační platba patří B4, vlastní pojistný vztah B1. Registrace u PL × B4 a rozsah CRP OPEN."
+    ],
+    "C1": [
+      "Důvěryhodný a doručený analytický či regulatorní výstup.",
+      "Gestor výkaznictví dokládá úplnost, výpočet, uzavření období a doručení výkazu; primární agendová fakta zůstávají jejich vlastníkům.",
+      "S0 může poskytovat účelově omezenou nebo pseudonymní identitu.",
+      "Zákonný výdej konkrétního subjektu může patřit B9/B6/D6. Obecná informační povinnost bez adresáta a obsahu je OPEN."
+    ],
+    "D1": [
+      "Doložené fondové hospodaření a účetní uzávěrka.",
+      "Správce fondů a účetní uzavírají období podle účetní evidence; saldo agendy není totožné s hlavní knihou.",
+      "S0 může poskytovat referenci protistrany, neurčuje účtování.",
+      "Právní titul pojistného a úhrady patří B2/B4, mezipojišťovenské přerozdělení B9."
+    ],
+    "D2": [
+      "Řádně spravovaný pracovní poměr a personální kapacita.",
+      "HR řídí nábor, zaměstnání a skončení poměru instituce; zdroj nyní neobsahuje vlastní HR milníky.",
+      "Případná společná identita zaměstnance nesmí sloučit účely HR a zdravotního pojištění.",
+      "Zaměstnanecký vztah rozhodný pro pojistné patří B2/B1, nikoli automaticky HR instituce; nula znamená nepokrytý scope."
+    ],
+    "D3": [
+      "Provozuschopná IT služba a řízená technická změna.",
+      "IT Service Owner řídí release, incident a obnovu služby; takové milníky zdroj nyní neobsahuje.",
+      "IT může provozovat CES, tím však nevlastní business význam identity.",
+      "Založení referenčního záznamu a matching se nerozšiřují na Big Picture business události; detail až 1B."
+    ],
+    "D4": [
+      "Právně obhajitelné zadání a smluvní závazek.",
+      "Gestor nákupu a právník řídí zadávací fáze, rozhodnutí a jeho účinky; podkladem je zadávací dokumentace.",
+      "S0 identifikuje protistranu; právní závazek se nevytváří v registru identity.",
+      "Smlouva o péči patří B3; věcný dopad sporu o úhradu B4. Právní součinnost není automaticky primary ownership všech sporů."
+    ],
+    "D5": [
+      "Řádně vedený majetek, dokument a jeho uchování.",
+      "Správce majetku a spisové služby vlastní evidenci a skartační cyklus; zdroj nyní žádný takový milník neobsahuje.",
+      "S0 může identifikovat odesílatele či adresáta, není správcem spisu.",
+      "Vyřízení klientské věci patří B6, věcná právní moc příslušné agendě; nula není vyřazení domény."
+    ],
+    "D6": [
+      "Přiměřená ochrana a doložené bezpečnostní či účelové oprávnění.",
+      "Bezpečnostní gestor a pověřenec stanovují kontrolní pravidla a řeší incidenty; zdroj nyní neobsahuje odpovídající milník.",
+      "Ochrana identity a účelu omezuje CES, ale bezpečnostní účet není business identita subjektu.",
+      "Oprávnění jednat za osobu patří referenčně S0 nebo konkrétní agendě, nikoli automaticky IAM; hranice je OPEN."
+    ]
+  },
+  "expected_source_events": 110,
+  "expected_edges": 46,
+  "protected_source_digest": "80af5c3a9d7d6ecff5d7395b357ba6a7c17ba5bd9ceb8886c7cadcd1c55dd190"
+}

@@ -1,0 +1,44 @@
+name: Miro L1 landscape additive build
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/miro-landscape-build.yml'
+      - 'automatizace/miro/landscape_build.py'
+      - 'automatizace/miro/landscape_rules.json'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Audit, isolated representative pilot, or full additive apply
+        type: choice
+        default: audit
+        required: true
+        options: [audit, pilot, apply]
+permissions:
+  contents: read
+concurrency:
+  group: miro-l1-additive-build
+  cancel-in-progress: false
+jobs:
+  landscape:
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 40
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      LANDSCAPE_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Compile
+        run: python3 -m py_compile automatizace/miro/landscape_build.py
+      - name: Guarded live operation
+        run: python3 automatizace/miro/landscape_build.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: encrypted-landscape
+          path: encrypted-evidence/*.p7m
+          retention-days: 1
