@@ -1,0 +1,33 @@
+name: Miro landscape private snapshot
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/miro-landscape-snapshot.yml'
+      - 'automatizace/miro/landscape_snapshot.py'
+      - 'automatizace/miro/landscape_recipient.pem'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: miro-landscape-snapshot
+  cancel-in-progress: false
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 15
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read-only paginated audit
+        run: python3 automatizace/miro/landscape_snapshot.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: encrypted-snapshot
+          path: encrypted-evidence/*.p7m
+          retention-days: 1
