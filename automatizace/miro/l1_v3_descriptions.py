@@ -130,9 +130,78 @@ RULES=[
 (r"strategická dodavatelská","Vznik nebo konec strategického dodavatelského závazku mění smluvní zajištění důležité služby."),
 (r"bezpečnost|zabezpečení|klíčová evidence","Zjištění nebo náprava významného incidentu mění důvěryhodnost a ochranu informací."),
 ]
+
+# Distinguish initiation, outcome, refusal, restoration, and settlement in the
+# enterprise demo. These are explanatory business rules, not process activities.
+PRIORITY_RULES=[
+(r"hospodaření.*zákonného provizoria","VZP přešla na přechodný zákonný režim hospodaření, protože nebyl účinný standardní plán pro nový rok."),
+(r"uložena závažná nápravná povinnost","Vznikla závazná povinnost VZP odstranit zjištěný nedostatek v určeném rozsahu a režimu."),
+(r"změnil se rozsah hrazené péče pro skupinu","Pravidla nově vymezují, jaké služby se dané skupině pojištěnců hradí a za jakých podmínek."),
+(r"program prevence skončil","Ukončený program již nezakládá možnost získat nové příspěvky podle původních pravidel."),
+(r"program prevence vstoupil","Nový program otevřel vymezené skupině pojištěnců možnost využít stanovené preventivní služby."),
+(r"bylo potvrzeno ohrožení dostupnosti","Byl doložen nedostatek dostupné kapacity péče, který vyžaduje věcné opatření VZP."),
+(r"schválila opatření k dostupnosti","Bylo rozhodnuto o významném zásahu do zajištění péče, včetně očekávaného výsledku."),
+(r"opatření k dostupnosti bylo dokončeno","Bylo dokončeno konkrétní opatření, jehož skutečný dopad na dostupnost se následně ověřuje."),
+(r"hrazená péče se stala dostupnou v nedostatkovém","Dříve chybějící péče je nyní skutečně dosažitelná pro pojištěnce v dotčené lokalitě."),
+(r"nový způsob hrazené péče se stal dostupným","Nový model poskytování péče přešel do dostupné služby pro určenou skupinu pojištěnců."),
+(r"poskytovatel pozbyl oprávnění","Zánik zákonného oprávnění brání poskytovateli dále vykonávat dotčené zdravotní služby."),
+(r"zaměstnavateli odvodová povinnost zanikla","Skončily podmínky, za nichž zaměstnavatel odváděl zdravotní pojistné za daný vztah."),
+(r"osvč zanikla povinnost platit zálohy","Zanikla povinnost samostatně hrazených záloh OSVČ; vyúčtování minulých období tím nemusí skončit."),
+(r"osvč vznikla povinnost platit zálohy","Vznikla pravidelná povinnost OSVČ platit zálohy podle rozhodného pojistného režimu."),
+(r"postavení osvč zaniklo","Osoba přestala být v evidenci pro dané období vedena jako OSVČ se souvisejícími povinnostmi."),
+(r"přeplatek pojistného byl vrácen","Vyplacením přeplatku byl vypořádán závazek VZP vůči plátci a změnilo se jeho saldo."),
+(r"regresní náhrada byla uhrazena","Úhradou regresu se vypořádala pohledávka za osobou odpovědnou za vzniklé náklady péče."),
+(r"vznikl nárok na regresní náhradu","Vznikl samostatný nárok VZP požadovat náhradu uhrazených nákladů péče od odpovědné osoby."),
+(r"vyúčtování poskytovatele bylo opraveno","Původní finanční vypořádání péče bylo zpětně změněno na opravený závazný výsledek."),
+(r"vyúčtování poskytovatele bylo uzavřeno","Za rozhodné období byl stanoven konečný výsledek vyúčtování se smluvním poskytovatelem."),
+(r"výjimečná úhrada péče byla přiznána","Individuálně byla přiznána výjimečná úhrada konkrétní péče za posouzených podmínek."),
+(r"výjimečná úhrada péče byla zamítnuta","Po individuálním posouzení nebyl přiznán požadovaný výjimečný režim úhrady."),
+(r"vratka doplatků byla vyplacena","Peníze byly vyplaceny pojištěnci a dříve vzniklý závazek vratky byl vypořádán."),
+(r"pojištěnci vznikl nárok na vratku","Vznikl konkrétní nárok pojištěnce na finanční vypořádání doplatků podle rozhodných pravidel."),
+(r"pzs bylo uloženo nápravné opatření","Kontrolní nález vedl k závazné povinnosti poskytovatele odstranit konkrétní porušení."),
+(r"nápravné opatření pzs bylo splněno","Poskytovatel prokazatelně dokončil uloženou nápravu a změnil kontrolovaný stav."),
+(r"bylo potvrzeno neoprávněné vykázání hrazené","Věcně bylo potvrzeno nesprávné vykázání péče, které může mít úhradové a kontrolní důsledky."),
+(r"pojištěnci nebyla předem schválena","Žádost o předchozí souhlas neuspěla; pro požadovanou péči není tímto rozhodnutím úhrada povolena."),
+(r"pojištěnci byla předem schválena","Předchozí souhlas umožňuje úhradu konkrétní péče při naplnění vymezených podmínek."),
+(r"správní rozhodnutí vzp nabylo právní moci","Rozhodnutí se stalo pravomocným a jeho právní účinky jsou závazné pro dotčené vztahy."),
+(r"vzp vyhověla námitce","Námitka byla přijata a původní výsledek vůči pojištěnci byl odpovídajícím způsobem změněn."),
+(r"vzp námitku pojištěnce zamítla","Po přezkumu zůstává původní napadený výsledek v rozhodném rozsahu zachován."),
+(r"reklamace pojištěnce byla uznána","Podání klienta vedlo k uznané nápravě či korekci dotčené skutečnosti."),
+(r"reklamace pojištěnce byla zamítnuta","Reklamované tvrzení nebylo uznáno a nebyla přiznána požadovaná korekce."),
+(r"pojištěnci byl přiznán příspěvek","Vzniklo konkrétní rozhodnutí přiznávající pojištěnci preventivní benefit."),
+(r"příspěvek na prevenci byl vyplacen","Schválený benefit byl skutečně vyplacen a související finanční závazek se vypořádal."),
+(r"byl zaveden nový příspěvek","Programově se otevřela nabídka nového preventivního benefitu pro určenou skupinu."),
+(r"refundace zahraniční péče byla vyplacena","Uzavřelo se skutečné finanční vypořádání uznaného nároku na refundaci zahraniční péče."),
+(r"nárok na výpomoc zanikl","Zaniklo oprávnění zahraničního pojištěnce čerpat péči v ČR v daném koordinačním režimu."),
+(r"mezistátní pohledávka byla vypořádána","Mezinárodní závazek nebo pohledávka z poskytnuté péče byla finančně uzavřena."),
+(r"vznikla mezistátní pohledávka","Vznikl nový nárok mezi dotčenými pojistnými institucemi na úhradu přeshraniční péče."),
+(r"registrace u praktického lékaře skončila","Původní registrující lékař již není účinným poskytovatelem pro kapitační evidenci pojištěnce."),
+(r"registrace u praktického lékaře nabyla","Nový registrující lékař se stal účinným pro evidenci a případné kapitační vypořádání."),
+(r"přerozdělení pojistného bylo vypořádáno","Vypočtené a schválené prostředky byly mezi zdravotními pojišťovnami skutečně rozděleny."),
+(r"přerozdělení pojistného za období bylo schváleno","Výsledek přerozdělování za období získal požadované schválení pro následné finanční vypořádání."),
+(r"byla stanovena nová výše přerozdělení","Nově stanovené částky určují finanční nároky jednotlivých pojišťoven za rozhodné období."),
+(r"vzp splnila zákonnou informační povinnost","Povinná informace byla zákonnému příjemci řádně zpřístupněna nebo předána."),
+(r"vzp vznikla nová povinnost předávat data","Nový právní požadavek rozšiřuje obsah, příjemce nebo periodicitu datového poskytování VZP."),
+(r"vzp zpřístupnila novou významnou datovou službu","Oprávnění příjemci získali přístup k významné nové datové službě VZP."),
+(r"vzp přestala včas hradit","Významná část splatných úhrad nebyla zaplacena včas, což narušilo finanční kontinuitu poskytování péče."),
+(r"vzp obnovila včasné úhrady","Po předchozím narušení se znovu včas vypořádávají významné závazky vůči poskytovatelům."),
+(r"vzp ztratila kritickou odbornou kapacitu","Nedostatek specializované kapacity ohrozil schopnost zajistit určenou zákonnou agendu."),
+(r"vzp obnovila kritickou odbornou kapacitu","Klíčová agenda znovu získala potřebné odborné pokrytí pro řádné poskytování služby."),
+(r"klientská digitální služba.*nedostupná","Klienti nemohli využívat významnou digitální službu potřebnou pro jejich úkony."),
+(r"klientská digitální služba.*obnovena","Klienti mohou po výpadku znovu využívat dotčenou digitální službu."),
+(r"strategická dodavatelská smlouva.*účinnosti","Závazná smlouva nově zajišťuje strategicky významnou činnost nebo službu VZP."),
+(r"strategické dodavatelské zajištění.*skončilo","Zaniklo právní pokrytí důležité externě zajišťované činnosti nebo služby."),
+(r"pravomocné rozhodnutí změnilo závazky","Výsledek řízení závazně změnil práva nebo povinnosti VZP vůči protistraně."),
+(r"vzp přestala přijímat právně významná podání","Klienti v dotčeném rozsahu nemohli uskutečnit právně účinné podání vůči VZP."),
+(r"vzp obnovila příjem právně významných podání","Znovu byla dostupná cesta pro právně účinná podání klientů."),
+(r"bylo potvrzeno závažné porušení zabezpečení","Byl potvrzen incident zasahující osobní údaje, pro který se posuzují povinnosti ohlašování a nápravy."),
+(r"dotčené osoby byly vyrozuměny","Při splnění zákonných podmínek vysokého rizika byly jednotlivé dotčené osoby informovány."),
+(r"klíčová evidence.*přestala být důvěryhodně","Incident narušil důvěryhodnou dostupnost důležitých údajů pro výkon zákonných agend.")
+]
+
 def describe(title,code):
     s=title.lower()
-    for pattern,meaning in RULES:
+    for pattern,meaning in PRIORITY_RULES+RULES:
         if re.search(pattern,s,re.IGNORECASE):
             return meaning
     return DOMAIN_CONTEXT.get(code,"Událost představuje významnou změnu business stavu nebo práv a povinností VZP.")
