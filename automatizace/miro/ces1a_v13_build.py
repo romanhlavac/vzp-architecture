@@ -110,6 +110,31 @@ def main():
         obj=req("POST",endpoint,payload)
         targetItems.append(obj);created+=1
         return obj
+    # Reconcile pilot N01 before copying the remaining original events.
+    # The pilot saw just one source clone, so its tentative slot may collide
+    # with an uncreated source item. Never overwrite that source slot.
+    if MODE=="apply":
+        for code,group,name in ADDITIONS:
+            existing=[z for z in targetItems if z.get("type")=="sticky_note" and txt(z)==code+" · "+name]
+            if len(existing)>1:raise RuntimeError("Duplicate approved event after pilot")
+            if not existing:continue
+            old=existing[0]
+            conflicts=[z for z in notes if abs(xx(z)-xx(old))<520 and abs(yy(z)-yy(old))<320]
+            if conflicts:
+                base=[refhash[k] for k in RULES["groups"][group]]
+                ym=sorted(yy(z) for z in base)[len(base)//2]
+                used=list(notes)+[z for z in targetItems if z.get("type")=="sticky_note" and id(z)!=id(old)]
+                free=[]
+                for dy in (0,430,-430,860,-860,1290,-1290,1720):
+                    for qx in range(9300,16300,890):
+                        qy=ym+dy
+                        if 400<qy<hh(f)-260 and qx<ww(f)-240 and all(abs(xx(z)-qx)>520 or abs(yy(z)-qy)>320 for z in used):
+                            free.append((abs(dy)*10+abs(qx-(max(xx(z) for z in base)+890)),qx,qy))
+                if not free:raise RuntimeError("No safe recovery slot")
+                _,nx,ny=min(free)
+                patched=req("PATCH","sticky_notes/"+id(old),{"position":{"x":nx,"y":ny,"origin":"center"}})
+                targetItems[targetItems.index(old)]=patched
+                print("PILOT_SLOT_RECONCILED",code,flush=True)
     originalMap={}
     srcTodo=notes[:1] if MODE=="pilot" else notes
     txtTodo=texts[:1] if MODE=="pilot" else texts
@@ -126,6 +151,14 @@ def main():
     current=[z for z in targetItems if z["type"]=="sticky_note"]
     nextAdditions=[]
     for code,group,name in ADDITIONS[:1] if MODE=="pilot" else ADDITIONS:
+        matches_text=[z for z in targetItems if z.get("type")=="sticky_note" and txt(z)==code+" · "+name]
+        if len(matches_text)>1:raise RuntimeError("Duplicate approved event text")
+        if matches_text:
+            # Pilot/resume: reuse the approved event, do not create a second one.
+            obj=matches_text[0]
+            if all(id(z)!=id(obj) for z in current):current.append(obj)
+            nextAdditions.append((code,obj))
+            continue
         domain=[refhash[k] for k in RULES["groups"][group]]
         median_y=sorted(yy(z) for z in domain)[len(domain)//2]
         choices=[]
