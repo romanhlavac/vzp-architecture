@@ -57,6 +57,17 @@ def main():
         if status in ("EXACT","HIGH_SIMILARITY","REVIEW"):flagged+=1
         ranked=" ".join("%d:%.2f"%(i+1,p[0]) for p,i in pairs)
         print("SCREEN",key,status,"TOP_SCORES",ranked,flush=True)
+        # Reconcile top lexical collisions against historical coverage groups without exposing private card content.
+        if key in ("EV01","EV04","EV11","EV16"):
+            from landscape_build import RULES
+            for n,(_,ind) in enumerate(pairs[:2]):
+                card=notes[ind]
+                hh=hashlib.sha256(text(card).encode()).hexdigest()
+                groups=[c for c in RULES["codes"] if hh in RULES["groups"].get(c,[])]
+                ss=norm(text(card))
+                flags={z:int(z in ss) for z in ("poslaneck","schvalen","schvalen","zdravotne","pojistn","plan","uhrad","pravidl","ucinn","smlouv","prerozdel")}
+                print("CANDIDATE_REVIEW",key,"hit",n+1,"historical_group",groups[0] if groups else "NEW_V13","flags",flags,flush=True)
+
     print("SOURCE_LIVE_PASS","events",len(notes),"candidates",len(DATA),"exact",exact,"flagged",flagged)
     print("AUDIT_ONLY_NO_WRITES")
 if __name__=="__main__":
