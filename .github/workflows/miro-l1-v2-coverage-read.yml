@@ -1,0 +1,23 @@
+name: VZP L1 v2 · live domain coverage audit
+on:
+  push:
+    branches: [main]
+    paths:
+      - "automatizace/miro/l1_v2_coverage_read.py"
+      - ".github/workflows/miro-l1-v2-coverage-read.yml"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  audit:
+    if: github.repository == 'romanhlavac/vzp-architecture'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 15
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/l1_v2_coverage_read.py
+      - run: python3 automatizace/miro/l1_v2_coverage_read.py
