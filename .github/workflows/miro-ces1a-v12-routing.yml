@@ -1,0 +1,38 @@
+name: VZP CES-1A v12 · guarded curved routing
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1a-v12-routing.yml"
+      - "automatizace/miro/ces1a_v12_curve_routing.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Audit, pilot, or authorized routing-only apply"
+        required: true
+        type: choice
+        default: audit
+        options: [audit, pilot, apply]
+permissions:
+  contents: read
+concurrency:
+  group: vzp-miro-v12-routing
+  cancel-in-progress: false
+jobs:
+  routing:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 25
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      V12_ROUTE_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Compile guarded controller
+        run: python3 -m py_compile automatizace/miro/ces1a_v12_curve_routing.py
+      - name: V12 REST preflight / routing repair / read-back
+        run: python3 automatizace/miro/ces1a_v12_curve_routing.py
