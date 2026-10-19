@@ -27,7 +27,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
-      V14_ROUTING_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+      V14_ROUTING_MODE: ${{ github.event_name == 'push' && 'pilot' || inputs.mode }}
       V14_MODE: audit
       V14_REGROUP_MODE: audit
     steps:
