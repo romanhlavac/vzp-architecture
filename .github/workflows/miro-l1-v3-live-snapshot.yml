@@ -1,0 +1,29 @@
+name: VZP L1 v3 · encrypted current source inventory
+on:
+  push:
+    branches: [main]
+    paths:
+      - "automatizace/miro/l1_v3_live_snapshot.py"
+      - ".github/workflows/miro-l1-v3-live-snapshot.yml"
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  inventory:
+    if: github.repository == 'romanhlavac/vzp-architecture'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 20
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/l1_v3_live_snapshot.py
+      - run: python3 automatizace/miro/l1_v3_live_snapshot.py
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: encrypted-v14-l1-source
+          path: encrypted-v14-l1/inventory.p7m
+          retention-days: 1
