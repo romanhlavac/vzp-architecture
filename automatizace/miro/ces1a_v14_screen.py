@@ -55,7 +55,7 @@ def main():
         status="EXACT" if norm(label)==norm(existing[pairs[0][1]]) else "HIGH_SIMILARITY" if sc>=.62 else "REVIEW" if sc>=.42 else "NO_LEXICAL_MATCH"
         if status=="EXACT":exact+=1
         if status in ("EXACT","HIGH_SIMILARITY","REVIEW"):flagged+=1
-        ranked=" ".join("%d:%.2f"%(i+1,p[0][0]) for p,i in pairs)
+        ranked=" ".join("%d:%.2f"%(i+1,p[0]) for p,i in pairs)
         print("SCREEN",key,status,"TOP_SCORES",ranked,flush=True)
     print("SOURCE_LIVE_PASS","events",len(notes),"candidates",len(DATA),"exact",exact,"flagged",flagged)
     print("AUDIT_ONLY_NO_WRITES")
