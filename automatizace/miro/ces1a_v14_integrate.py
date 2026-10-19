@@ -135,7 +135,7 @@ def is_new_meta(t,sourcecontents):
  return True
 def plan_positions(srcnotes,allnotes):
  original={h(txt(z)):z for z in srcnotes}
- occupied=[z for z in allnotes if parse_key(z) is None]
+ occupied=[z for z in allnotes if parse_key(z) is None or parse_key(z) in NS]
  positions={}
  # Group in the pre-existing three-column thematic blocks where business relevant.
  cells={
