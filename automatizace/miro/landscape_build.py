@@ -25,17 +25,41 @@ def encrypt(data):
  out=pathlib.Path('encrypted-evidence');out.mkdir(exist_ok=True)
  p=subprocess.run(['openssl','cms','-encrypt','-binary','-aes-256-cbc','-outform','DER','-out',str(out/'landscape.p7m'),str(ROOT/'landscape_recipient.pem')],input=json.dumps(data,ensure_ascii=False).encode(),stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
  if p.returncode:raise RuntimeError('Evidence encryption failed')
+RECOVERIES=[]
 def mutate(path,payload):
- # POST is deliberately NOT replayed after uncertain transport response.
- # A subsequent audit inventories objects before idempotent resume.
- raw=json.dumps(payload,ensure_ascii=False).encode()
- req=urllib.request.Request(BASE+path,data=raw,headers={'Authorization':'Bearer '+TOKEN,'Accept':'application/json','Content-Type':'application/json'},method='POST')
- try:
-  with urllib.request.urlopen(req,timeout=45) as r:return json.load(r)
- except urllib.error.HTTPError as e:
-  encrypt({'failure':{'path':path,'status':e.code,'body':e.read().decode('utf-8','replace'),'payload':payload}})
-  raise RuntimeError('POST '+path+' HTTP '+str(e.code)+'; encrypted diagnostic; audit before resume') from None
- except Exception:raise RuntimeError('POST transport uncertain; audit before resume') from None
+ # Recovery is per item and starts with a complete read-only live inventory.
+ # Never retry an uncertain POST before confirming absence or exact identity.
+ for attempt in range(3):
+  raw=json.dumps(payload,ensure_ascii=False).encode()
+  req=urllib.request.Request(BASE+path,data=raw,headers={'Authorization':'Bearer '+TOKEN,'Accept':'application/json','Content-Type':'application/json'},method='POST')
+  try:
+   with urllib.request.urlopen(req,timeout=45) as response:return json.load(response)
+  except urllib.error.HTTPError as error:
+   encrypt({'failure':{'path':path,'status':error.code,'body':error.read().decode('utf-8','replace'),'payload':payload},'recoveries':RECOVERIES})
+   if error.code<500 or attempt==2:raise RuntimeError('POST '+path+' HTTP '+str(error.code)+'; encrypted diagnostic; audit before resume') from None
+   code=error.code
+  except Exception:raise RuntimeError('POST transport uncertain; audit before resume') from None
+  current=snapshot();build_plan(current)
+  if path=='frames':
+   candidates=[x for x in current['items'] if x['type']=='frame' and x.get('data',{}).get('title')==payload['data']['title']]
+  elif path=='connectors':
+   candidates=[x for x in current['connectors'] if edge(x,'startItem')==edge(payload,'startItem') and edge(x,'endItem')==edge(payload,'endItem')]
+  else:
+   typ={'shapes':'shape','texts':'text','sticky_notes':'sticky_note'}[path]
+   candidates=[x for x in current['items'] if x['type']==typ and parent(x)==parent(payload) and abs(px(x)-px(payload))<2 and abs(py(x)-py(payload))<2]
+  if len(candidates)>1:raise RuntimeError('Recovery found duplicate slot; reconcile manually')
+  if candidates:
+   x=candidates[0]
+   if path=='connectors':same=x.get('captions')==payload.get('captions') and x.get('shape')==payload.get('shape')
+   elif path=='frames':same=abs(size(x,'width')-size(payload,'width'))<2 and abs(size(x,'height')-size(payload,'height'))<2
+   else:same=tx(x)==tx(payload) and abs(size(x,'width')-size(payload,'width'))<2
+   if not same:raise RuntimeError('Recovery target drift; reconcile manually')
+   RECOVERIES.append({'path':path,'status':code,'attempt':attempt+1,'resolution':'EXACT_ITEM_FOUND_AFTER_FRESH_READ','id':ident(x)})
+   print('RECOVERY PASS: exact created object recovered from fresh inventory',flush=True)
+   return x
+  RECOVERIES.append({'path':path,'status':code,'attempt':attempt+1,'resolution':'ABSENCE_CONFIRMED_AFTER_FRESH_READ'})
+  print('RECOVERY PASS: absence confirmed; one item resumed after live source checks',flush=True)
+ raise RuntimeError('Recovery exhausted')
 
 def build_plan(before):
  frames=[z for z in before['items'] if z['type']=='frame']
@@ -147,7 +171,8 @@ class Builder:
  def execute(self):
   self.frame_create();self.headers()
   cs=['S0'] if MODE=='pilot' else RULES['codes']
-  for c in cs:self.domain(c)
+  for c in cs:
+   self.domain(c);print('DOMAIN COMPLETE: count='+str(len(self.mapping)),flush=True)
   edges=[]
   for i,e in enumerate(self.p['links']):
    if MODE=='pilot' and not (self.p['domain_of'][edge(e,'startItem')]=='S0' and self.p['domain_of'][edge(e,'endItem')]=='S0'):continue
@@ -178,7 +203,7 @@ def main():
  for e in edges:
   z=next(x for x in cons if ident(x)==e['newConnectorID'])
   if z.get('shape')!='curved' or z.get('captions')!=e['captions']:raise RuntimeError('Edge semantics/readback mismatch')
- encrypt({'mode':MODE,'targetFrame':b.frame,'events':b.mapping,'edges':edges,'snapshot':after,'createdIDs':b.created,'protectedItemsVerified':len(old),'sourceTemplateVerified':True})
+ encrypt({'mode':MODE,'targetFrame':b.frame,'events':b.mapping,'edges':edges,'snapshot':after,'createdIDs':b.created,'protectedItemsVerified':len(old),'sourceTemplateVerified':True,'recoveries':RECOVERIES})
  print('STRUCTURAL PASS: primary=%d native_curved=%d protected=%d created=%d'%(len(notes),len(cons),len(old),len(b.created)))
  print('VISUAL ACCEPTANCE OPEN: requires actual native canvas review')
 if __name__=='__main__':
