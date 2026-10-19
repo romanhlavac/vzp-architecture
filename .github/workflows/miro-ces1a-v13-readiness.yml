@@ -1,0 +1,27 @@
+name: VZP CES-1A V13 guarded readiness
+on:
+  push:
+    branches: [main]
+    paths:
+      - "automatizace/miro/ces1a_v13_readiness.py"
+      - ".github/workflows/miro-ces1a-v13-readiness.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: miro-ces1a-v13
+  cancel-in-progress: false
+jobs:
+  readiness:
+    if: github.repository == 'romanhlavac/vzp-architecture'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 15
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/ces1a_v13_readiness.py
+      - run: python3 automatizace/miro/ces1a_v13_readiness.py
