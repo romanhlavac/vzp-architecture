@@ -32,7 +32,9 @@ def mutate(path,payload):
  req=urllib.request.Request(BASE+path,data=raw,headers={'Authorization':'Bearer '+TOKEN,'Accept':'application/json','Content-Type':'application/json'},method='POST')
  try:
   with urllib.request.urlopen(req,timeout=45) as r:return json.load(r)
- except urllib.error.HTTPError as e:raise RuntimeError('POST '+path+' HTTP '+str(e.code)+'; audit before resume') from None
+ except urllib.error.HTTPError as e:
+  encrypt({'failure':{'path':path,'status':e.code,'body':e.read().decode('utf-8','replace'),'payload':payload}})
+  raise RuntimeError('POST '+path+' HTTP '+str(e.code)+'; encrypted diagnostic; audit before resume') from None
  except Exception:raise RuntimeError('POST transport uncertain; audit before resume') from None
 
 def build_plan(before):
@@ -79,7 +81,7 @@ class Builder:
  def frame_create(self):
   if self.frame:return
   right=max(px(f)+size(f,'width')/2 for f in self.p['frames'])
-  self.frame=mutate('frames',{'data':{'title':TITLE,'type':'freeform','format':'custom','showContent':True},'style':{'fillColor':'#ffffff'},'geometry':{'width':self.p['width'],'height':self.p['height']},'position':{'x':right+1600+self.p['width']/2,'y':1300+self.p['height']/2,'origin':'center'}})
+  self.frame=mutate('frames',{'data':{'title':TITLE},'style':{'fillColor':'#ffffff'},'geometry':{'width':self.p['width'],'height':self.p['height']},'position':{'x':right+1600+self.p['width']/2,'y':1300+self.p['height']/2,'origin':'center'}})
   self.created.append(ident(self.frame))
  def create(self,typ,key,x,y,w,content,height=None,style=None,data=None):
   same=[z for z in self.items if z['type']==typ and tx(z)==re.sub(r'\s+',' ',html.unescape(re.sub('<[^>]+>',' ',content))).strip() and abs(px(z)-x)<2 and abs(py(z)-y)<2]
