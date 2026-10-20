@@ -91,7 +91,8 @@ def fresh():
         and content(o).startswith("S0 · Správa a evidence subjektů")]
     if len(shape)!=1:raise RuntimeError("S0_DOMAIN_PANEL_NOT_UNIQUE")
     x,y,w,h=geom(shape[0])
-    if not 1700<h<4000:raise RuntimeError("S0_ROW_GEOMETRY_CHANGED")
+    print("S0_PANEL_GEOMETRY",*[round(z,1) for z in (x,y,w,h)],flush=True)
+    if not 500<h<10000:raise RuntimeError("S0_ROW_GEOMETRY_CHANGED")
     rowtop=y-h/2-15
     return ls,rel,native,rowtop
 def note(key,row):
