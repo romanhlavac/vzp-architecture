@@ -95,6 +95,13 @@ def main():
       "html_p":sum("<p>" in v or "&lt;p&gt;" in v for v in raw),
       "max_content_len":max((len(v) for v in raw),default=0)
     }),flush=True)
+    tails=[]
+    for v in raw:
+        p=v.lower().find("movetowidget")
+        if p>=0:
+            t=v[p+len("movetowidget"):p+len("movetowidget")+19]
+            tails.append(re.sub(r"[0-9]","#",t))
+    print("URL_MARKER_SHAPES",json.dumps(dict(collections.Counter(tails))),flush=True)
     original_desc=len(ds)
     meaning={}
     for z in ds:
