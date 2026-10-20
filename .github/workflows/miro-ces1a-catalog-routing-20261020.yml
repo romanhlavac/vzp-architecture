@@ -1,0 +1,35 @@
+name: VZP CES1A catalog and native routing repair
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1a-catalog-routing-20261020.yml"
+      - "automatizace/miro/ces1a_catalog_native_docs_routing_20261020.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        required: true
+        type: choice
+        default: audit
+        options: [audit, apply]
+permissions: {contents: read}
+concurrency:
+  group: miro-ces1a-catalog-routing
+  cancel-in-progress: false
+jobs:
+  migrate:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 48
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      MIRO_CATALOG_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Compile
+        run: python3 -m py_compile automatizace/miro/ces1a_catalog_native_docs_routing_20261020.py
+      - name: Fresh live Miro audit or guarded apply
+        run: python3 automatizace/miro/ces1a_catalog_native_docs_routing_20261020.py
