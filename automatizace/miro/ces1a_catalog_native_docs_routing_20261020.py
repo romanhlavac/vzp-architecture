@@ -82,6 +82,19 @@ def main():
             if ds.get(field)!=bs.get(field):raise RuntimeError("CONNECTOR_STYLE_DRIFT")
     # Existing descriptions are authoritative business meaning / traceability.
     ds=[z for z in dl_items if z.get("type")=="text" and "moveToWidget=" in str((z.get("data") or {}).get("content") or "")]
+    # Read-only representation diagnostic: do not expose private event text.
+    texts=[z for z in dl_items if z.get("type")=="text"]
+    raw=[str((z.get("data") or {}).get("content") or "") for z in texts]
+    print("TEXT_REPRESENTATION_AUDIT",json.dumps({
+      "types":dict(collections.Counter(z.get("type") for z in dl_items)),
+      "text_count":len(texts),"nonempty":sum(bool(v) for v in raw),
+      "direct_bp_marker":sum("moveToWidget=" in v for v in raw),
+      "marker_case_insensitive":sum("movetowidget" in v.lower() for v in raw),
+      "source_bp_phrase":sum("Zdrojový BP" in v for v in raw),
+      "hyperlink_tag":sum("<a " in v or "&lt;a " in v for v in raw),
+      "html_p":sum("<p>" in v or "&lt;p&gt;" in v for v in raw),
+      "max_content_len":max((len(v) for v in raw),default=0)
+    }),flush=True)
     original_desc=len(ds)
     meaning={}
     for z in ds:
