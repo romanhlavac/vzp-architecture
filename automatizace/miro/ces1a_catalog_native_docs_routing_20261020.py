@@ -81,7 +81,7 @@ def main():
         for field in ("strokeColor","strokeStyle"):
             if ds.get(field)!=bs.get(field):raise RuntimeError("CONNECTOR_STYLE_DRIFT")
     # Existing descriptions are authoritative business meaning / traceability.
-    ds=[z for z in dl_items if z.get("type")=="text" and "movetowidget=" in str((z.get("data") or {}).get("content") or "").lower()]
+    ds=[z for z in dl_items if z.get("type")=="text" and "movetowidget=" in html.unescape(str((z.get("data") or {}).get("content") or "")).lower()]
     # Read-only representation diagnostic: do not expose private event text.
     texts=[z for z in dl_items if z.get("type")=="text"]
     raw=[str((z.get("data") or {}).get("content") or "") for z in texts]
@@ -134,6 +134,9 @@ def main():
         raise RuntimeError("MIGRATION_ALREADY_APPLIED_STOP_FOR_REVIEW")
     # Reconstruct exact existing Miro Doc content for source BP as a distinct
     # native Doc Format. No private source text is stored in this public repo.
+    legend=[z for z in dl_items if z.get("type")=="text" and
+            "Pod kartou" in tex(z) and "business význam" in tex(z)]
+    if len(legend)!=1:raise RuntimeError("L1_LEGEND_IDENTITY_DRIFT")
     bpdocs=[z for z in bp_items if z.get("type") in ("doc","doc_format")]
     if bpdocs: raise RuntimeError("BP_DOC_ALREADY_PRESENT_RECONCILE")
     # Native docs may have board-dependent content, but markdown source is
@@ -167,6 +170,9 @@ def main():
         if (i+1)%20==0:print("DESCRIPTION_MIGRATED",i+1,flush=True)
         time.sleep(0.3)
     print("DL_DESCRIPTION_REMOVAL_PASS",len(ds),flush=True)
+    req("PATCH","texts/"+iid(legend[0]),{"data":{"content":
+        "Oranžově = jedna primární business událost. Popis a odkaz na zdrojový BP jsou v úplném editovatelném Katalogu událostí pod doménami. Šipky P/D vedou přímo mezi událostmi."}})
+    print("L1_LEGEND_UPDATED",flush=True)
     # Routing optimizer: 2 facing anchor pairs for diagonal relations; score
     # geometrical clearance, crossings, near-parallel co-routing. Native shape
     # stays curved; connector endpoint ids/captions/colors/style immutable.
@@ -225,6 +231,7 @@ def main():
     for i,c in enumerate(dle):
         cur=(side(c,"startItem"),side(c,"endItem"))
         chosen.append(cur if cur in opts[i] else opts[i][0])
+    originals=[(side(c,"startItem"),side(c,"endItem")) for c in dle]
     before=chosen[:]
     beforeScore=sum(score(i,sd,before) for i,sd in enumerate(before))
     for _ in range(5):
@@ -234,7 +241,7 @@ def main():
             if score(i,o,chosen)+1e-6<score(i,chosen[i],chosen):
                 chosen[i]=o;count+=1
         if not count:break
-    changes=[(c,sd) for c,sd,old in zip(dle,chosen,before) if sd!=old]
+    changes=[(c,sd) for c,sd,old in zip(dle,chosen,originals) if sd!=old]
     print("ROUTING_PLAN",json.dumps({"changes":len(changes),
         "proxy_cost_before":round(beforeScore,2),
         "proxy_cost_after":round(sum(score(i,v,chosen) for i,v in enumerate(chosen)),2)}),flush=True)
@@ -259,7 +266,7 @@ def main():
         if (side(v,"startItem"),side(v,"endItem"))!=expected:
             raise RuntimeError("CONNECTOR_ANCHOR_READBACK_FAIL")
     finalitems=listing("items")
-    countD=sum(par(z)==DL and z.get("type")=="text" and "movetowidget=" in str((z.get("data") or {}).get("content") or "").lower() for z in finalitems)
+    countD=sum(par(z)==DL and z.get("type")=="text" and "movetowidget=" in html.unescape(str((z.get("data") or {}).get("content") or "")).lower() for z in finalitems)
     if countD:raise RuntimeError("DESCRIPTION_DELETION_INCOMPLETE")
     print("MIRO_SEMANTIC_AND_NATIVE_READBACK_PASS",
         json.dumps({"bp_doc_id":new_id,"dl_doc_id":DL_DOC,
