@@ -126,6 +126,7 @@ def run():
     for key,row,anchor in pending:
         if collision(positions[key],ls):
             raise RuntimeError("HOTSPOT_LAYOUT_COLLISION_"+key)
+    print("NEAR_S0_RAIL_CANDIDATES",[(xx,yy,collision((xx,yy),ls)) for yy in (1930,2325,2720) for xx in (5500,6000,6500,7000)],flush=True)
     print("FRESH_READ_PASS frame=yes orange_events=147 business_relations=51 existing_hotspots="+str(len(native))+" pending="+str(len(pending)),flush=True)
     print("S0_RAIL_PLACEMENT_PASS 3_columns_x_4_rows; mode="+MODE,flush=True)
     if MODE=="audit":return
