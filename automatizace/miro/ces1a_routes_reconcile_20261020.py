@@ -24,6 +24,8 @@ def call(method,path,obj=None):
                 time.sleep(min(2**k,24));continue
             raise RuntimeError("HTTP_"+str(e.code)+"_"+method+"_"+path.split("?")[0]) from None
         except (urllib.error.URLError,TimeoutError):
+            if method=="GET" and k<5:
+                time.sleep(min(2**k,24));continue
             raise RuntimeError("TRANSPORT_UNKNOWN_"+method+"_"+path.split("?")[0]) from None
 def listing(path,params=None):
     data=[];cursor=None
