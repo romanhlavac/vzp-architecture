@@ -26,7 +26,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
-      HOTSPOT_MODE: ${{ github.event_name == 'push' && 'apply' || inputs.mode }}
+      HOTSPOT_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
