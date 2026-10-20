@@ -95,13 +95,14 @@ def fresh():
     print("S0_PANEL_GEOMETRY",*[round(z,1) for z in (x,y,w,h)],flush=True)
     if not 500<h<10000:raise RuntimeError("S0_ROW_GEOMETRY_CHANGED")
     rowtop=y-h/2-15
-    return ls,rel,native,rowtop
+    return ls,rel,native,(rowtop,x+w/2)
 def note(key,row):
     url=SHEET+"&range=A"+str(row)+":L"+str(row)
     return ('<p><strong>HOTSPOT '+key+'</strong></p><p>DEMO · OPEN</p>'
             '<p><a href="'+html.escape(url,quote=True)+'">Otázka, důkazy a události → CES_DEMO_DATA</a></p>')
-def slots(top):
-    return {key:(8150+(i%3)*450,top+265+(i//3)*550) for i,(key,_,_) in enumerate(ANCHORS)}
+def slots(geometry):
+    top,right_edge=geometry
+    return {key:(right_edge+488+(i%4)*500,top+134+(i//4)*395) for i,(key,_,_) in enumerate(ANCHORS)}
 def collision(pos,items):
     x,y=pos
     for o in items:
@@ -113,8 +114,8 @@ def collision(pos,items):
             return o.get("type")
     return None
 def run():
-    ls,rel,native,rowtop=fresh()
-    positions=slots(rowtop)
+    ls,rel,native,live_s0=fresh()
+    positions=slots(live_s0)
     existing={}
     for z in native:
         txt=content(z)
@@ -128,7 +129,7 @@ def run():
             raise RuntimeError("HOTSPOT_LAYOUT_COLLISION_"+key)
     print("NEAR_S0_RAIL_CANDIDATES",[(xx,yy,collision((xx,yy),ls)) for yy in (1930,2325,2720) for xx in (5500,6000,6500,7000)],flush=True)
     print("FRESH_READ_PASS frame=yes orange_events=147 business_relations=51 existing_hotspots="+str(len(native))+" pending="+str(len(pending)),flush=True)
-    print("S0_RAIL_PLACEMENT_PASS 3_columns_x_4_rows; mode="+MODE,flush=True)
+    print("S0_RAIL_PLACEMENT_PASS 4_columns_x_3_rows; mode="+MODE,flush=True)
     if MODE=="audit":return
     # Created notes carry only a stable key and link into canonical Google Sheet,
     # not a second editable copy of business definitions.
