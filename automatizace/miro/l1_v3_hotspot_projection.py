@@ -83,6 +83,7 @@ def fresh():
     for key,row,anchor in ANCHORS:
         a=next((o for o in orange if oid(o)==anchor),None)
         if a is None:raise RuntimeError("ANCHOR_MISSING_"+key)
+        print("ANCHOR_GEOMETRY",key,*[round(t,1) for t in geom(a)],flush=True)
     for key,row,anchor in ANCHORS:
         matches=[o for o in native if content(o).startswith("HOTSPOT "+key+" ")]
         if len(matches)>1:raise RuntimeError("DUPLICATE_HOTSPOT_"+key)
