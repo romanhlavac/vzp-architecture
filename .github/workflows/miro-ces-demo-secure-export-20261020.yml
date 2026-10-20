@@ -1,0 +1,28 @@
+name: CES demo secure REST catalog snapshot (read-only)
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces-demo-secure-export-20261020.yml"
+      - "automatizace/miro/ces_demo_secure_export_20261020.py"
+  workflow_dispatch:
+permissions: {contents: read}
+concurrency:
+  group: miro-ces-demo-secure-export
+  cancel-in-progress: false
+jobs:
+  export:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 35
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Compile secure extractor
+        run: python3 -m py_compile automatizace/miro/ces_demo_secure_export_20261020.py
+      - name: Read live Miro and publish RSA-encrypted payload only
+        run: python3 automatizace/miro/ces_demo_secure_export_20261020.py
