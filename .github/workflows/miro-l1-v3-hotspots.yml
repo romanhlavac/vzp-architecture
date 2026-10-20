@@ -1,0 +1,34 @@
+name: VZP CES DEMO · L1 v3 S0 native hotspot projection
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-l1-v3-hotspots.yml"
+      - "automatizace/miro/l1_v3_hotspot_projection.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        required: true
+        default: audit
+        options: [audit, apply]
+permissions:
+  contents: read
+concurrency:
+  group: vzp-ces-demo-l1-hotspots
+  cancel-in-progress: false
+jobs:
+  hotspots:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 25
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      HOTSPOT_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/l1_v3_hotspot_projection.py
+      - run: python3 automatizace/miro/l1_v3_hotspot_projection.py
