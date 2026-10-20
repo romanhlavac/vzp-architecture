@@ -26,7 +26,7 @@ def req(method,path,payload=None):
             b=r.read()
             return json.loads(b) if b else {}
         except urllib.error.HTTPError as e:
-            if e.code in (429,500,502,503,504) and i<3 and method=="GET":
+            if i<3 and (e.code==429 or (e.code in (500,502,503,504) and method=="GET")):
                 time.sleep(2**i);continue
             # Redact provider error bodies: they may contain private board data.
             raise RuntimeError("MIRO_HTTP_"+str(e.code)+"_"+method+"_"+path.split("?")[0]) from None
@@ -81,7 +81,7 @@ def main():
         for field in ("strokeColor","strokeStyle"):
             if ds.get(field)!=bs.get(field):raise RuntimeError("CONNECTOR_STYLE_DRIFT")
     # Existing descriptions are authoritative business meaning / traceability.
-    ds=[z for z in dl_items if z.get("type")=="text" and "moveToWidget=" in str((z.get("data") or {}).get("content") or "")]
+    ds=[z for z in dl_items if z.get("type")=="text" and "movetowidget=" in str((z.get("data") or {}).get("content") or "").lower()]
     # Read-only representation diagnostic: do not expose private event text.
     texts=[z for z in dl_items if z.get("type")=="text"]
     raw=[str((z.get("data") or {}).get("content") or "") for z in texts]
@@ -99,7 +99,7 @@ def main():
     meaning={}
     for z in ds:
         raw=html.unescape(str((z.get("data") or {}).get("content") or ""))
-        m=re.search(r"moveToWidget=(\d+)",raw)
+        m=re.search(r"movetowidget=(\d+)",raw,re.I)
         p=re.search(r"<p>(.*?)</p>",raw,re.S|re.I)
         if not m or not p or m.group(1) not in bp_cards: raise RuntimeError("DESCRIPTION_PROVENANCE_DRIFT")
         name=tex(bp_cards[m.group(1)])
@@ -158,7 +158,7 @@ def main():
     for i,z in enumerate(ds):
         req("DELETE","texts/"+iid(z))
         if (i+1)%20==0:print("DESCRIPTION_MIGRATED",i+1,flush=True)
-        time.sleep(0.05)
+        time.sleep(0.3)
     print("DL_DESCRIPTION_REMOVAL_PASS",len(ds),flush=True)
     # Routing optimizer: 2 facing anchor pairs for diagonal relations; score
     # geometrical clearance, crossings, near-parallel co-routing. Native shape
@@ -252,7 +252,7 @@ def main():
         if (side(v,"startItem"),side(v,"endItem"))!=expected:
             raise RuntimeError("CONNECTOR_ANCHOR_READBACK_FAIL")
     finalitems=listing("items")
-    countD=sum(par(z)==DL and z.get("type")=="text" and "moveToWidget=" in str((z.get("data") or {}).get("content") or "") for z in finalitems)
+    countD=sum(par(z)==DL and z.get("type")=="text" and "movetowidget=" in str((z.get("data") or {}).get("content") or "").lower() for z in finalitems)
     if countD:raise RuntimeError("DESCRIPTION_DELETION_INCOMPLETE")
     print("MIRO_SEMANTIC_AND_NATIVE_READBACK_PASS",
         json.dumps({"bp_doc_id":new_id,"dl_doc_id":DL_DOC,
