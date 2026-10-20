@@ -15,6 +15,7 @@ def main():
     expected=set(RULES["groups"]["S0"])
     actual=[z for z in notes if hashlib.sha256(txt(z).encode()).hexdigest() in expected]
     original=[z for z in origins if hashlib.sha256(txt(z).encode()).hexdigest() in expected]
+    print("L1S0_DIAGNOSTIC_COUNTS",dict(counts),"sourceBP",len(origins),"s0source",len(original),"s0L1",len(actual),"expectedS0",len(expected),flush=True)
     if counts["sticky_note"]!=147 or counts["text"]!=203 or counts["shape"]!=142:
         raise RuntimeError("L1_COUNTS_DRIFT")
     if len(expected)!=8 or len(actual)!=8 or len(original)!=8:
