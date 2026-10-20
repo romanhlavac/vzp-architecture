@@ -28,7 +28,15 @@ def req(method,path,payload=None):
         except urllib.error.HTTPError as e:
             if i<3 and (e.code==429 or (e.code in (500,502,503,504) and method=="GET")):
                 time.sleep(2**i);continue
-            # Redact provider error bodies: they may contain private board data.
+            # Sanitized diagnostic only: never publish provider response, payload, token or board text.
+            if e.code==400 and method=="POST" and path=="docs":
+                raw=e.read(3500).decode("utf-8","replace")
+                markers=("content","markdown","version","position","origin","parent","size","length","limit","html","invalid","malformed","text")
+                print("DOC_POST_400_DIAGNOSTIC",json.dumps({"body_length":len(body or b""),
+                    "response_characters":len(raw),
+                    "keywords":[k for k in markers if k in raw.lower()],
+                    "error_field_names":list(json.loads(raw).keys())[:12] if raw.startswith("{") else [],
+                    "code":e.code}),flush=True)
             raise RuntimeError("MIRO_HTTP_"+str(e.code)+"_"+method+"_"+path.split("?")[0]) from None
         except (TimeoutError,urllib.error.URLError) as e:
             raise RuntimeError("MIRO_TRANSPORT_UNCERTAIN_"+method+"_"+path.split("?")[0]) from None
@@ -117,6 +125,12 @@ def main():
     doc=req("GET","docs/"+DL_DOC+"?textContentType=markdown")
     ddata=doc.get("data") or {}
     dcontent=str(ddata.get("content") or "")
+    print("DL_DOC_METADATA",json.dumps({
+        "version_present":("contentVersion" in ddata),
+        "version_type":type(ddata.get("contentVersion")).__name__,
+        "width":round(bb(doc)[2]),"height":round(bb(doc)[3]),
+        "dl_frame_height":round(bb(frames[DL])[3]),
+        "bp_frame_height":round(bb(frames[BP])[3])}),flush=True)
     docparent=par(doc)
     existing_doc_valid=(docparent==DL and len(dcontent)>16000 and
         all(name in dcontent for name in src))
@@ -150,12 +164,15 @@ def main():
     # Catalog position below active source work area; frame will be enlarged.
     frame=frames[BP];cx,cy,fw,fh=bb(frame)
     top=cy-fh/2;left=cx-fw/2
-    patch={"geometry":{"width":fw,"height":47000}}
-    req("PATCH","frames/"+BP,patch)
+    if fh<47000:
+        req("PATCH","frames/"+BP,{"geometry":{"width":fw,"height":47000}})
+    # Position relative to actual source cards rather than a resized frame center.
+    catalog_x=min(bb(z)[0] for z in bp_cards.values())+500
+    catalog_y=max(bb(z)[1]+bb(z)[3]/2 for z in bp_cards.values())+1500
     created=req("POST","docs",{
-        "data":{"content":md,"contentType":"markdown"},
+        "data":{"content":md,"contentType":"markdown","contentVersion":1},
         "parent":{"id":BP},
-        "position":{"x":left+650,"y":top+14150,"origin":"center"}})
+        "position":{"x":catalog_x,"y":catalog_y}})
     new_id=iid(created)
     if not new_id:raise RuntimeError("BP_DOC_CREATE_UNCERTAIN")
     chk=req("GET","docs/"+new_id+"?textContentType=markdown")
