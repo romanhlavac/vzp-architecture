@@ -32,9 +32,20 @@ def listing(what,q=None):
         cur=d.get("cursor") or d.get("nextCursor")
         if not cur:return out
 def keep(z):
-    return {k:z.get(k) for k in ("id","type","parent","data","position","geometry","style","shape") if k in z}
+    # Minimal semantic/geometry payload, not full REST response.
+    d=z.get("data") or {}
+    return {"id":z.get("id"),"type":z.get("type"),
+            "parent":(z.get("parent") or {}).get("id"),
+            "content":d.get("content") or "",
+            "shape":d.get("shape") or "",
+            "fill":(z.get("style") or {}).get("fillColor") or "",
+            "position":z.get("position") or {},
+            "geometry":z.get("geometry") or {}}
 def keepc(z):
-    return {k:z.get(k) for k in ("id","startItem","endItem","shape","captions","style") if k in z}
+    return {"id":z.get("id"),"a":(z.get("startItem") or {}).get("id"),
+            "b":(z.get("endItem") or {}).get("id"),
+            "shape":z.get("shape"),"captions":z.get("captions") or [],
+            "stroke":(z.get("style") or {}).get("strokeColor")}
 def get():
     bp=listing("items",{"parent_item_id":BP})
     dl=listing("items",{"parent_item_id":DL})
