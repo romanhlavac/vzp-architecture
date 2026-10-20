@@ -18,8 +18,7 @@ def take():
   for source in originals:
     marker="?moveToWidget="+oid(source)
     matches=[z for z in l1 if z.get("type")=="text" and marker in str((z.get("data") or {}).get("content") or "")]
-    if len(matches)!=1:raise RuntimeError("S0_DESCRIPTION_TRACEABILITY_DRIFT")
-    ds.append({"source_id":oid(source),"source_event":txt(source),"desc":txt(matches[0])})
+    ds.append({"source_id":oid(source),"source_event":txt(source),"desc":txt(matches[0]) if len(matches)==1 else None,"description_match_count":len(matches)})
   domains=[{"text":txt(z),"type":z.get("type")} for z in l1 if z.get("type")=="shape" and
        ("Správa a evidence subjektů" in txt(z) or re.search(r"\bS0\b",txt(z)))]
   if not domains:raise RuntimeError("S0_DOMAIN_DESCRIPTION_MISSING")
