@@ -16,8 +16,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
-      PLAN_EXECUTION: >-
-        ${{ github.event_name == 'push' && github.event.head_commit.message == 'apply(miro): process-model full 20261021-1' && 'apply' || 'audit' }}
+      PLAN_EXECUTION: audit
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}

@@ -50,7 +50,9 @@ def main():
  before=snapshot(list(allowed|protected));evidence['before']=before
  allb={z['id']:z for z in before['items']+before['connectors']}
  if os.environ.get('PLAN_EXECUTION','audit')!='apply':
-  evidence['status']='READ_ONLY_AUDIT_PASS';print('READ_ONLY_AUDIT_PASS',flush=True);return
+  for k,h in plan.get('audit_guards',{}).items():
+   if k not in allb or digest(allb[k])!=h:raise RuntimeError('AUDIT_DRIFT_'+k)
+  evidence['status']='READ_ONLY_AUDIT_PASS';evidence['guard_count']=len(plan.get('audit_guards',{}));print('READ_ONLY_AUDIT_PASS',evidence['guard_count'],flush=True);return
  if plan.get('resume_desired'):
   for n in plan['nodes']:
    z=allb.get(n['old']);assert z and tx(z)==re.sub(r'\s+',' ',n['text']).strip(),'RESUME_TEXT'
