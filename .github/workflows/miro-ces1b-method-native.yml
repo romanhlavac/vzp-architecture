@@ -1,0 +1,35 @@
+name: VZP CES DEMO 1B · native methodology diagram
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1b-method-native.yml"
+      - "automatizace/miro/ces1b_method_native.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        required: true
+        default: audit
+        options: [audit, pilot, apply, verify]
+permissions:
+  contents: read
+concurrency:
+  group: vzp-ces-demo-1b-method-native
+  cancel-in-progress: false
+jobs:
+  native:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: miro-external-probe
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      CES1B_METHOD_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 -m py_compile automatizace/miro/ces1b_method_native.py
+      - run: python3 automatizace/miro/ces1b_method_native.py
