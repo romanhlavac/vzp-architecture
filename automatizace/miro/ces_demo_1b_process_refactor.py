@@ -5,7 +5,7 @@ No writes to BPv14 / L1DLv3. Modes audit, pilot, apply. No private content in CI
 """
 import os,sys,json,html,re,urllib.request,urllib.parse,urllib.error,time,math,collections
 MODE=os.getenv("CES_1B_FIX_MODE","audit")
-assert MODE in ("audit","pilot","apply")
+assert MODE in ("audit","pilot","apply","reconcile")
 B=os.environ["MIRO_DIAGNOSTIC_BOARD_ID"];TOKEN=os.environ["MIRO_DIAGNOSTIC_TOKEN"]
 ROOT="https://api.miro.com/v2/boards/"+urllib.parse.quote(B,safe="")+"/"
 GS="https://docs.google.com/spreadsheets/d/1qA_lsfm5Vka9kaglLrX9B7D-WjBSDAapA76pKGVi0ew/edit#gid="
@@ -104,7 +104,7 @@ def frame_create(title,cx,cy,w,h):
     return obj
 def add(typ,frame,content,cx,cy,w,fill,fs=24):
     kids=listing("items",{"parent_item_id":id(frame)})
-    normalized=re.sub(r"\s+"," ",content).strip()
+    normalized=text({"data":{"content":content}})
     matches=[z for z in kids if text(z)==normalized]
     if len(matches)>1:raise RuntimeError("DUPLICATE_WIDGET_CONTENT")
     if matches:return matches[0]
@@ -213,6 +213,61 @@ def audit_linksets(allitems):
         if event_url(k) in source:out["linked"]+=1
         if re.search(r"\b(?:S0-E\d{3}|HS-S0-\d{2}|EVT-\d{4})\b",text(z)):out["wrong_visible_id"]+=1
     return out
+def reconcile_sc4():
+    frames=listing("items",{"type":"frame"})
+    found=[z for z in frames if (z.get("data") or {}).get("title")==SC4]
+    if len(found)!=1:raise RuntimeError("SC04_FRAME_MISSING_OR_DUPLICATE")
+    frame=found[0]
+    kids=listing("items",{"parent_item_id":id(frame)})
+    notes=[z for z in kids if z.get("type")=="sticky_note"]
+    keys=("EVT-0017","S0-E041","EVT-0018","S0-E042","EVT-0019","S0-E043","S0-E044","HS-S0-05")
+    keep={};remove=[]
+    for k in keys:
+        matches=sorted((z for z in notes if text(z)==TITLES[k]),key=lambda z:int(id(z)))
+        if not 1<=len(matches)<=2:raise RuntimeError("SC04_SEMANTIC_CARD_UNEXPECTED_MULTIPLICITY")
+        for z in matches:
+            raw=html.unescape(str((z.get("data") or {}).get("content") or ""))
+            if event_url(k) not in raw:raise RuntimeError("CARD_WITHOUT_CANONICAL_LINK")
+        keep[k]=matches[0]
+        remove.extend(matches[1:])
+    if len(notes)!=len(keys)+len(remove):raise RuntimeError("UNKNOWN_SC04_STICKIES")
+    toremove={id(z) for z in remove}
+    edges=listing("connectors")
+    stale=[z for z in edges if
+      str((z.get("startItem") or {}).get("id")) in toremove
+      or str((z.get("endItem") or {}).get("id")) in toremove]
+    # Only the second, duplicated set created by the previous retry may be deleted.
+    if len(stale)>2*len(remove):raise RuntimeError("STALE_EDGE_MULTIPLICITY_UNEXPECTED")
+    print("SC04_RECONCILIATION_PLAN","semanticCards",len(keys),
+          "duplicateStickies",len(remove),"duplicateEdges",len(stale),flush=True)
+    for e in stale:call("DELETE","connectors/"+id(e))
+    for n in remove:call("DELETE","sticky_notes/"+id(n))
+    refreshed=listing("items",{"parent_item_id":id(frame)})
+    for k in keys:
+        matching=[z for z in refreshed if z.get("type")=="sticky_note" and text(z)==TITLES[k]]
+        if len(matching)!=1:raise RuntimeError("POST_DELETE_SEMANTIC_CARD_NOT_UNIQUE")
+        keep[k]=matching[0]
+    def cmd(title):
+        zz=[z for z in refreshed if z.get("type")=="shape" and text(z)==title]
+        if len(zz)!=1:raise RuntimeError("SC04_PROCESS_COMMAND_NOT_UNIQUE")
+        return zz[0]
+    for src,cname,dst in (
+      ("EVT-0017","Zaznamenat doložené zastupování","S0-E041"),
+      ("EVT-0018","Promítnout doloženou změnu zastupování","S0-E042"),
+      ("EVT-0019","Ukončit referenční platnost zastupování","S0-E043")
+    ):
+        z=cmd(cname)
+        make_edge(keep[src],z);make_edge(z,keep[dst])
+    make_edge(cmd("Po doložené opravě: opravit referenční vztah"),keep["S0-E044"])
+    refreshed=listing("items",{"parent_item_id":id(frame)})
+    ids={id(z) for z in refreshed}
+    edges=[z for z in listing("connectors") if
+      str((z.get("startItem") or {}).get("id")) in ids and
+      str((z.get("endItem") or {}).get("id")) in ids]
+    n=sum(z.get("type")=="sticky_note" for z in refreshed)
+    if n!=8 or len(edges)!=7:raise RuntimeError("SC04_RECONCILIATION_READBACK_FAILED")
+    print("SC04_RECONCILIATION_PASS","nativeStickies=8","nativeConnections=7",
+          "deduplicatedWithoutBusinessLoss=True",flush=True)
 def main():
     fm,tasks,allitems,_=baseline()
     summary=audit_linksets(allitems)
@@ -224,6 +279,8 @@ def main():
        "processOverview="+str(sum((z.get("data") or {}).get("title")==SC0 for z in fs)),
        "SC04="+str(sum((z.get("data") or {}).get("title")==SC4 for z in fs)),flush=True)
     print("MODE",MODE,flush=True)
+    if MODE=="reconcile":
+        reconcile_sc4();return
     if MODE=="audit":
         have=[z for z in fs if (z.get("data") or {}).get("title")==SC4]
         if have:
