@@ -28,7 +28,7 @@ from xml.sax.saxutils import escape
 BOARD = os.environ["MIRO_DIAGNOSTIC_BOARD_ID"]
 TOKEN = os.environ["MIRO_DIAGNOSTIC_TOKEN"]
 MODE = os.environ.get("RENDER_SCOPE", "pilot")
-assert MODE in ("pilot", "all")
+assert MODE in ("pilot", "pilot_bp", "all")
 BASE = "https://api.miro.com/v2/boards/" + urllib.parse.quote(BOARD, safe="")
 FRAMES = {
     "1b_map": "3458764687938964779",
@@ -36,7 +36,7 @@ FRAMES = {
     "1a_dl": "3458764687757375873",
     "1b_e2e": "3458764687942876552",
 }
-TARGETS = ["1b_map"] if MODE == "pilot" else list(FRAMES)
+TARGETS = ["1b_map"] if MODE == "pilot" else (["1a_bp"] if MODE == "pilot_bp" else list(FRAMES))
 CERT = pathlib.Path("automatizace/miro/ces_demo_render_recipient.crt")
 MAX_ITEMS = 1200
 MAX_PIXELS = 4300
@@ -108,14 +108,32 @@ def content(z):
     source = html.unescape(source)
     return chr(10).join(s.strip() for s in source.splitlines() if s.strip())
 
+# Miro REST may expose named sticky-note colors, not just CSS hex values.
+# Primary event orange is calibrated against an authorized native Miro reference.
+NATIVE_COLORS = {
+    "orange": "#FFBC83", "light_orange": "#FFBC83", "light orange": "#FFBC83",
+    "light_yellow": "#FFF1B8", "yellow": "#FFF1B8",
+    "light_green": "#BFE3A4", "green": "#BFE3A4",
+    "light_blue": "#BDE6F4", "blue": "#BDE6F4",
+    "purple": "#C9B4EF", "light_purple": "#DCCBF7",
+    "pink": "#F7B5D0", "red": "#F5A0A0", "gray": "#E6E6E6",
+    "grey": "#E6E6E6", "black": "#263238", "white": "#FFFFFF"
+}
+
 def valid_hex(c, default):
     c = str(c or "").strip()
-    return c if re.match(r"^#[0-9a-fA-F]{6}$", c) else default
+    if re.fullmatch(r"#[0-9a-fA-F]{6}", c):
+        return c.upper()
+    if re.fullmatch(r"#[0-9a-fA-F]{3}", c):
+        return "#" + "".join(v * 2 for v in c[1:]).upper()
+    return NATIVE_COLORS.get(c.lower(), default)
 
 def color(z, key, default):
     return valid_hex((z.get("style") or {}).get(key), default)
 
 def truncate(w):
+    # This is overview only; use the SVG master and independent high-resolution
+    # focus tiles for readable content. A fixed 4300 px overview is not a zoom.
     return int(min(MAX_PIXELS, max(1024, w * 1.25)))
 
 def anchor(box, side, target=None):
@@ -135,16 +153,21 @@ def anchor(box, side, target=None):
     dx, dy = target[0] - mid[0], target[1] - mid[1]
     return anchor(box, "right" if dx > 0 else "left") if abs(dx) > abs(dy) else anchor(box, "bottom" if dy > 0 else "top")
 
-def svg_text(text, x, y, width, height, style, fill, box_type):
+def svg_text(text, x, y, width, height, style, fill, box_type, native_html=""):
     fs = number(style.get("fontSize"), 27 if box_type == "sticky_note" else 24)
     fs = min(80, max(10, fs))
-    if box_type == "sticky_note":
-        fs = min(fs, 30)
-    char_width = 0.53 * fs
-    chars = max(7, int(max(30, width - 24) / char_width))
+    # Miro sticky text is centered horizontally/vertically; plain shapes/text
+    # retain their style. Never use font shrinking to hide incorrect geometry.
+    is_sticky = box_type == "sticky_note"
+    padx = max(10, min(22, width * 0.04))
+    char_width = 0.49 * fs
+    chars = max(5, int(max(12, width - 2 * padx) / char_width))
     lines = []
-    for line in text.split(chr(10)):
-        words, cur = line.split(), ""
+    for source_line in text.split(chr(10)):
+        if not source_line.strip():
+            lines.append("")
+            continue
+        words, cur = source_line.split(), ""
         for word in words:
             if cur and len(cur) + len(word) + 1 > chars:
                 lines.append(cur)
@@ -153,30 +176,38 @@ def svg_text(text, x, y, width, height, style, fill, box_type):
                 cur += " " + word
             else:
                 cur = word
-        lines.append(cur)
-    spacing = fs * 1.20
-    if len(lines) * spacing > height - 8:
-        fs = max(9, min(fs, (height - 8) / max(1, len(lines)) / 1.20))
-        spacing = fs * 1.20
-    align = str(style.get("textAlign") or "left").lower()
-    if align == "center":
-        anchor_name, tx = "middle", x + width / 2
-    elif align == "right":
-        anchor_name, tx = "end", x + width - 10
+        if cur:
+            lines.append(cur)
+    if not lines:
+        return "", 0
+    line_height = fs * 1.18
+    # Contain text in each native sticky. Do not reduce text below legibility:
+    # record fit pressure as an explicit audit, not a visual success claim.
+    if len(lines) * line_height > max(1, height - 12):
+        fs = max(9, min(fs, (height - 12) / max(1, len(lines)) / 1.18))
+        line_height = fs * 1.18
+    align = str(style.get("textAlign") or ("center" if is_sticky else "left")).lower()
+    anchor_name, tx = ("middle", x + width / 2) if align == "center" else (
+        ("end", x + width - padx) if align == "right" else ("start", x + padx))
+    vertical = str(style.get("textAlignVertical") or ("middle" if is_sticky else "top")).lower()
+    if vertical in ("middle", "center"):
+        ty = y + (height - len(lines) * line_height) / 2 + 0.91 * fs
     else:
-        anchor_name, tx = "start", x + 10
-    if str(style.get("textAlignVertical") or "").lower() == "middle":
-        ty = y + (height - len(lines) * spacing) / 2 + fs
-    else:
-        ty = y + 11 + fs
+        ty = y + 10 + fs
+    # Preserve underlined Miro event text. HTML is read-only and escaped.
+    deco = str(style.get("textDecoration") or "").lower()
+    underline = is_sticky or "underline" in deco or "<u>" in native_html.lower()
+    weight = str(style.get("fontWeight") or "normal").lower()
+    bold = "bold" if weight in ("bold","700","800","900") else "normal"
+    decoration = ' text-decoration="underline"' if underline else ""
     parts = []
     for i, line in enumerate(lines):
         if not line:
             continue
         parts.append(
-            '<text x="{:.2f}" y="{:.2f}" font-family="DejaVu Sans,Arial,sans-serif" '
-            'font-size="{:.2f}" text-anchor="{}" fill="{}">{}</text>'.format(
-                tx, ty + spacing * i, fs, anchor_name, fill, escape(line)))
+            '<text x="{:.2f}" y="{:.2f}" font-family="Arial,DejaVu Sans,sans-serif" '
+            'font-size="{:.2f}" font-weight="{}" text-anchor="{}" fill="{}"{}>{}</text>'.format(
+                tx, ty + line_height * i, fs, bold, anchor_name, fill, decoration, escape(line)))
     return "".join(parts), len(lines)
 
 def render_frame(name, frame_id, root):
@@ -233,7 +264,8 @@ def render_frame(name, frame_id, root):
     elements = []
     types = collections.Counter(z.get("type") or "unknown" for z in queue)
     elements.append('<rect x="0" y="0" width="{:.2f}" height="{:.2f}" fill="#ffffff"/>'.format(fw, fh))
-    # Draw connectors under their endpoint nodes.
+    # Draw each semantic Miro connector as one SVG path.
+    # Native endpoints, line color/dash and captions are preserved where exposed.
     for z in chosen:
         start, end = z["startItem"], z["endItem"]
         s_id, e_id = str(start["id"]), str(end["id"])
@@ -242,21 +274,40 @@ def render_frame(name, frame_id, root):
         p1 = anchor(bb1, start.get("snapTo"), center2)
         p2 = anchor(bb2, end.get("snapTo"), p1)
         p1 = anchor(bb1, start.get("snapTo"), p2)
-        stroke = color(z, "strokeColor", "#536E7B")
-        sw = min(7, max(1, number((z.get("style") or {}).get("strokeWidth"), 2)))
-        dash = ' stroke-dasharray="13,8"' if "dash" in str((z.get("style") or {}).get("strokeStyle") or "").lower() else ""
+        stroke = color(z, "strokeColor", "#D97706")
+        sw = max(1.15, min(7, number((z.get("style") or {}).get("strokeWidth"), 2)))
+        st = str((z.get("style") or {}).get("strokeStyle") or "").lower()
+        dash = ' stroke-dasharray="13,8"' if "dash" in st else ""
         x1, y1 = p1
         x2, y2 = p2
-        shape = str(z.get("shape") or "straight")
-        if shape in ("curved", "elbowed"):
-            bend = max(35, min(300, abs(x2 - x1) * 0.35))
-            path = "M {:.2f},{:.2f} C {:.2f},{:.2f} {:.2f},{:.2f} {:.2f},{:.2f}".format(
-                x1, y1, x1 + (bend if x2 >= x1 else -bend), y1,
-                x2 - (bend if x2 >= x1 else -bend), y2, x2, y2)
+        shape = str(z.get("shape") or "straight").lower()
+        if "elbow" in shape:
+            midx = (x1 + x2) / 2
+            path_d = "M {:.2f},{:.2f} L {:.2f},{:.2f} L {:.2f},{:.2f} L {:.2f},{:.2f}".format(
+                x1, y1, midx, y1, midx, y2, x2, y2)
+        elif "curve" in shape:
+            bend = min(500, max(65, abs(x2 - x1) * 0.26))
+            sign = 1 if x2 >= x1 else -1
+            path_d = "M {:.2f},{:.2f} C {:.2f},{:.2f} {:.2f},{:.2f} {:.2f},{:.2f}".format(
+                x1, y1, x1 + sign * bend, y1, x2 - sign * bend, y2, x2, y2)
         else:
-            path = "M {:.2f},{:.2f} L {:.2f},{:.2f}".format(x1, y1, x2, y2)
-        elements.append('<path d="{}" stroke="{}" stroke-width="{:.2f}" fill="none"{} marker-end="url(#arrow)"/>'.format(
-            path, stroke, sw, dash))
+            path_d = "M {:.2f},{:.2f} L {:.2f},{:.2f}".format(x1, y1, x2, y2)
+        marker = "arrowTeal" if stroke.lower() in ("#007680", "#00838f", "#0097a7") else "arrowOrange"
+        marker_end = ' marker-end="url(#{})"'.format(marker) if str((z.get("style") or {}).get("endStrokeCap") or "arrow").lower() != "none" else ""
+        elements.append('<path d="{}" stroke="{}" stroke-width="{:.2f}" fill="none"{}{} />'.format(
+            path_d, stroke, sw, dash, marker_end))
+        # REST caption data is optional; omit fabricated labels.
+        for caption in z.get("captions") or []:
+            label = str((caption or {}).get("content") or "").strip()
+            if not label:
+                continue
+            label = html.unescape(re.sub(r"<[^>]+>", "", label))
+            if not label:
+                continue
+            xcap, ycap = (x1 + x2) / 2, (y1 + y2) / 2 - 8
+            elements.append('<text x="{:.2f}" y="{:.2f}" font-family="Arial,sans-serif" '
+                            'font-size="17" text-anchor="middle" fill="#4A5053">{}</text>'.format(
+                                xcap, ycap, escape(label)))
     text_lines = 0
     unsupported = 0
     for z in queue:
@@ -268,23 +319,36 @@ def render_frame(name, frame_id, root):
             continue
         x, y, w, h = absolute[get_id(z)]
         style = z.get("style") or {}
-        bg = color(z, "fillColor", "#fff1b8" if t == "sticky_note" else "#eaf4f5")
-        ink = color(z, "color", "#223943")
+        is_sticky = t == "sticky_note"
+        bg = color(z, "fillColor", "#FFBC83" if is_sticky else "#EAF4F5")
+        ink = color(z, "color", "#6C3100" if is_sticky else "#223943")
         if t != "text":
-            radius = 12 if t == "sticky_note" else 6
-            elements.append('<rect x="{:.2f}" y="{:.2f}" width="{:.2f}" height="{:.2f}" '
-                            'rx="{}" fill="{}" stroke="#9aaeb8" stroke-width="1.6"/>'.format(
-                                x, y, w, h, radius, bg))
+            if is_sticky:
+                # Native Miro notes have near-square corners, a warm orange
+                # fill and a subtle offset shadow, not a generic yellow card.
+                elements.append('<rect x="{:.2f}" y="{:.2f}" width="{:.2f}" height="{:.2f}" '
+                                'fill="{}" stroke="none" filter="url(#stickyShadow)"/>'.format(
+                                    x, y, w, h, bg))
+            else:
+                elements.append('<rect x="{:.2f}" y="{:.2f}" width="{:.2f}" height="{:.2f}" '
+                                'rx="4" fill="{}" stroke="#9AAEB8" stroke-width="1.2"/>'.format(
+                                    x, y, w, h, bg))
         body = content(z)
         if body:
-            txt, lc = svg_text(body, x, y, w, h, style, ink, t)
+            raw_html = str((z.get("data") or {}).get("content") or "")
+            txt, lc = svg_text(body, x, y, w, h, style, ink, t, raw_html)
             elements.append(txt)
             text_lines += lc
+    defs = ('<defs><filter id="stickyShadow" x="-15%" y="-15%" width="140%" height="150%">'
+            '<feDropShadow dx="1.6" dy="3.8" stdDeviation="3.5" flood-color="#666666" flood-opacity="0.24"/>'
+            '</filter><marker id="arrowTeal" viewBox="0 0 10 10" refX="9" refY="5" '
+            'markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10Z" '
+            'fill="#007680"/></marker><marker id="arrowOrange" viewBox="0 0 10 10" '
+            'refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">'
+            '<path d="M0 0 L10 5 L0 10Z" fill="#D97706"/></marker></defs>')
     svg = ('<svg xmlns="http://www.w3.org/2000/svg" width="{:.0f}" height="{:.0f}" '
-           'viewBox="0 0 {:.2f} {:.2f}"><defs><marker id="arrow" viewBox="0 0 10 10" '
-           'refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">'
-           '<path d="M 0 0 L 10 5 L 0 10 Z" fill="#536E7B"/></marker></defs>{}</svg>').format(
-               fw, fh, fw, fh, "".join(elements))
+           'viewBox="0 0 {:.2f} {:.2f}">{}{}</svg>').format(
+               fw, fh, fw, fh, defs, "".join(elements))
     import cairosvg
     from PIL import Image
     import io
@@ -294,6 +358,20 @@ def render_frame(name, frame_id, root):
     im = Image.open(io.BytesIO(png))
     if im.width < 900 or im.height < 250:
         raise RuntimeError("RENDER_DIMENSIONS_FAIL")
+    # Native-scale precision export for a focus zone. The full-frame SVG
+    # stays vector sharp. A 4300px overview alone is NOT a legible zoom.
+    if name == "1a_bp":
+        vx, vy = fw * 0.34, fh * 0.18
+        vw, vh = fw * 0.33, fh * 0.19
+        original_vb = 'viewBox="0 0 {:.2f} {:.2f}"'.format(fw, fh)
+        tile_vb = 'viewBox="{:.2f} {:.2f} {:.2f} {:.2f}"'.format(vx, vy, vw, vh)
+        focus_svg = svg.replace(original_vb, tile_vb, 1)
+        focus_width = 3400
+        focus_png = cairosvg.svg2png(bytestring=focus_svg.encode("utf-8"),
+                  output_width=focus_width,
+                  output_height=int(focus_width * vh / vw))
+        (root / (name + "_focus.svg")).write_text(focus_svg, encoding="utf-8")
+        (root / (name + "_focus.png")).write_bytes(focus_png)
     (root / (name + ".svg")).write_text(svg, encoding="utf-8")
     (root / (name + ".png")).write_bytes(png)
     report = {"scope": name, "frame_id": frame_id,
@@ -301,7 +379,7 @@ def render_frame(name, frame_id, root):
               "direct_items": len(item_list), "all_items": len(queue),
               "item_types": types, "connectors": len(chosen),
               "text_lines": text_lines, "unsupported_items": unsupported,
-              "kind": "MIRO_REST_SVG_APPROXIMATION", "native_g4": "OPEN"}
+              "kind": "MIRO_REST_SVG_APPROXIMATION_V2_CALIBRATED", "native_g4": "OPEN"}
     (root / (name + "_report.json")).write_text(json.dumps(report, ensure_ascii=False, indent=2),
                                                   encoding="utf-8")
     # Output only scalar metrics. Never output board text/identifiers.
