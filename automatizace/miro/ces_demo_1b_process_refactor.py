@@ -108,7 +108,12 @@ def add(typ,frame,content,cx,cy,w,fill,fs=24):
     matches=[z for z in kids if text(z)==normalized]
     if len(matches)>1:raise RuntimeError("DUPLICATE_WIDGET_CONTENT")
     if matches:return matches[0]
-    body={"data":{"content":content},"position":{"x":cx,"y":cy,"origin":"center"},
+    fx,fy=xy(frame);fw,fh=shape(frame.get("geometry"))
+    # REST frame children use center point relative to the parent's top-left.
+    relx=cx-(fx-fw/2);rely=cy-(fy-fh/2)
+    if not (0<=relx<=fw and 0<=rely<=fh):
+        raise RuntimeError("CHILD_COORDINATE_OUTSIDE_PARENT")
+    body={"data":{"content":content},"position":{"x":relx,"y":rely,"origin":"center"},
           "geometry":{"width":min(w,1850) if typ=="texts" else w},"parent":{"id":id(frame)}}
     if typ=="sticky_notes":
         body["data"]["shape"]="rectangle"
