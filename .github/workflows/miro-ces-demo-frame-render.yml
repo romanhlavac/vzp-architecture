@@ -1,0 +1,48 @@
+name: VZP CES DEMO · Miro REST encrypted frame render
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces-demo-frame-render.yml"
+      - "automatizace/miro/ces_demo_frame_render.py"
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: "Pilot on 1B map or all four CES demo frames"
+        required: true
+        default: pilot
+        type: choice
+        options: [pilot, all]
+permissions:
+  contents: read
+concurrency:
+  group: vzp-ces-demo-frame-render
+  cancel-in-progress: false
+jobs:
+  render:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 25
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      RENDER_SCOPE: ${{ github.event_name == 'workflow_dispatch' && inputs.scope || 'pilot' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install local image renderer
+        run: python3 -m pip install --quiet 'cairosvg>=2.7,<3' 'Pillow>=10,<13'
+      - name: Verify renderer syntax
+        run: python3 -m py_compile automatizace/miro/ces_demo_frame_render.py
+      - name: Fresh Miro REST read and encrypted render
+        run: python3 automatizace/miro/ces_demo_frame_render.py
+      - name: Upload CMS-encrypted output only
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ces-demo-encrypted-frame-render
+          path: encrypted-render.p7m
+          if-no-files-found: error
+          retention-days: 1
