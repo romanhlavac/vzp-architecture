@@ -5,6 +5,7 @@ on:
     paths:
       - ".github/workflows/miro-ces-demo-frame-render.yml"
       - "automatizace/miro/ces_demo_frame_render.py"
+      - "automatizace/miro/ces_demo_render_recipient.crt"
   workflow_dispatch:
     inputs:
       scope:
