@@ -14,7 +14,7 @@ ROOT="https://api.miro.com/v2/boards/"+urllib.parse.quote(BOARD,safe="")+"/"
 FRAME_TITLE="CES-1B · 00A · Metodický vzor Process Modelling · nativní Miro"
 OVERVIEW="CES-1B · 00 · Identifikace procesních scénářů S0.1 a S0.2"
 MAP_ID="3458764687938964779"
-W,H=8000,5700
+W,H=8000,6500
 REF_URL="https://miro.com/app/board/uXjVH27wYU4=/?moveToWidget=3458764567900106962"
 # Unique native sticky business labels; no machine IDs are printed on orange event or red hotspot notes.
 NODES=[
@@ -47,8 +47,8 @@ TEXTS=[
  ("upper_label","METODICKÁ GRAMATIKA EVENT STORMINGU",4000,470,7400,34),
  ("upper_hint","Příkaz spouští aktér nebo policy. Systém vytváří doménovou událost; výsledek může aktualizovat čtecí model. Hotspot označuje problém, nikoli událost.",4000,3220,7350,23),
  ("lower_label","PŘÍKLAD ČASOVÉHO PRŮBĚHU  →",4000,3490,7400,38),
- ("lower_hint","Příklad je adaptovaný na CES demo. U S0.2 vzniká referenční zápis role až po doloženém rozhodnutí příslušné agendy; S0.2 právo sama nezakládá.",4000,5610,7350,23),
- ("source","Metodický zdroj: Miro reference – Process modelling Picture that explains Almost Everything; nativně překresleno pro 1B.",4000,5540,7350,19)
+ ("lower_hint","Příklad je adaptovaný na CES demo. U S0.2 vzniká referenční zápis role až po doloženém rozhodnutí příslušné agendy; S0.2 právo sama nezakládá.",4000,5850,7350,23),
+ ("source","Metodický zdroj: Miro reference – Process modelling Picture that explains Almost Everything; nativně překresleno pro 1B.",4000,6230,7350,19)
 ]
 # ID-less text, native connector endpoints pinned to genuinely facing edges.
 EDGES=[
@@ -158,7 +158,7 @@ def add_text(frame,key,label,x,y,w,size,children):
   got=resolve(children,"text",label)
   if got:return got,False
   b={"data":{"content":"<p>"+html.escape(label)+"</p>"},
-     "position":{"x":x,"y":y,"origin":"center"},"geometry":{"width":w},
+     "position":{"x":x,"y":y,"origin":"center"},"geometry":{"width":min(w,1850)},
      "parent":{"id":iid(frame)},
      "style":{"fontFamily":"open_sans","fontSize":str(size),"color":"#26353a"}}
   z=call("POST","texts",b)
