@@ -159,6 +159,11 @@ def svg_text(text, x, y, width, height, style, fill, box_type, native_html=""):
     # Miro sticky text is centered horizontally/vertically; plain shapes/text
     # retain their style. Never use font shrinking to hide incorrect geometry.
     is_sticky = box_type == "sticky_note"
+    # REST fontSize in sticky_note items is often significantly smaller than
+    # the *visual* font scale in the native Miro UI. The Miro reference at the
+    # same sticky aspect ratio requires about 1.9x the naive SVG font size.
+    if is_sticky:
+        fs = min(96, fs * 1.95)
     padx = max(10, min(22, width * 0.04))
     char_width = 0.49 * fs
     chars = max(5, int(max(12, width - 2 * padx) / char_width))
