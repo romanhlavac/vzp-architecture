@@ -14,6 +14,7 @@ asset=((o.get("data") or {}).get("imageUrl") or (o.get("data") or {}).get("url")
 if not asset:
  imgid=(o.get("data") or {}).get("id")
  asset=base+"/resources/images/"+str(imgid or "3458764518107608310")+"?format=preview&redirect=true"
+asset=asset.replace("format=preview","format=original")
 print("IMAGE_ASSET_URL_TYPE",str(asset).split(":")[0],flush=True)
 raw,typ=get(asset)
 if "json" in typ:
