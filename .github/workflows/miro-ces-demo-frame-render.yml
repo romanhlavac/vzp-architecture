@@ -28,7 +28,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
-      RENDER_SCOPE: ${{ github.event_name == 'workflow_dispatch' && inputs.scope || 'pilot_bp' }}
+      RENDER_SCOPE: ${{ github.event_name == 'workflow_dispatch' && inputs.scope || 'all' }}
     steps:
       - uses: actions/checkout@v4
         with:
