@@ -165,7 +165,7 @@ def svg_text(text, x, y, width, height, style, fill, box_type, native_html=""):
     if is_sticky:
         fs = min(96, fs * 1.95)
     padx = max(10, min(22, width * 0.04))
-    char_width = 0.49 * fs
+    char_width = (0.425 if is_sticky else 0.49) * fs
     chars = max(5, int(max(12, width - 2 * padx) / char_width))
     lines = []
     for source_line in text.split(chr(10)):
@@ -209,10 +209,22 @@ def svg_text(text, x, y, width, height, style, fill, box_type, native_html=""):
     for i, line in enumerate(lines):
         if not line:
             continue
+        yy = ty + line_height * i
         parts.append(
             '<text x="{:.2f}" y="{:.2f}" font-family="Arial,DejaVu Sans,sans-serif" '
             'font-size="{:.2f}" font-weight="{}" text-anchor="{}" fill="{}"{}>{}</text>'.format(
-                tx, ty + line_height * i, fs, bold, anchor_name, fill, decoration, escape(line)))
+                tx, yy, fs, bold, anchor_name, fill, decoration, escape(line)))
+        if underline:
+            # CairoSVG ignores SVG text-decoration for many text nodes;
+            # draw an explicit line below each native underlined text row.
+            visual_chars = sum(0.55 if ch in "iílIjtfr., " else
+                               1.25 if ch in "MWmŠŽ" else 0.91 for ch in line)
+            linew = min(width - 10, max(6, fs * 0.54 * visual_chars))
+            lx = tx - linew / 2 if anchor_name == "middle" else (
+                 tx - linew if anchor_name == "end" else tx)
+            parts.append('<path d="M {:.2f},{:.2f} h {:.2f}" stroke="{}" '
+                         'stroke-width="{:.2f}" opacity="0.92"/>'.format(
+                             lx, yy + fs * 0.10, linew, fill, max(0.85, fs * 0.048)))
     return "".join(parts), len(lines)
 
 def render_frame(name, frame_id, root):
@@ -331,9 +343,13 @@ def render_frame(name, frame_id, root):
             if is_sticky:
                 # Native Miro notes have near-square corners, a warm orange
                 # fill and a subtle offset shadow, not a generic yellow card.
+                # CairoSVG does not reliably apply feDropShadow. Explicit
+                # offset underlay remains visible at every output resolution.
                 elements.append('<rect x="{:.2f}" y="{:.2f}" width="{:.2f}" height="{:.2f}" '
-                                'fill="{}" stroke="none" filter="url(#stickyShadow)"/>'.format(
-                                    x, y, w, h, bg))
+                                'fill="#666666" opacity="0.14"/>'.format(
+                                    x + 2.7, y + 4.1, w, h))
+                elements.append('<rect x="{:.2f}" y="{:.2f}" width="{:.2f}" height="{:.2f}" '
+                                'fill="{}" stroke="none"/>'.format(x, y, w, h, bg))
             else:
                 elements.append('<rect x="{:.2f}" y="{:.2f}" width="{:.2f}" height="{:.2f}" '
                                 'rx="4" fill="{}" stroke="#9AAEB8" stroke-width="1.2"/>'.format(
