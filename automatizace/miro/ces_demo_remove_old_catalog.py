@@ -21,30 +21,17 @@ def req(method,path):
         if e.code==404:return 404,{}
         raise RuntimeError(method+" HTTP "+str(e.code)) from None
 def main():
-    print("PROBE_GET_ITEM",flush=True)
-    st,item=req("GET","items/"+TARGET)
-    if st==404:
-        print("TARGET_ABSENT; no further deletion, idempotent completion")
-        return
-    if st!=200 or str(item.get("id",""))!=TARGET:raise RuntimeError("TARGET_ITEM_ID_DRIFT")
-    typ=str(item.get("type",""))
-    par=str((item.get("parent") or {}).get("id",""))
-    print("ITEM_TYPE_PARENT type="+typ+" parent="+par,flush=True)
-    if par!=FRAME or typ not in ("doc","document"):raise RuntimeError("PROTECTED_ITEM_PARENT_OR_TYPE_DRIFT")
-    print("PROBE_GET_DOCS",flush=True)
-    ds,detail=req("GET","docs/"+TARGET)
-    if ds!=200:raise RuntimeError("DOC_DETAIL_UNREADABLE:"+str(ds))
-    txt=json.dumps(detail,ensure_ascii=False)
-    if TITLE not in txt:raise RuntimeError("DOC_TITLE_NOT_CONFIRMED")
-    print("DOC_PRECHECK_PASS id="+TARGET+" type="+typ+" parent="+FRAME+" title_match=yes")
+    for endpoint in ["docs/"+TARGET,"items/"+TARGET,"documents/"+TARGET]:
+        try:
+            status,obj=req("GET",endpoint)
+            print("PROBE "+endpoint+" STATUS "+str(status)+" TYPE "+str(obj.get("type"))+" PARENT "+str((obj.get("parent") or {}).get("id"))+" TITLE_PRESENT "+str(TITLE in json.dumps(obj,ensure_ascii=False))+" KEYS "+str(list(obj)[:10]),flush=True)
+        except Exception as ex:
+            print("PROBE "+endpoint+" ERROR "+str(ex),flush=True)
     if MODE=="audit":
-        print("MODE_AUDIT no changes")
+        print("MODE_AUDIT diagnostic only")
         return
-    d,_=req("DELETE","docs/"+TARGET)
-    if d!=204:raise RuntimeError("DELETE_NOT_204:"+str(d))
-    post,_=req("GET","items/"+TARGET)
-    if post!=404:raise RuntimeError("DELETE_READBACK_FAILED:"+str(post))
-    print("DELETE_READBACK_PASS exact_redundant_doc_only")
+    raise RuntimeError("NO_DELETE_UNLESS_FRESH_VERIFIED_PREFLIGHT")
+
 if __name__=="__main__":
     try:main()
     except Exception as e:print("FAIL "+str(e),file=sys.stderr);sys.exit(2)
