@@ -224,7 +224,18 @@ def main():
        "processOverview="+str(sum((z.get("data") or {}).get("title")==SC0 for z in fs)),
        "SC04="+str(sum((z.get("data") or {}).get("title")==SC4 for z in fs)),flush=True)
     print("MODE",MODE,flush=True)
-    if MODE=="audit":return
+    if MODE=="audit":
+        have=[z for z in fs if (z.get("data") or {}).get("title")==SC4]
+        if have:
+            ch=listing("items",{"parent_item_id":id(have[0])});ids={id(z) for z in ch}
+            links=[z for z in listing("connectors") if
+                str((z.get("startItem") or {}).get("id")) in ids and
+                str((z.get("endItem") or {}).get("id")) in ids]
+            print("SC04_NATIVE_DIAGNOSTIC","child_items="+str(len(ch)),
+                "stickies="+str(sum(z.get("type")=="sticky_note" for z in ch)),
+                "shapes="+str(sum(z.get("type")=="shape" for z in ch)),
+                "connectors="+str(len(links)),flush=True)
+        return
     if MODE=="pilot":
        k=next(iter(PAIRMAP));z=call("GET","sticky_notes/"+k)
        if text(z).startswith(PAIRMAP[k]+" "):
