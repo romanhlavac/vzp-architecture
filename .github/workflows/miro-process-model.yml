@@ -1,0 +1,26 @@
+name: Miro guarded process model
+on:
+  push:
+    branches: [main]
+    paths: ['automatizace/miro/plan_executor.py', 'automatizace/miro/plan_payload.json', '.github/workflows/miro-process-model.yml']
+  workflow_dispatch:
+permissions: {contents: read}
+concurrency:
+  group: miro-process-model
+  cancel-in-progress: false
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 20
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      PLAN_EXECUTION: ${{ github.event_name == 'push' && github.event.head_commit.message == 'apply(miro): process-model pilot 20261021-1' && 'apply' || 'audit' }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 automatizace/miro/plan_executor.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: encrypted-process-result, path: encrypted-evidence/plan-result.p7m, retention-days: 1}
