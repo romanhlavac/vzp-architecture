@@ -1,0 +1,37 @@
+name: VZP CES DEMO 1B · Process-first scenarios and event links
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces-demo-1b-process-refactor.yml"
+      - "automatizace/miro/ces_demo_1b_process_refactor.py"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "audit, single-sticky pilot, or guarded complete apply"
+        type: choice
+        required: true
+        default: audit
+        options: [audit, pilot, apply]
+permissions:
+  contents: read
+concurrency:
+  group: vzp-ces-demo-1b-process
+  cancel-in-progress: false
+jobs:
+  process:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 25
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      CES_1B_FIX_MODE: ${{ github.event_name == 'push' && 'audit' || inputs.mode }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Check script syntax
+        run: python3 -m py_compile automatizace/miro/ces_demo_1b_process_refactor.py
+      - name: Read and reconcile CES 1B process-first scope
+        run: python3 automatizace/miro/ces_demo_1b_process_refactor.py
