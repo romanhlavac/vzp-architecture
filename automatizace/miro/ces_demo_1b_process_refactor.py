@@ -179,8 +179,9 @@ def create_sc4(fm):
         ev2=add("sticky_notes",f,anchor(target),x-width/2+4350,yy,350,"orange")
         make_edge(ev1,command);make_edge(command,ev2)
     ey=y-height/2+2080
-    add("shapes",f,"Po doložené opravě: opravit referenční vztah",x-width/2+1390,ey,2180,"#c6dcff",24)
-    add("sticky_notes",f,anchor("S0-E044"),x-width/2+3240,ey,350,"orange")
+    repair=add("shapes",f,"Po doložené opravě: opravit referenční vztah",x-width/2+1390,ey,2180,"#c6dcff",24)
+    result=add("sticky_notes",f,anchor("S0-E044"),x-width/2+3240,ey,350,"orange")
+    make_edge(repair,result)
     add("sticky_notes",f,anchor("HS-S0-05"),x-width/2+4610,ey,350,"violet")
     add("texts",f,"Policy: S0.2 pouze eviduje rozhodnutí; nenabývá pravomoc jednat ani nerozhoduje o právu.",x,ey+190,5000,"#26353a",23)
     return f
@@ -248,6 +249,17 @@ def main():
                 s=html.unescape((z.get("data") or {}).get("content") or "")
                 if 'href=' not in s or re.search(r"\b(?:HS-S0-\d+|S0-E\d+|EVT-\d+)\b",text(z)):
                     raise RuntimeError("NEW_STICKY_LINK_OR_ID_ERROR")
+    sc4kids=listing("items",{"parent_item_id":id(b)})
+    eids={id(z) for z in sc4kids}
+    sc4links=[z for z in listing("connectors") if
+      str((z.get("startItem") or {}).get("id")) in eids
+      and str((z.get("endItem") or {}).get("id")) in eids]
+    if len(sc4links)!=7:raise RuntimeError("SC04_CONNECTOR_COUNT_NOT_SEVEN")
+    overviewkids=listing("items",{"parent_item_id":id(a)})
+    if len(overviewkids)<10:raise RuntimeError("OVERVIEW_CONTENT_INCOMPLETE")
+    print("1B_SCENARIOS_READBACK_PASS","overviewChildren="+str(len(overviewkids)),
+      "sc04NativeNotes="+str(sum(z.get("type")=="sticky_note" for z in sc4kids)),
+      "sc04Connectors="+str(len(sc4links)),flush=True)
     print("1B_PROCESS_FIRST_READBACK_PASS","existingLinked="+str(summary2["linked"]),
       "overview="+id(a),"newSC04="+id(b),"patched="+str(n),
       "existingFrames="+str(len(BF)),flush=True)
