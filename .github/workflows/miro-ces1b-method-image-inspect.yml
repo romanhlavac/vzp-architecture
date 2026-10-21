@@ -1,0 +1,22 @@
+name: CES Demo 1B · methodology source image inspect
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces1b-method-image-inspect.yml"
+      - "automatizace/miro/ces1b_method_image_inspect.py"
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment: miro-external-probe
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: python3 -m pip install --quiet Pillow
+      - run: python3 automatizace/miro/ces1b_method_image_inspect.py
