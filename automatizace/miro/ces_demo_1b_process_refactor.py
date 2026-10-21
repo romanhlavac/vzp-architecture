@@ -30,6 +30,14 @@ def call(method,path,body=None):
         except urllib.error.HTTPError as e:
             if method=="GET" and e.code in (429,500,502,503,504) and i<attempts-1:
                 time.sleep(2**i+1);continue
+            if e.code==400:
+                try:
+                    er=json.loads(e.read().decode("utf-8","replace"))
+                    msg=str(er.get("message") or "")
+                    clues=[word for word in ("fontSize","fontFamily","width","height","geometry","content","style","position","limits","type","parameter") if word.lower() in msg.lower()]
+                    print("SANITIZED_400_DIAGNOSTIC",method,path.split("?")[0],"clues",clues,
+                          "keys",list(er.keys())[:10],"bodyWidth",(body or {}).get("geometry",{}).get("width"),flush=True)
+                except Exception:pass
             raise RuntimeError("HTTP_"+str(e.code)+"_"+method+"_"+path.split("?")[0]) from None
         except (TimeoutError,urllib.error.URLError):
             raise RuntimeError("TRANSPORT_UNCERTAIN_"+method+"_"+path.split("?")[0]) from None
@@ -101,7 +109,7 @@ def add(typ,frame,content,cx,cy,w,fill,fs=24):
     if len(matches)>1:raise RuntimeError("DUPLICATE_WIDGET_CONTENT")
     if matches:return matches[0]
     body={"data":{"content":content},"position":{"x":cx,"y":cy,"origin":"center"},
-          "geometry":{"width":w},"parent":{"id":id(frame)}}
+          "geometry":{"width":min(w,1850) if typ=="texts" else w},"parent":{"id":id(frame)}}
     if typ=="sticky_notes":
         body["data"]["shape"]="rectangle"
         body["style"]={"fillColor":fill,"textAlign":"center","textAlignVertical":"middle"}
