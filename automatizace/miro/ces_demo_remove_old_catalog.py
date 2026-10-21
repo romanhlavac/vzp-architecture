@@ -21,16 +21,29 @@ def req(method,path):
         if e.code==404:return 404,{}
         raise RuntimeError(method+" HTTP "+str(e.code)) from None
 def main():
-    for endpoint in ["docs/"+TARGET,"items/"+TARGET,"documents/"+TARGET]:
-        try:
-            status,obj=req("GET",endpoint)
-            print("PROBE "+endpoint+" STATUS "+str(status)+" TYPE "+str(obj.get("type"))+" PARENT "+str((obj.get("parent") or {}).get("id"))+" TITLE_PRESENT "+str(TITLE in json.dumps(obj,ensure_ascii=False))+" KEYS "+str(list(obj)[:10]),flush=True)
-        except Exception as ex:
-            print("PROBE "+endpoint+" ERROR "+str(ex),flush=True)
-    if MODE=="audit":
-        print("MODE_AUDIT diagnostic only")
+    print("PREFLIGHT exact id="+TARGET+" endpoint=docs",flush=True)
+    st,item=req("GET","docs/"+TARGET)
+    if st==404:
+        print("TARGET_ABSENT no deletion required",flush=True)
         return
-    raise RuntimeError("NO_DELETE_UNLESS_FRESH_VERIFIED_PREFLIGHT")
+    if st!=200 or str(item.get("id",""))!=TARGET:
+        raise RuntimeError("TARGET_ID_OR_STATUS_DRIFT")
+    typ=str(item.get("type",""))
+    parent=str((item.get("parent") or {}).get("id",""))
+    if typ!="doc_format" or parent!=FRAME:
+        raise RuntimeError("TARGET_TYPE_OR_PARENT_DRIFT")
+    if TITLE not in json.dumps(item,ensure_ascii=False):
+        raise RuntimeError("TARGET_DOC_TITLE_DRIFT")
+    print("DOC_PREFLIGHT_PASS id="+TARGET+" type="+typ+" correct_parent=yes correct_title=yes",flush=True)
+    if MODE=="audit":
+        print("AUDIT_ONLY no write",flush=True)
+        return
+    d,_=req("DELETE","docs/"+TARGET)
+    if d!=204:raise RuntimeError("DELETE_UNEXPECTED_HTTP_"+str(d))
+    print("DELETE_204 id="+TARGET,flush=True)
+    st,_=req("GET","docs/"+TARGET)
+    if st!=404:raise RuntimeError("DELETE_VERIFY_NOT_404_"+str(st))
+    print("DELETE_READBACK_PASS removed one exact redundant DL doc",flush=True)
 
 if __name__=="__main__":
     try:main()
