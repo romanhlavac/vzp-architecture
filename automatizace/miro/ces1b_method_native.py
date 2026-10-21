@@ -30,10 +30,10 @@ NODES=[
  ("ex_command","Prověřit shodu subjektu","light_blue",2220,4200,470),
  ("ex_system","Evidence identity","pink",3120,4200,520),
  ("ex_event","Subjekt byl ztotožněn","orange",4050,4200,470),
- ("ex_policy","Po potvrzení shody navázat agendou","violet",4920,3670,570),
- ("ex_command2","Převzít agendový výsledek","light_blue",5650,4200,470),
- ("ex_system2","Evidence rolí a vztahů","pink",6410,4200,470),
- ("ex_event2","Role byla referenčně zapsána","orange",7330,4200,470),
+ ("ex_policy","Po ztotožnění publikovat referenci","violet",4920,3670,570),
+ ("ex_command2","Poskytnout referenční identitu","light_blue",5650,4200,470),
+ ("ex_system2","Referenční služba identity","pink",6410,4200,470),
+ ("ex_event2","Reference byla poskytnuta","orange",7330,4200,470),
  ("branch_query","Sporná kandidátní shoda","light_green",3980,5230,430),
  ("branch_actor","Referent pro posouzení","yellow",4680,5230,370),
  ("branch_command","Odborně posoudit shodu","light_blue",5440,5230,430),
@@ -47,7 +47,7 @@ TEXTS=[
  ("upper_label","METODICKÁ GRAMATIKA EVENT STORMINGU",4000,470,7400,34),
  ("upper_hint","Příkaz spouští aktér nebo policy. Systém vytváří doménovou událost; výsledek může aktualizovat čtecí model. Hotspot označuje problém, nikoli událost.",4000,3220,7350,23),
  ("lower_label","PŘÍKLAD ČASOVÉHO PRŮBĚHU  →",4000,3490,7400,38),
- ("lower_hint","Příklad je adaptovaný na CES demo. U S0.2 vzniká referenční zápis role až po doloženém rozhodnutí příslušné agendy; S0.2 právo sama nezakládá.",4000,5850,7350,23),
+ ("lower_hint","Spodní mini-příběh ilustruje S0.1: ztotožnění a poskytnutí reference. S0.2 je rozpracována samostatně ve scénářích; rozhodnutí B1 se zde nevytváří.",4000,5850,7350,23),
  ("source","Metodický zdroj: Miro reference – Process modelling Picture that explains Almost Everything; nativně překresleno pro 1B.",4000,6230,7350,19)
 ]
 # ID-less text, native connector endpoints pinned to genuinely facing edges.
