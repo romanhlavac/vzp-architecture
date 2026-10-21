@@ -13,6 +13,7 @@ def call(method,path,body=None):
     raw=r.read();return json.loads(raw) if raw else {}
   except urllib.error.HTTPError as e:
    if method=='GET' and e.code in (429,500,502,503,504) and attempt<3:time.sleep(2**attempt);continue
+   evidence['http_error_body']=e.read().decode(errors='replace')[:8000]
    raise RuntimeError('HTTP_'+str(e.code)+'_'+method+'_'+path.split('?')[0]) from None
 def listing(path,params=None):
  out=[];cursor=None
@@ -48,6 +49,15 @@ def main():
  if allowed&protected:raise RuntimeError('PROTECTED_FRAME_IN_PLAN')
  before=snapshot(list(allowed|protected));evidence['before']=before
  allb={z['id']:z for z in before['items']+before['connectors']}
+ if os.environ.get('PLAN_EXECUTION','audit')!='apply':
+  evidence['status']='READ_ONLY_AUDIT_PASS';print('READ_ONLY_AUDIT_PASS',flush=True);return
+ if plan.get('resume_desired'):
+  for n in plan['nodes']:
+   z=allb.get(n['old']);assert z and tx(z)==re.sub(r'\s+',' ',n['text']).strip(),'RESUME_TEXT'
+   assert z.get('parent',{}).get('id')==n['frame'],'RESUME_PARENT'
+   assert abs(z['position']['x']-n['x'])<1 and abs(z['position']['y']-n['y'])<1,'RESUME_POSITION'
+  for f in plan['frames']:
+   z=allb[f['id']];assert abs(z['position']['x']-f['x'])<1 and abs(z['position']['y']-f['y'])<1,'RESUME_FRAME'
  for k,h in plan['guards'].items():
   if k not in allb or digest(allb[k])!=h:raise RuntimeError('FRESH_GUARD_DRIFT_'+k)
  print('FRESH_GUARDS_PASS',len(plan['guards']),flush=True)
@@ -70,7 +80,7 @@ def main():
   if len(evidence['map'])%10==0:print('NODES_WRITTEN',len(evidence['map']),flush=True)
  for e in plan['edges']:
   body={'startItem':{'id':evidence['map'][e['from']],'snapTo':e['source_side']},'endItem':{'id':evidence['map'][e['to']],'snapTo':e['target_side']},'shape':'curved','style':{'strokeColor':'#26353a','strokeWidth':'2','startStrokeCap':'none','endStrokeCap':'stealth'}}
-  if e['label']:body['captions']=[{'content':html.escape(e['label']),'position':0.5,'textAlignVertical':'middle'}]
+  if e['label']:body['captions']=[{'content':html.escape(e['label']),'position':'50%','textAlignVertical':'middle'}]
   obj=call('POST','connectors',body);evidence['edges'].append(obj['id']);evidence['created'].append(obj['id'])
  for d in sorted(plan['delete'],key=lambda d:0 if d['type']=='connector' else 1):
   if d['id'] not in allb:raise RuntimeError('DELETE_OUTSIDE_BASELINE')
