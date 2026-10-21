@@ -16,6 +16,14 @@ if not asset:
  asset=base+"/resources/images/"+str(imgid or "3458764518107608310")+"?format=preview&redirect=true"
 print("IMAGE_ASSET_URL_TYPE",str(asset).split(":")[0],flush=True)
 raw,typ=get(asset)
+if "json" in typ:
+ meta=json.loads(raw)
+ print("IMAGE_REDIRECT_META_KEYS",list(meta.keys()),flush=True)
+ candidates=[meta.get("url"),meta.get("imageUrl"),meta.get("data",{}).get("url") if isinstance(meta.get("data"),dict) else None]
+ loc=next((u for u in candidates if isinstance(u,str) and u.startswith("https://")),None)
+ if not loc:raise RuntimeError("NO_SIGNED_IMAGE_URL_IN_RESOURCE_METADATA")
+ print("IMAGE_RESOURCE_HOST",urllib.parse.urlsplit(loc).netloc,flush=True)
+ raw,typ=get(loc)
 print("IMAGE_BYTES",len(raw),"MIME",typ,flush=True)
 from PIL import Image
 im=Image.open(io.BytesIO(raw)).convert("RGB")
