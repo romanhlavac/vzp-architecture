@@ -154,43 +154,50 @@ def anchor(box, side, target=None):
     return anchor(box, "right" if dx > 0 else "left") if abs(dx) > abs(dy) else anchor(box, "bottom" if dy > 0 else "top")
 
 def svg_text(text, x, y, width, height, style, fill, box_type, native_html=""):
-    fs = number(style.get("fontSize"), 27 if box_type == "sticky_note" else 24)
-    fs = min(80, max(10, fs))
-    # Miro sticky text is centered horizontally/vertically; plain shapes/text
-    # retain their style. Never use font shrinking to hide incorrect geometry.
+    from PIL import ImageFont
+    fs_initial = number(style.get("fontSize"), 27 if box_type == "sticky_note" else 24)
     is_sticky = box_type == "sticky_note"
-    # REST fontSize in sticky_note items is often significantly smaller than
-    # the *visual* font scale in the native Miro UI. The Miro reference at the
-    # same sticky aspect ratio requires about 1.9x the naive SVG font size.
-    if is_sticky:
-        fs = min(96, fs * 1.95)
-    padx = max(10, min(22, width * 0.04))
-    char_width = (0.425 if is_sticky else 0.49) * fs
-    chars = max(5, int(max(12, width - 2 * padx) / char_width))
-    lines = []
-    for source_line in text.split(chr(10)):
-        if not source_line.strip():
-            lines.append("")
-            continue
-        words, cur = source_line.split(), ""
-        for word in words:
-            if cur and len(cur) + len(word) + 1 > chars:
-                lines.append(cur)
-                cur = word
-            elif cur:
-                cur += " " + word
-            else:
-                cur = word
-        if cur:
-            lines.append(cur)
-    if not lines:
-        return "", 0
-    line_height = fs * 1.18
-    # Contain text in each native sticky. Do not reduce text below legibility:
-    # record fit pressure as an explicit audit, not a visual success claim.
-    if len(lines) * line_height > max(1, height - 12):
-        fs = max(9, min(fs, (height - 12) / max(1, len(lines)) / 1.18))
+    fs = min(96, max(10, fs_initial * (1.95 if is_sticky else 1.0)))
+    padx = max(10, min(22, width * 0.045))
+    inner_width = max(12, width - 2 * padx)
+
+    def font_for(size):
+        return ImageFont.truetype("DejaVuSans.ttf", max(8, int(round(size))))
+
+    def measure(font, value):
+        return font.getlength(value)
+
+    def wrap(font):
+        out = []
+        for source_line in text.split(chr(10)):
+            words = source_line.split()
+            if not words:
+                out.append("")
+                continue
+            current = ""
+            for word in words:
+                candidate = (current + " " + word) if current else word
+                if current and measure(font, candidate) > inner_width:
+                    out.append(current)
+                    current = word
+                else:
+                    current = candidate
+            if current:
+                out.append(current)
+        return out
+
+    # Iteratively choose the largest font which both contains native text and
+    # fits the note height. Geometry is authoritative and never silently grown.
+    while True:
+        font = font_for(fs)
+        lines = wrap(font)
         line_height = fs * 1.18
+        too_wide = any(measure(font, line) > inner_width + 1 for line in lines if line)
+        too_high = len(lines) * line_height > max(1, height - 12)
+        if not (too_wide or too_high) or fs <= 13:
+            break
+        fs *= 0.965
+
     align = str(style.get("textAlign") or ("center" if is_sticky else "left")).lower()
     anchor_name, tx = ("middle", x + width / 2) if align == "center" else (
         ("end", x + width - padx) if align == "right" else ("start", x + padx))
@@ -199,11 +206,10 @@ def svg_text(text, x, y, width, height, style, fill, box_type, native_html=""):
         ty = y + (height - len(lines) * line_height) / 2 + 0.91 * fs
     else:
         ty = y + 10 + fs
-    # Preserve underlined Miro event text. HTML is read-only and escaped.
     deco = str(style.get("textDecoration") or "").lower()
     underline = is_sticky or "underline" in deco or "<u>" in native_html.lower()
     weight = str(style.get("fontWeight") or "normal").lower()
-    bold = "bold" if weight in ("bold","700","800","900") else "normal"
+    bold = "bold" if weight in ("bold", "700", "800", "900") else "normal"
     decoration = ' text-decoration="underline"' if underline else ""
     parts = []
     for i, line in enumerate(lines):
@@ -211,15 +217,11 @@ def svg_text(text, x, y, width, height, style, fill, box_type, native_html=""):
             continue
         yy = ty + line_height * i
         parts.append(
-            '<text x="{:.2f}" y="{:.2f}" font-family="Arial,DejaVu Sans,sans-serif" '
+            '<text x="{:.2f}" y="{:.2f}" font-family="DejaVu Sans,Arial,sans-serif" '
             'font-size="{:.2f}" font-weight="{}" text-anchor="{}" fill="{}"{}>{}</text>'.format(
                 tx, yy, fs, bold, anchor_name, fill, decoration, escape(line)))
         if underline:
-            # CairoSVG ignores SVG text-decoration for many text nodes;
-            # draw an explicit line below each native underlined text row.
-            visual_chars = sum(0.55 if ch in "iílIjtfr., " else
-                               1.25 if ch in "MWmŠŽ" else 0.91 for ch in line)
-            linew = min(width - 10, max(6, fs * 0.54 * visual_chars))
+            linew = min(inner_width, max(4, measure(font, line)))
             lx = tx - linew / 2 if anchor_name == "middle" else (
                  tx - linew if anchor_name == "end" else tx)
             parts.append('<path d="M {:.2f},{:.2f} h {:.2f}" stroke="{}" '
