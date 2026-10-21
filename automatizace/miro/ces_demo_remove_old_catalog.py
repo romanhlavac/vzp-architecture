@@ -29,6 +29,7 @@ def main():
     if st!=200 or str(item.get("id",""))!=TARGET:raise RuntimeError("TARGET_ITEM_ID_DRIFT")
     typ=str(item.get("type",""))
     par=str((item.get("parent") or {}).get("id",""))
+    print("ITEM_TYPE_PARENT type="+typ+" parent="+par,flush=True)
     if par!=FRAME or typ not in ("doc","document"):raise RuntimeError("PROTECTED_ITEM_PARENT_OR_TYPE_DRIFT")
     print("PROBE_GET_DOCS",flush=True)
     ds,detail=req("GET","docs/"+TARGET)
