@@ -106,12 +106,12 @@ def add(typ,frame,content,cx,cy,w,fill,fs=24):
         body["data"]["shape"]="rectangle"
         body["style"]={"fillColor":fill,"textAlign":"center","textAlignVertical":"middle"}
     elif typ=="shapes":
-        body["data"]["shape"]="round_rectangle"
+        body["data"]["shape"]="rectangle"
         body["style"]={"fillColor":fill,"fontFamily":"open_sans",
-                       "fontSize":fs,"textAlign":"center","textAlignVertical":"middle","color":"#26353a"}
+                       "fontSize":str(fs),"textAlign":"center","textAlignVertical":"middle","color":"#26353a"}
         body["geometry"]["height"]=150
     elif typ=="texts":
-        body["style"]={"fontFamily":"open_sans","fontSize":fs,"color":"#26353a"}
+        body["style"]={"fontFamily":"open_sans","fontSize":str(fs),"color":"#26353a"}
     return call("POST",typ,body)
 def make_edge(start,end):
     edges=listing("connectors")
