@@ -102,11 +102,11 @@ def bounds(z, parent_w=None, parent_h=None):
 
 def content(z):
     source = str((z.get("data") or {}).get("content") or "")
-    source = re.sub(r"(?i)<br\s*/?>", "\\n", source)
-    source = re.sub(r"(?i)</(?:p|div|li|h[1-6])>", "\\n", source)
+    source = re.sub(r"(?i)<br\s*/?>", chr(10), source)
+    source = re.sub(r"(?i)</(?:p|div|li|h[1-6])>", chr(10), source)
     source = re.sub(r"<[^>]+>", "", source)
     source = html.unescape(source)
-    return "\\n".join(s.strip() for s in source.splitlines() if s.strip())
+    return chr(10).join(s.strip() for s in source.splitlines() if s.strip())
 
 def valid_hex(c, default):
     c = str(c or "").strip()
@@ -143,7 +143,7 @@ def svg_text(text, x, y, width, height, style, fill, box_type):
     char_width = 0.53 * fs
     chars = max(7, int(max(30, width - 24) / char_width))
     lines = []
-    for line in text.split("\\n"):
+    for line in text.split(chr(10)):
         words, cur = line.split(), ""
         for word in words:
             if cur and len(cur) + len(word) + 1 > chars:
