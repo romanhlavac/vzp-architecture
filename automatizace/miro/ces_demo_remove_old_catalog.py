@@ -21,6 +21,7 @@ def req(method,path):
         if e.code==404:return 404,{}
         raise RuntimeError(method+" HTTP "+str(e.code)) from None
 def main():
+    print("PROBE_GET_ITEM",flush=True)
     st,item=req("GET","items/"+TARGET)
     if st==404:
         print("TARGET_ABSENT; no further deletion, idempotent completion")
@@ -29,6 +30,7 @@ def main():
     typ=str(item.get("type",""))
     par=str((item.get("parent") or {}).get("id",""))
     if par!=FRAME or typ not in ("doc","document"):raise RuntimeError("PROTECTED_ITEM_PARENT_OR_TYPE_DRIFT")
+    print("PROBE_GET_DOCS",flush=True)
     ds,detail=req("GET","docs/"+TARGET)
     if ds!=200:raise RuntimeError("DOC_DETAIL_UNREADABLE:"+str(ds))
     txt=json.dumps(detail,ensure_ascii=False)
