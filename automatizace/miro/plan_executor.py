@@ -79,9 +79,9 @@ def main():
   evidence['map'][n['key']]=wid
   if len(evidence['map'])%10==0:print('NODES_WRITTEN',len(evidence['map']),flush=True)
  for e in plan['edges']:
-  body={'startItem':{'id':evidence['map'][e['from']],'snapTo':e['source_side']},'endItem':{'id':evidence['map'][e['to']],'snapTo':e['target_side']},'shape':'curved','style':{'strokeColor':'#26353a','strokeWidth':'2','startStrokeCap':'none','endStrokeCap':'stealth'}}
+  body={'startItem':{'id':evidence['map'][e['from']],'snapTo':e['source_side']},'endItem':{'id':evidence['map'][e['to']],'snapTo':e['target_side']},'shape':'curved','style':{'strokeColor':'#26353a','strokeWidth':'2','fontSize':'24','startStrokeCap':'none','endStrokeCap':'stealth'}}
   if e['label']:body['captions']=[{'content':html.escape(e['label']),'position':'50%','textAlignVertical':'middle'}]
-  obj=call('POST','connectors',body);evidence['edges'].append(obj['id']);evidence['created'].append(obj['id'])
+  obj=call('PATCH' if e.get('old') else 'POST','connectors/'+e['old'] if e.get('old') else 'connectors',body);evidence['edges'].append(obj['id']);evidence['updated' if e.get('old') else 'created'].append(obj['id'])
  for d in sorted(plan['delete'],key=lambda d:0 if d['type']=='connector' else 1):
   if d['id'] not in allb:raise RuntimeError('DELETE_OUTSIDE_BASELINE')
   endpoint={'connector':'connectors','sticky_note':'sticky_notes','shape':'shapes','text':'texts'}[d['type']]
