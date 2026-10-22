@@ -1,0 +1,26 @@
+name: CES 1B reference arrows native repair (one-time)
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/ces-1b-reference-arrows-repair-20261022.yml"
+permissions: {contents: read}
+concurrency:
+  group: miro-ces-1b-reference-arrows
+  cancel-in-progress: false
+jobs:
+  native-connector-style:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 20
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - name: Compile native connector style validator
+        run: python3 -m py_compile automatizace/miro/ces_1b_reference_arrows_fix_20261022.py
+      - name: Targeted repair and independent native REST readback
+        run: python3 automatizace/miro/ces_1b_reference_arrows_fix_20261022.py
