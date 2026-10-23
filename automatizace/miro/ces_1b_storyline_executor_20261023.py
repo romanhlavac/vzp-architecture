@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify','sc05')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -142,6 +142,23 @@ def main():
   move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
   print('REFERENCE_PILOT_PASS',flush=True);return
+ if mode=='sc05':
+  fid='3458764688202201527';sk=page('items',{'parent_item_id':fid})
+  low=next(k for k in sk if norm((k.get('data') or {}).get('content','')).startswith('Rozpor mezi referenčními údaji'))
+  footers=[k for k in sk if 'notifikace versus dotazování' in norm((k.get('data') or {}).get('content','')).lower()]
+  assert len(footers)==1,'FOOTER_ID_AMBIGUOUS'
+  f=footers[0];ny=max(f['position']['y'],low['position']['y']+low['geometry']['height']/2+250)
+  ep={'text':'texts','shape':'shapes'}[f['type']]
+  api('PATCH',ep+'/'+f['id'],{'position':{'x':f['position']['x'],'y':ny,'origin':'center'}})
+  nh=max(6000,ny+f['geometry']['height']/2+200)
+  api('PATCH','frames/'+fid,{'position':{'x':259068,'y':30000+nh/2,'origin':'center'},'geometry':{'width':7400,'height':nh}})
+  incoming=[e for e in links if (e.get('endItem') or {}).get('id')==low['id']]
+  assert len(incoming)==1,'LOWER_EVENT_EDGE_AMBIGUOUS'
+  e=incoming[0]
+  api('PATCH','connectors/'+e['id'],{'shape':'curved','startItem':{'id':e['startItem']['id'],'snapTo':'right'},'endItem':{'id':low['id'],'snapTo':'right'}})
+  aft=api('GET','connectors/'+e['id']);assert aft['style']==e['style'] and aft.get('captions')==e.get('captions'),'SC05_EDGE_SEMANTIC_DRIFT'
+  assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
+  print('SC05_FOOTER_ROUTING_PASS',f['id'],e['id'],nh,flush=True);return
  if mode=='clarify':
   f=next(f for f in fs if name(f)=='CES DEMO · SC-01 · Proč tento scénář')
   kids=page('items',{'parent_item_id':f['id']});assert len(kids)==1
