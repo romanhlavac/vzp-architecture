@@ -4,7 +4,6 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/miro-ces-1b-storyline-20261023.yml"
-      - "automatizace/miro/ces_1b_storyline_executor_20261023.py"
 permissions: {contents: read}
 concurrency:
   group: miro-ces-1b-storyline
@@ -18,7 +17,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
-      STORY_MODE: ${{ github.event.head_commit.message == 'Run authorized CES reference separation 20261023' && 'reference' || 'audit' }}
+      STORY_MODE: ${{ github.event.head_commit.message == 'Run authorized CES reference routing repair 20261023' && 'repair' || 'audit' }}
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
