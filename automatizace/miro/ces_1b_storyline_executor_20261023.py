@@ -34,7 +34,7 @@ def snapshot(fid,links):
 import html,re
 CHAIN=[('3458764687949068244','01'),('3458764688162404596','02'),('3458764687939229431','03a'),('3458764687939229785','03b'),('3458764688202201527','03c'),('3458764687939406397','03d'),('3458764687949762980','03e'),('3458764687942876552','04'),('clusters','05'),('3458764687938964779','06'),('boundary','07')]
 REF='3458764688162124320'
-SCENARIOS=[('SC-01','3458764687939229431','H1 hlavní rozhodovací tok • H3 výjimky • H6 matching pravidla','Výsledek: jednoznačná reference nebo přiznaná nejednoznačnost.','Zkoumá hranici rozhodnutí o identitě; shoda a výjimka mohou mít odlišná pravidla.'),('SC-02','3458764687939229785','H2 lifecycle a opravy • H3 konflikty • H5 autorita a consistency','Výsledek: doložená referenční změna se zachovanou historií.','Zkoumá provenienci, retroaktivitu a odpovědnost za referenční záznam.'),('SC-05','3458764688202201527','H4 externí handoff • H5 autorita, synchronizace a consistency','Výsledek: posouzený externí podnět a jeho referenční dopad.','Ověřuje rozdíl mezi autoritou zdroje a rozhodnutím uvnitř domény; přenos je OPEN.'),('SC-03','3458764687939406397','H4 předání z agendy • H6 jiný jazyk, pravidla a change drivers','Výsledek: referenční projekce již doloženého agendového rozhodnutí.','Ověřuje, kde končí rozhodnutí agendy a začíná odpovědnost za projekci.'),('SC-04','3458764687949762980','H2 vznik/změna/zánik • H3 opravy • H4 předání odpovědnosti','Výsledek: doložená platnost zastupování a jeho historie.','Testuje odlišný lifecycle a opravy; samostatná L2 z toho automaticky neplyne.')]
+SCENARIOS=[('SC-01','3458764687939229431','H1 hlavní rozhodovací tok • H3 výjimky','Výsledek: jednoznačná reference nebo přiznaná nejednoznačnost.','Zkoumá hranici rozhodnutí o identitě; shoda a výjimka mohou mít odlišná pravidla.'),('SC-02','3458764687939229785','H2 lifecycle a opravy • H3 konflikty • H5 autorita a consistency','Výsledek: doložená referenční změna se zachovanou historií.','Zkoumá provenienci, retroaktivitu a odpovědnost za referenční záznam.'),('SC-05','3458764688202201527','H4 externí handoff • H5 autorita, synchronizace a consistency','Výsledek: posouzený externí podnět a jeho referenční dopad.','Ověřuje rozdíl mezi autoritou zdroje a rozhodnutím uvnitř domény; přenos je OPEN.'),('SC-03','3458764687939406397','H4 předání z agendy • H6 jiný jazyk, pravidla a change drivers','Výsledek: referenční projekce již doloženého agendového rozhodnutí.','Ověřuje, kde končí rozhodnutí agendy a začíná odpovědnost za projekci.'),('SC-04','3458764687949762980','H2 vznik/změna/zánik • H3 opravy • H4 předání odpovědnosti','Výsledek: doložená platnost zastupování a jeho historie.','Testuje odlišný lifecycle a opravy; samostatná L2 z toho automaticky neplyne.')]
 def name(f):return (f.get('data') or {}).get('title','')
 def norm(s):return ' '.join(html.unescape(re.sub('<[^>]*>',' ',str(s))).split())
 def link(fid):return 'https://miro.com/app/board/'+B+'/?moveToWidget='+fid
@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -115,7 +115,7 @@ def main():
   print('REFERENCE_EDGES',json.dumps([{k:e.get(k) for k in ('id','shape','startItem','endItem','position','geometry')} for e in rs['edges'].values()]),flush=True)
   print('REFERENCE_NODES',json.dumps([{k:e.get(k) for k in ('id','position','geometry','parent')} for e in rs['kids'].values()]),flush=True)
   print('AUDIT_PASS_WRITES_0',flush=True);return
- if mode=='verify':
+ if mode in ('verify','clarify'):
   expected=['CES DEMO · 1B.05 · Evidence clustering','CES DEMO · 1B.07 · Boundary rationale / 1C','CES DEMO · 1B · Čtecí trasa a coverage','REFERENCE / ARCHIVE · mimo hlavní trasu','REFERENCE · DDD notation · historická ilustrace']+['CES DEMO · '+sc+' · Proč tento scénář' for sc,*_ in SCENARIOS]+['CES DEMO · '+t for t in ['KROK 1 · 1B · MAIN','KROK 1 · 1C · PLANNED','KROK 2 · PLANNED','KROK 3 · PLANNED','KROK 4 · PLANNED','KROK 5 · PLANNED']]
   for title in expected:
    found=[f for f in fs if name(f)==title];assert len(found)==1,'MISSING_OR_DUPLICATE_REQUIRED_FRAME'
@@ -142,6 +142,13 @@ def main():
   move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
   print('REFERENCE_PILOT_PASS',flush=True);return
+ if mode=='clarify':
+  f=next(f for f in fs if name(f)=='CES DEMO · SC-01 · Proč tento scénář')
+  kids=page('items',{'parent_item_id':f['id']});assert len(kids)==1
+  k=kids[0];old=k['data']['content'];new=old.replace(' • H6 matching pravidla','')
+  if new!=old:api('PATCH','shapes/'+k['id'],{'data':{'content':new}})
+  assert api('GET','shapes/'+k['id'])['data']['content']==new,'HEURISTIC_READBACK'
+  print('SC01_HEURISTIC_CLARIFIED',k['id'],flush=True)
  if mode=='polish':
   for f in fs:
    t=name(f)
@@ -236,6 +243,8 @@ def main():
  fs2=page('items',{'type':'frame'});fm2={f['id']:f for f in fs2};assert before_ids<=set(fm2),'LOST_FRAME'
  assert untouched=={i:stable(fm2[i]) for i in untouched},'UNRELATED_FRAME_CHANGED'
  after_links=page('connectors')
+ assert len(after_links)==703,'CONNECTOR_COUNT_DRIFT'
+ print('CONNECTOR_COUNT_PASS',len(after_links),flush=True)
  assert protected=={i:snapshot(i,after_links) for i in PROTECTED},'PROTECTED_CHANGED'
  for fid,before in MOVE_BEFORE.items():
   after=snapshot(fid,after_links)
