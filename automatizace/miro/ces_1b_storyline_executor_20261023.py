@@ -155,6 +155,16 @@ def main():
   f=next(f for f in fs if name(f)=='CES DEMO · KROK 1 · 1C · PLANNED')
   api('PATCH','frames/'+f['id'],{'position':{'x':313568,'y':27100,'origin':'center'},'geometry':{'width':7000,'height':2200}})
   card(f,'KROK 1 · 1C · PLANNED','Boundary Validation • dosud nerealizováno. Vstupem jsou kandidáti a OPEN z 1B. Ověření hranic není automatickým výsledkem PM.',3500,1100,6500,1800,'#dbeff0',100)
+  sfid='3458764688202201527'
+  sk=page('items',{'parent_item_id':sfid})
+  upper=next(k for k in sk if norm((k.get('data') or {}).get('content','')).startswith('Ověřená změna byla promítnuta'))
+  lower=next(k for k in sk if norm((k.get('data') or {}).get('content','')).startswith('Rozpor mezi referenčními údaji'))
+  newy=upper['position']['y']+upper['geometry']['height']/2+lower['geometry']['height']/2+200
+  endpoint={'sticky_note':'sticky_notes','shape':'shapes','text':'texts'}[lower['type']]
+  api('PATCH',endpoint+'/'+lower['id'],{'position':{'x':lower['position']['x'],'y':newy,'origin':'center'}})
+  newheight=max(6000,newy+lower['geometry']['height']/2+300)
+  api('PATCH','frames/'+sfid,{'position':{'x':259068,'y':26000+newheight/2,'origin':'center'},'geometry':{'width':7400,'height':newheight}})
+  print('SC05_OVERLAP_CORRECTED',lower['id'],newheight,flush=True)
   after=page('connectors')
   assert protected=={i:snapshot(i,after) for i in PROTECTED},'PROTECTED_CHANGED'
   assert {k['id'] for k in kids}<={k['id'] for k in page('items',{'parent_item_id':inventory})},'INVENTORY_ID_LOSS'
