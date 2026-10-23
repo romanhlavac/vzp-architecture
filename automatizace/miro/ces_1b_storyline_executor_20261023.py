@@ -110,7 +110,11 @@ def main():
  mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
- if mode=='audit':print('AUDIT_PASS_WRITES_0',flush=True);return
+ if mode=='audit':
+  rl=page('connectors');rs=snapshot(REF,rl)
+  print('REFERENCE_EDGES',json.dumps([{k:e.get(k) for k in ('id','shape','startItem','endItem','position','geometry')} for e in rs['edges'].values()]),flush=True)
+  print('REFERENCE_NODES',json.dumps([{k:e.get(k) for k in ('id','position','geometry','parent')} for e in rs['kids'].values()]),flush=True)
+  print('AUDIT_PASS_WRITES_0',flush=True);return
  before_ids=set(fm);links=page('connectors');LIVE_LINKS=links;protected={i:snapshot(i,links) for i in PROTECTED}
  targets={fid for fid,*_ in p if fid.isdigit()}|{REF}
  untouched={i:stable(f) for i,f in fm.items() if i not in targets}
