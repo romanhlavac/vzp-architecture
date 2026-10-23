@@ -116,7 +116,20 @@ def main():
   print('REFERENCE_NODES',json.dumps([{k:e.get(k) for k in ('id','position','geometry','parent')} for e in rs['kids'].values()]),flush=True)
   print('AUDIT_PASS_WRITES_0',flush=True);return
  if mode in ('verify','clarify'):
-  expected=['CES DEMO · 1B.05 · Evidence clustering','CES DEMO · 1B.07 · Boundary rationale / 1C','CES DEMO · 1B · Čtecí trasa a coverage','REFERENCE / ARCHIVE · mimo hlavní trasu','REFERENCE · DDD notation · historická ilustrace']+['CES DEMO · '+sc+' · Proč tento scénář' for sc,*_ in SCENARIOS]+['CES DEMO · '+t for t in ['KROK 1 · 1B · MAIN','KROK 1 · 1C · PLANNED','KROK 2 · PLANNED','KROK 3 · PLANNED','KROK 4 · PLANNED','KROK 5 · PLANNED']]
+  expected=[
+   'CES DEMO · 1B.D · S0 · EVIDENCE CLUSTERING',
+   'CES DEMO · 1B.E · S0 · BOUNDARY EVIDENCE PRO 1C',
+   'CES DEMO · 1B · S0 · ČTECÍ NAVIGACE',
+   'REFERENCE / ARCHIVE · mimo hlavní trasu',
+   'REFERENCE · DDD notation · historická ilustrace'
+  ]+['CES DEMO · '+sc+' · Proč tento scénář' for sc,*_ in SCENARIOS]+[
+   'CES DEMO · KROK 1B · S0 – Správa a evidence subjektů · PRŮVODCE',
+   'CES DEMO · KROK 1 · 1C · PLANNED',
+   'CES DEMO · KROK 2 · PLANNED',
+   'CES DEMO · KROK 3 · PLANNED',
+   'CES DEMO · KROK 4 · PLANNED',
+   'CES DEMO · KROK 5 · PLANNED'
+  ]
   for title in expected:
    found=[f for f in fs if name(f)==title];assert len(found)==1,'MISSING_OR_DUPLICATE_REQUIRED_FRAME'
    kids=page('items',{'parent_item_id':found[0]['id']});assert kids and all(k['type']=='shape' for k in kids),'NATIVE_CARD_MISSING'
