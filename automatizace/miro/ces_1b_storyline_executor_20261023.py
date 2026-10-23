@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -139,6 +139,26 @@ def main():
   move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
   print('REFERENCE_PILOT_PASS',flush=True);return
+ if mode=='finish':
+  inventory='3458764687949068244'
+  inv=api('GET','frames/'+inventory);kids=page('items',{'parent_item_id':inventory})
+  api('PATCH','frames/'+inventory,{'position':{'x':228438,'y':27150,'origin':'center'},'geometry':{'width':5600,'height':2300}})
+  for k in kids:
+   typ=k['type'];body={}
+   content=(k.get('data') or {}).get('content','')
+   if '4 příběhy' in content:body['data']={'content':content.replace('4 příběhy','5 příběhů')}
+   if typ in ('text','shape'):
+    body['style']={'fontSize':str(max(44,float((k.get('style') or {}).get('fontSize') or 44)))}
+    api('PATCH',('texts/' if typ=='text' else 'shapes/')+k['id'],body)
+  inv=api('GET','frames/'+inventory)
+  card(inv,'SC-05 · Externí podnět / handoff','H4 + H5: autorita zdroje, synchronizace a referenční dopad. WORKING / DEMO. <a href="'+link('3458764688202201527')+'">Otevřít SC-05</a>',2800,1900,5100,500,'#dbeff0',62)
+  f=next(f for f in fs if name(f)=='CES DEMO · KROK 1 · 1C · PLANNED')
+  api('PATCH','frames/'+f['id'],{'position':{'x':313568,'y':27100,'origin':'center'},'geometry':{'width':7000,'height':2200}})
+  card(f,'KROK 1 · 1C · PLANNED','Boundary Validation • dosud nerealizováno. Vstupem jsou kandidáti a OPEN z 1B. Ověření hranic není automatickým výsledkem PM.',3500,1100,6500,1800,'#dbeff0',100)
+  after=page('connectors')
+  assert protected=={i:snapshot(i,after) for i in PROTECTED},'PROTECTED_CHANGED'
+  assert {k['id'] for k in kids}<={k['id'] for k in page('items',{'parent_item_id':inventory})},'INVENTORY_ID_LOSS'
+  print('FINISH_INVENTORY_FIVE_AND_HORIZONTAL_1C_PASS',f['id'],flush=True);return
  if mode=='apply':
   for fid,step,x,y,w,h in p:
    if fid.isdigit():
