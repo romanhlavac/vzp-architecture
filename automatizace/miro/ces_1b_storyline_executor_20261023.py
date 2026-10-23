@@ -7,11 +7,11 @@ BASE="https://api.miro.com/v2/boards/"+urllib.parse.quote(B,safe="")+"/"
 TOKEN=os.environ["MIRO_DIAGNOSTIC_TOKEN"]
 def api(verb,path,body=None):
     req=urllib.request.Request(BASE+path,method=verb,data=json.dumps(body).encode() if body is not None else None,headers={"Authorization":"Bearer "+TOKEN,"Content-Type":"application/json"})
-    for n in range(4 if verb=="GET" else 1):
+    for n in range(4 if verb in ("GET","PATCH") else 1):
         try:
             with urllib.request.urlopen(req,timeout=55) as r: return json.load(r)
         except urllib.error.HTTPError as e:
-            if verb=="GET" and e.code in (429,500,502,503,504) and n<3: time.sleep(2**n);continue
+            if verb in ("GET","PATCH") and e.code in (429,500,502,503,504) and n<3: time.sleep(2**n);continue
             raise RuntimeError("REST_"+str(e.code)) from None
 def page(path,filters=None):
     out=[];q=dict(filters or {},limit=50)
@@ -169,15 +169,6 @@ def main():
    if not fid.isdigit():
     f=ensure_frame('CES DEMO · 1B.'+step+' · '+('Evidence clustering' if fid=='clusters' else 'Boundary rationale / 1C'),x,y,w,h)
     annotations(f,fid);print('NEW_FRAME',fid,f['id'],flush=True)
-  # Moving hand-shaped curves can leave stale absolute control geometry.
-  repaired=set()
-  for record in MOVE_BEFORE.values():
-   for eid,e in record['edges'].items():
-    if e.get('shape')=='curved' and eid not in repaired:
-     api('PATCH','connectors/'+eid,{'shape':'straight'})
-     api('PATCH','connectors/'+eid,{'shape':'curved'})
-     repaired.add(eid)
-  print('CURVES_REGENERATED',len(repaired),flush=True)
   # Five choice cards aligned immediately below the scenario models.
   scp={fid:(x,y,w,h) for fid,step,x,y,w,h in p}
   for sc,fid,why,outcome,reason in SCENARIOS:
