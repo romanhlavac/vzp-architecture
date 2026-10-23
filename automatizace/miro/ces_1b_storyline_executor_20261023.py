@@ -42,16 +42,22 @@ def position(f):return f['position']['x'],f['position']['y']
 def rect(f):
  x,y=position(f);w=f['geometry']['width'];h=f['geometry']['height'];return x-w/2,y-h/2,x+w/2,y+h/2
 
+FRAME_CACHE=[]
+CHILD_CACHE={}
+MOVE_BEFORE={}
+LIVE_LINKS=[]
 def ensure_frame(title,x,y,w,h):
- fs=page('items',{'type':'frame'});found=[f for f in fs if name(f)==title]
+ fs=FRAME_CACHE;found=[f for f in fs if name(f)==title]
  assert len(found)<2,'DUPLICATE_FRAME'
  if found:
   f=found[0]
   assert abs(f['geometry']['width']-w)<1 and abs(f['geometry']['height']-h)<1,'FRAME_SIZE_DRIFT'
   return f
- return api('POST','frames',{'data':{'title':title},'position':{'x':x,'y':y,'origin':'center'},'geometry':{'width':w,'height':h},'style':{'fillColor':'#ffffff'}})
+ f=api('POST','frames',{'data':{'title':title},'position':{'x':x,'y':y,'origin':'center'},'geometry':{'width':w,'height':h},'style':{'fillColor':'#ffffff'}})
+ FRAME_CACHE.append(f);return f
 def card(f,key,text,x,y,w,h,fill='#f1f5f9',font=78):
- kids=page('items',{'parent_item_id':f['id']})
+ if f['id'] not in CHILD_CACHE:CHILD_CACHE[f['id']]=page('items',{'parent_item_id':f['id']})
+ kids=CHILD_CACHE[f['id']]
  body='<p><strong>'+html.escape(key)+'</strong></p><p>'+text.replace('\n','</p><p>')+'</p>'
  found=[k for k in kids if norm((k.get('data') or {}).get('content','')).startswith(key)]
  assert len(found)<2,'DUPLICATE_CARD'
@@ -62,13 +68,14 @@ def card(f,key,text,x,y,w,h,fill='#f1f5f9',font=78):
   payload['parent']={'id':f['id']};obj=api('POST','shapes',payload)
  read=api('GET','shapes/'+obj['id']);assert norm(read['data']['content'])==norm(body),'CARD_READBACK'
  assert read.get('parent',{}).get('id')==f['id'],'CARD_PARENT'
+ if not found:kids.append(read)
  return read
 
 def move(fid,x,y,title=None):
- links=page('connectors');before=snapshot(fid,links);f=before['frame'];payload={'position':{'x':x,'y':y,'origin':'center'}}
+ before=snapshot(fid,LIVE_LINKS);MOVE_BEFORE[fid]=before;f=before['frame'];payload={'position':{'x':x,'y':y,'origin':'center'}}
  if title:payload['data']={'title':title}
  if abs(f['position']['x']-x)>1 or abs(f['position']['y']-y)>1 or (title and f['data']['title']!=title):api('PATCH','frames/'+fid,payload)
- after=snapshot(fid,page('connectors'))
+ after=snapshot(fid,LIVE_LINKS)
  for k in ('id','type','style','geometry','parent'):assert after['frame'].get(k)==f.get(k),'FRAME_DRIFT_'+k
  if not title:assert after['frame']['data']==f['data'],'FRAME_DATA_DRIFT'
  assert abs(after['frame']['position']['x']-x)<1 and abs(after['frame']['position']['y']-y)<1,'POSITION_DRIFT'
@@ -99,11 +106,12 @@ def annotations(f,kind):
   card(f,'OPEN · Co musí rozhodnout 1C','KEEP / MERGE / SEPARATE / SHIFT / KEEP_OPEN.\nPorovnat protipříklady, autority záznamů, konzistenci a předání; doplnit vlastníka rozhodnutí.\nMetodické DEMO: business reviewer/owner a sign-off nejsou doloženy.',3800,5200,7100,1600,'#ffdee0',82)
 
 def main():
+ global FRAME_CACHE,LIVE_LINKS
  mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference')
- fs=page('items',{'type':'frame'});fm={f['id']:f for f in fs};p=plan(fs)
+ fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':print('AUDIT_PASS_WRITES_0',flush=True);return
- before_ids=set(fm);links=page('connectors');protected={i:snapshot(i,links) for i in PROTECTED}
+ before_ids=set(fm);links=page('connectors');LIVE_LINKS=links;protected={i:snapshot(i,links) for i in PROTECTED}
  targets={fid for fid,*_ in p if fid.isdigit()}|{REF}
  untouched={i:stable(f) for i,f in fm.items() if i not in targets}
  if mode=='reference':
@@ -139,7 +147,11 @@ def main():
   card(f,'REFERENCE / ARCHIVE','Historické ukázky a původní verze jsou zachovány. Nejsou aktuálním výstupem kroků 1C–5. Hlavní metodický průchod je vlevo.',4000,1100,7400,1800,'#e2e8f0',105)
  fs2=page('items',{'type':'frame'});fm2={f['id']:f for f in fs2};assert before_ids<=set(fm2),'LOST_FRAME'
  assert untouched=={i:stable(fm2[i]) for i in untouched},'UNRELATED_FRAME_CHANGED'
- assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
+ after_links=page('connectors')
+ assert protected=={i:snapshot(i,after_links) for i in PROTECTED},'PROTECTED_CHANGED'
+ for fid,before in MOVE_BEFORE.items():
+  after=snapshot(fid,after_links)
+  assert before['edges']==after['edges'],'EDGE_DRIFT_'+fid
  for fid,step,x,y,w,h in p:
   if fid.isdigit():assert abs(fm2[fid]['position']['x']-x)<1 and abs(fm2[fid]['position']['y']-y)<1,'FINAL_POSITION'
  print('G1_G2_PASS_ORIGINAL_IDS_CONTENT_CONNECTORS_PROTECTED','original',len(before_ids),'after',len(fm2),'G4_OPEN',flush=True)
