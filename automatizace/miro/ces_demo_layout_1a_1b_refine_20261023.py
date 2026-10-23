@@ -181,10 +181,10 @@ def refine_sc05():
   pre=base[id];style=pre.get("style") or {}
   if pre["type"]!="shape":raise RuntimeError("SC05_TYPE_CHANGED")
   # Existing semantics, colors, coordinates, endpoint ids unchanged.
-  newstyle=dict(style,fontSize=str(font),fontFamily="open_sans")
+  newstyle={"fontSize":str(font),"fontFamily":"open_sans"}
   if id=="3458764688202201691":
-   payload={"data":{"content":"<p><strong>1B.C · S0 / S0.1 · SC-05 ROB/ROS → reakce VZP · WORKING</strong></p>"},"style":newstyle,"geometry":{"width":width,"height":pre["geometry"]["height"]}}
-  else:payload={"style":newstyle,"geometry":{"width":width,"height":pre["geometry"]["height"]}}
+   payload={"data":{"content":"<p><strong>1B.C · S0 / S0.1 · SC-05 ROB/ROS → reakce VZP · WORKING</strong></p>"},"style":newstyle,"geometry":{"width":width}}
+  else:payload={"style":newstyle,"geometry":{"width":width}}
   a,b=patch_with_validation("shapes",id,payload)
   if b.get("style",{}).get("fillColor")!=style.get("fillColor"):raise RuntimeError("SC05_COLOR_DRIFT_"+id)
   if id!="3458764688202201691" and b["data"]!=a["data"]:raise RuntimeError("SC05_CONTENT_DRIFT_"+id)
