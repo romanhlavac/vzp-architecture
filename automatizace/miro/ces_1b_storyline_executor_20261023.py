@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -122,6 +122,11 @@ def main():
    kids=page('items',{'parent_item_id':found[0]['id']});assert kids and all(k['type']=='shape' for k in kids),'NATIVE_CARD_MISSING'
    print('VERIFIED_NATIVE_FRAME',found[0]['id'],len(kids),flush=True)
   print('VERIFY_EXPECTED_15_FRAMES_PASS',flush=True)
+ if mode=='orphans':
+  items=page('items')
+  candidates=[o for o in items if o['type']!='frame' and not (o.get('parent') or {}).get('id') and 250000<o.get('position',{}).get('x',0)<290000 and 15000<o.get('position',{}).get('y',0)<34000]
+  print('ORPHAN_PREFLIGHT',json.dumps([{k:o.get(k) for k in ('id','type','position','geometry','parent')} for o in candidates]),flush=True)
+  print('ORPHAN_COUNT',len(candidates),flush=True);return
  before_ids=set(fm);links=page('connectors');LIVE_LINKS=links;protected={i:snapshot(i,links) for i in PROTECTED}
  targets={fid for fid,*_ in p if fid.isdigit()}|{REF}
  untouched={i:stable(f) for i,f in fm.items() if i not in targets}
