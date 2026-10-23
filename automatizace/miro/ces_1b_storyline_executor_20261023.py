@@ -115,6 +115,13 @@ def main():
   print('REFERENCE_EDGES',json.dumps([{k:e.get(k) for k in ('id','shape','startItem','endItem','position','geometry')} for e in rs['edges'].values()]),flush=True)
   print('REFERENCE_NODES',json.dumps([{k:e.get(k) for k in ('id','position','geometry','parent')} for e in rs['kids'].values()]),flush=True)
   print('AUDIT_PASS_WRITES_0',flush=True);return
+ if mode=='verify':
+  expected=['CES DEMO · 1B.05 · Evidence clustering','CES DEMO · 1B.07 · Boundary rationale / 1C','CES DEMO · 1B · Čtecí trasa a coverage','REFERENCE / ARCHIVE · mimo hlavní trasu']+['CES DEMO · '+sc+' · Proč tento scénář' for sc,*_ in SCENARIOS]+['CES DEMO · '+t for t in ['KROK 1 · 1B · MAIN','KROK 1 · 1C · PLANNED','KROK 2 · PLANNED','KROK 3 · PLANNED','KROK 4 · PLANNED','KROK 5 · PLANNED']]
+  for title in expected:
+   found=[f for f in fs if name(f)==title];assert len(found)==1,'MISSING_OR_DUPLICATE_REQUIRED_FRAME'
+   kids=page('items',{'parent_item_id':found[0]['id']});assert kids and all(k['type']=='shape' for k in kids),'NATIVE_CARD_MISSING'
+   print('VERIFIED_NATIVE_FRAME',found[0]['id'],len(kids),flush=True)
+  print('VERIFY_EXPECTED_15_FRAMES_PASS',flush=True)
  before_ids=set(fm);links=page('connectors');LIVE_LINKS=links;protected={i:snapshot(i,links) for i in PROTECTED}
  targets={fid for fid,*_ in p if fid.isdigit()}|{REF}
  untouched={i:stable(f) for i,f in fm.items() if i not in targets}
