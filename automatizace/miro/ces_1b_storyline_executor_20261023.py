@@ -12,7 +12,7 @@ def api(verb,path,body=None):
             with urllib.request.urlopen(req,timeout=55) as r: return json.load(r)
         except urllib.error.HTTPError as e:
             if verb in ("GET","PATCH") and e.code in (429,500,502,503,504) and n<3: time.sleep(2**n);continue
-            raise RuntimeError("REST_"+str(e.code)) from None
+            raise RuntimeError("REST_"+str(e.code)+"_"+verb+"_"+path.split("?")[0]) from None
 def page(path,filters=None):
     out=[];q=dict(filters or {},limit=50)
     for _ in range(200):
@@ -148,7 +148,7 @@ def main():
    content=(k.get('data') or {}).get('content','')
    if '4 příběhy' in content:body['data']={'content':content.replace('4 příběhy','5 příběhů')}
    if typ in ('text','shape'):
-    body['style']={'fontSize':str(max(44,float((k.get('style') or {}).get('fontSize') or 44)))}
+    body['style']={'fontSize':str(int(max(44,float((k.get('style') or {}).get('fontSize') or 44))))}
     api('PATCH',('texts/' if typ=='text' else 'shapes/')+k['id'],body)
   inv=api('GET','frames/'+inventory)
   card(inv,'SC-05 · Externí podnět / handoff','H4 + H5: autorita zdroje, synchronizace a referenční dopad. WORKING / DEMO. <a href="'+link('3458764688202201527')+'">Otevřít SC-05</a>',2800,1900,5100,500,'#dbeff0',62)
