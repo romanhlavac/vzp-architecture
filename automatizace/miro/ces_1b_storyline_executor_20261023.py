@@ -13,4 +13,13 @@ def main():
     frame=api("GET","frames/"+fid)
     assert "Identifikace procesních scénářů" in frame["data"]["title"]
     print("READ_ONLY_PREFLIGHT",fid,frame["position"])
+    mode=os.environ.get("STORY_MODE","audit")
+    if mode=="pilot":
+        desired={"data":{"title":"CES DEMO · 1B.01 · Výběr scénářů · MAIN"},"position":{"x":224700,"y":28800,"origin":"center"}}
+        api("PATCH","frames/"+fid,desired)
+        verified=api("GET","frames/"+fid)
+        assert verified["data"]["title"]==desired["data"]["title"]
+        assert abs(verified["position"]["x"]-224700)<2
+        assert abs(verified["position"]["y"]-28800)<2
+        print("STORY_PILOT_PASS",fid)
 if __name__=="__main__":main()
