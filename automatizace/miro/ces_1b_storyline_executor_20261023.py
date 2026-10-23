@@ -351,6 +351,15 @@ def main():
   a=bboxes[aid]
   for bid,b in bboxes.items():
    if aid==bid or (bid in current and aid>bid):continue
+   # A frame nested inside an ancestor frame is intentional containment, not overlap.
+   def descends(child,parent):
+    seen=set()
+    while child in fm2 and child not in seen:
+     seen.add(child)
+     child=(fm2[child].get('parent') or {}).get('id')
+     if child==parent:return True
+    return False
+   if descends(aid,bid) or descends(bid,aid):continue
    if min(a[2],b[2])>max(a[0],b[0])+1 and min(a[3],b[3])>max(a[1],b[1])+1:conflicts.append((aid,bid))
  print('G3_FRAME_GEOMETRY_PROXY',len(current),'scope',len(conflicts),'overlaps',json.dumps(conflicts),flush=True)
  print('G1_G2_PASS_ORIGINAL_IDS_CONTENT_CONNECTORS_PROTECTED','original',len(before_ids),'after',len(fm2),'G4_OPEN',flush=True)
