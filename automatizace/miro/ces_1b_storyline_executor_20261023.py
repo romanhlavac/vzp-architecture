@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify','sc05','methodfonts')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify','sc05','methodfonts','g4texts')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -142,6 +142,25 @@ def main():
   move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
   print('REFERENCE_PILOT_PASS',flush=True);return
+ if mode=='g4texts':
+  fid='3458764688162404596';before=snapshot(fid,links)
+  texts=[k for k in before['kids'].values() if k['type']=='text']
+  assert 1<=len(texts)<=8,'TEXT_SCOPE'
+  for k in texts:
+   footer=norm(k['data']['content']).startswith('Časově významné')
+   y=2100 if footer else k['position']['y']
+   assert 100<y<2150,'TEXT_Y_SCOPE'
+   api('PATCH','texts/'+k['id'],{'position':{'x':3065,'y':y,'origin':'center'},'geometry':{'width':5600}})
+  afterlinks=page('connectors');aft=snapshot(fid,afterlinks)
+  assert set(before['kids'])==set(aft['kids']) and before['edges']==aft['edges'],'G4_ID_EDGE_DRIFT'
+  ids={k['id'] for k in texts}
+  for kid,k in before['kids'].items():
+   if kid not in ids:assert k==aft['kids'][kid],'G4_OTHER_CHILD_DRIFT'
+   else:
+    for key in ('id','type','data','style','parent'):assert k[key]==aft['kids'][kid][key],'G4_TEXT_SEMANTIC_DRIFT'
+    assert abs(aft['kids'][kid]['position']['x']-3065)<1 and abs(aft['kids'][kid]['geometry']['width']-5600)<1,'G4_TEXT_READBACK'
+  assert protected=={i:snapshot(i,afterlinks) for i in PROTECTED},'PROTECTED_CHANGED'
+  print('G4_METHOD_TEXT_CONTAINMENT_PASS',len(texts),sorted(ids),flush=True);return
  if mode=='methodfonts':
   fid='3458764688162404596';before=snapshot(fid,links)
   for k in before['kids'].values():
