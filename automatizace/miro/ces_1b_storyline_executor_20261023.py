@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -118,6 +118,16 @@ def main():
  before_ids=set(fm);links=page('connectors');LIVE_LINKS=links;protected={i:snapshot(i,links) for i in PROTECTED}
  targets={fid for fid,*_ in p if fid.isdigit()}|{REF}
  untouched={i:stable(f) for i,f in fm.items() if i not in targets}
+ if mode=='repair':
+  before=snapshot(REF,links)
+  for eid,e in before['edges'].items():
+   if e.get('shape')=='curved':
+    api('PATCH','connectors/'+eid,{'shape':'straight'})
+    api('PATCH','connectors/'+eid,{'shape':'curved'})
+    print('ROUTE_RESET',eid,flush=True)
+  after=snapshot(REF,page('connectors'))
+  assert before==after,'REFERENCE_SEMANTIC_DRIFT'
+  print('ROUTE_REPAIR_PASS',flush=True);return
  if mode=='reference':
   move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
