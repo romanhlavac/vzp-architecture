@@ -142,6 +142,15 @@ def main():
    if not fid.isdigit():
     f=ensure_frame('CES DEMO · 1B.'+step+' · '+('Evidence clustering' if fid=='clusters' else 'Boundary rationale / 1C'),x,y,w,h)
     annotations(f,fid);print('NEW_FRAME',fid,f['id'],flush=True)
+  # Moving hand-shaped curves can leave stale absolute control geometry.
+  repaired=set()
+  for record in MOVE_BEFORE.values():
+   for eid,e in record['edges'].items():
+    if e.get('shape')=='curved' and eid not in repaired:
+     api('PATCH','connectors/'+eid,{'shape':'straight'})
+     api('PATCH','connectors/'+eid,{'shape':'curved'})
+     repaired.add(eid)
+  print('CURVES_REGENERATED',len(repaired),flush=True)
   # Five choice cards aligned immediately below the scenario models.
   scp={fid:(x,y,w,h) for fid,step,x,y,w,h in p}
   for sc,fid,why,outcome,reason in SCENARIOS:
@@ -151,6 +160,11 @@ def main():
   # Native navigation/selection supplement: explicitly covers all five scenarios.
   f=ensure_frame('CES DEMO · 1B · Čtecí trasa a coverage',228438,31000,5600,3900)
   rows=[' → '.join('<a href="'+link(fid)+'">'+sc+'</a>' for sc,fid,*_ in SCENARIOS),'H1 hlavní tok • H2 lifecycle • H3 výjimky • H4 handoff • H5 autorita/consistency • H6 jazyk/change drivers','Pět reprezentativních scénářů. Původní čtyřscénářový inventář je doplněn o SC-05. Nejde o úplné procesní pokrytí.','Iterace: hypotézy ↔ scénáře ↔ evidence ↔ L2 ↔ 1C. Pořadí čtení není povinný algoritmus.']
+  route=[]
+  for rid,step,*_ in p:
+   target=rid if rid.isdigit() else next(z['id'] for z in FRAME_CACHE if name(z)=='CES DEMO · 1B.'+step+' · '+('Evidence clustering' if rid=='clusters' else 'Boundary rationale / 1C'))
+   route.append('<a href="'+link(target)+'">'+step+'</a>')
+  rows.insert(0,'Celá trasa: '+' → '.join(route))
   card(f,'1B · MAIN · METODICKÉ DEMO','\n'.join(rows),2800,1950,5100,3400,'#dbeff0',100)
   print('NAV_FRAME',f['id'],flush=True)
   # Step bands; no fictitious target models.
@@ -168,6 +182,23 @@ def main():
   assert before['edges']==after['edges'],'EDGE_DRIFT_'+fid
  for fid,step,x,y,w,h in p:
   if fid.isdigit():assert abs(fm2[fid]['position']['x']-x)<1 and abs(fm2[fid]['position']['y']-y)<1,'FINAL_POSITION'
+ # Independent bounding-box proxy against all frames, including nested historical frames.
+ def absolute(fid,seen=None):
+  f=fm2[fid];x,y=position(f);parent=(f.get('parent') or {}).get('id')
+  if parent in fm2:
+   px,py=absolute(parent);pg=fm2[parent]['geometry'];x+=px-pg['width']/2;y+=py-pg['height']/2
+  return x,y
+ bboxes={}
+ for fid,f in fm2.items():
+  x,y=absolute(fid);g=f['geometry'];bboxes[fid]=(x-g['width']/2,y-g['height']/2,x+g['width']/2,y+g['height']/2)
+ current=targets|(set(fm2)-before_ids)
+ conflicts=[]
+ for aid in current:
+  a=bboxes[aid]
+  for bid,b in bboxes.items():
+   if aid==bid or (bid in current and aid>bid):continue
+   if min(a[2],b[2])>max(a[0],b[0])+1 and min(a[3],b[3])>max(a[1],b[1])+1:conflicts.append((aid,bid))
+ print('G3_FRAME_GEOMETRY_PROXY',len(current),'scope',len(conflicts),'overlaps',json.dumps(conflicts),flush=True)
  print('G1_G2_PASS_ORIGINAL_IDS_CONTENT_CONNECTORS_PROTECTED','original',len(before_ids),'after',len(fm2),'G4_OPEN',flush=True)
 if __name__=='__main__':
  try:main()
