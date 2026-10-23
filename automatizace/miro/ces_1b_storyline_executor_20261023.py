@@ -219,7 +219,7 @@ def main():
  bboxes={}
  for fid,f in fm2.items():
   x,y=absolute(fid);g=f['geometry'];bboxes[fid]=(x-g['width']/2,y-g['height']/2,x+g['width']/2,y+g['height']/2)
- current=targets|(set(fm2)-before_ids)
+ current=targets|(set(fm2)-before_ids)|{i for i,f in fm2.items() if name(f).startswith('CES DEMO ·') or name(f)=='REFERENCE / ARCHIVE · mimo hlavní trasu'}
  conflicts=[]
  for aid in current:
   a=bboxes[aid]
