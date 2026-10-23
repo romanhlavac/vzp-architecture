@@ -17,7 +17,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
-      STORY_MODE: ${{ github.event.head_commit.message == 'Clear final G4 explanation collision' && 'g4texts' || 'verify' }}
+      STORY_MODE: g4audit
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
