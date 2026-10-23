@@ -1,0 +1,20 @@
+{
+  "purpose": "DEMO methodology, not client architecture",
+  "layout": "step rows; substages left-to-right",
+  "scenarios": [
+    "SC01",
+    "SC02",
+    "SC05",
+    "SC03",
+    "SC04"
+  ],
+  "heuristics": [
+    "main flow",
+    "business lifecycle",
+    "exceptions",
+    "cross-boundary",
+    "data authority",
+    "change drivers"
+  ],
+  "status": "WORKING"
+}
