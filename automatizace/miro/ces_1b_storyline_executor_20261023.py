@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -142,6 +142,16 @@ def main():
   move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
   print('REFERENCE_PILOT_PASS',flush=True);return
+ if mode=='polish':
+  for f in fs:
+   t=name(f)
+   if t in ('CES DEMO · 1B.05 · Evidence clustering','CES DEMO · 1B.07 · Boundary rationale / 1C') or (t.startswith('CES DEMO · KROK ') and '1C' not in t):
+    for k in page('items',{'parent_item_id':f['id']}):
+     assert k['type']=='shape'
+     api('PATCH','shapes/'+k['id'],{'style':{'fontSize':'160' if '1B.0' in t else '180'}})
+    print('READABILITY_PASS',f['id'],flush=True)
+  after=page('connectors');assert protected=={i:snapshot(i,after) for i in PROTECTED},'PROTECTED_CHANGED'
+  print('POLISH_PASS',flush=True);return
  if mode=='separate':
   for fid,step,x,y,w,h in p:
    if fid.isdigit():move(fid,x,y)
