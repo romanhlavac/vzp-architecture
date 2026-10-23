@@ -46,6 +46,12 @@ def main():
       for k in kids[:24]:
         z=k.get("style") or {};g=k.get("geometry") or {}
         print("STYLE",label,k["id"],k["type"],str(z.get("fillColor"))[:18],str(z.get("fontSize"))[:12],str(z.get("fontFamily"))[:12],round(g.get("width",0)),round(g.get("height",0)),flush=True)
+  for key in ("nav","sc01","sc05"):
+    fid=FRAME_IDS[key];kids=page("items",{"parent_item_id":fid})
+    if key=="sc05":
+      for k in kids:
+        z=k.get("style") or {};p=k.get("position") or {};g=k.get("geometry") or {}
+        print("DETAIL",key,k["id"],k["type"],round(p.get("x",0)),round(p.get("y",0)),round(g.get("width",0)),round(g.get("height",0)),z.get("fillColor"),z.get("fontSize"),len(str((k.get("data") or {}).get("content",""))),flush=True)
   for f in fs:
     t=entry(f)
     if "CES DEMO" in t and ("MAIN" in t or "KROK 1" in t or "1A" in t or "1B" in t):
