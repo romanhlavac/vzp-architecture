@@ -99,13 +99,17 @@ def annotations(f,kind):
   card(f,'OPEN · Co musí rozhodnout 1C','KEEP / MERGE / SEPARATE / SHIFT / KEEP_OPEN.\nPorovnat protipříklady, autority záznamů, konzistenci a předání; doplnit vlastníka rozhodnutí.\nMetodické DEMO: business reviewer/owner a sign-off nejsou doloženy.',3800,5200,7100,1600,'#ffdee0',82)
 
 def main():
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference')
  fs=page('items',{'type':'frame'});fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':print('AUDIT_PASS_WRITES_0',flush=True);return
  before_ids=set(fm);links=page('connectors');protected={i:snapshot(i,links) for i in PROTECTED}
  targets={fid for fid,*_ in p if fid.isdigit()}|{REF}
  untouched={i:stable(f) for i,f in fm.items() if i not in targets}
+ if mode=='reference':
+  move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
+  assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
+  print('REFERENCE_PILOT_PASS',flush=True);return
  if mode=='apply':
   for fid,step,x,y,w,h in p:
    if fid.isdigit():
