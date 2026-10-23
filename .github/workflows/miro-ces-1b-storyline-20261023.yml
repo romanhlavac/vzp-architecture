@@ -18,7 +18,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
-      STORY_MODE: ${{ github.event.head_commit.message == 'Run authorized CES story pilot 20261023' && 'pilot' || 'audit' }}
+      STORY_MODE: ${{ github.event.head_commit.message == 'Run authorized CES reference separation 20261023' && 'reference' || 'audit' }}
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
