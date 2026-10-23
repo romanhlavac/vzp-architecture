@@ -17,6 +17,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      # Read-only baseline: nested reference frame is valid containment, not a collision.
       STORY_MODE: verify
     steps:
       - uses: actions/checkout@v4
