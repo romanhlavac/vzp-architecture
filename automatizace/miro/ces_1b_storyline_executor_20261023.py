@@ -153,7 +153,8 @@ def main():
    footer=norm(k['data']['content']).startswith('Časově významné')
    y=2100 if footer else k['position']['y']
    assert 100<y<2200,'TEXT_Y_SCOPE'
-   api('PATCH','texts/'+k['id'],{'position':{'x':3065,'y':y,'origin':'center'},'geometry':{'width':5600}})
+   x,w=(3915,3900) if k['id']=='3458764688162404610' else (3065,5600)
+   api('PATCH','texts/'+k['id'],{'position':{'x':x,'y':y,'origin':'center'},'geometry':{'width':w}})
   afterlinks=page('connectors');aft=snapshot(fid,afterlinks)
   assert set(before['kids'])==set(aft['kids']) and before['edges']==aft['edges'],'G4_ID_EDGE_DRIFT'
   ids={k['id'] for k in texts}
@@ -161,7 +162,8 @@ def main():
    if kid not in ids:assert k==aft['kids'][kid],'G4_OTHER_CHILD_DRIFT'
    else:
     for key in ('id','type','data','style','parent'):assert k[key]==aft['kids'][kid][key],'G4_TEXT_SEMANTIC_DRIFT'
-    assert abs(aft['kids'][kid]['position']['x']-3065)<1 and abs(aft['kids'][kid]['geometry']['width']-5600)<1,'G4_TEXT_READBACK'
+    x,w=(3915,3900) if kid=='3458764688162404610' else (3065,5600)
+    assert abs(aft['kids'][kid]['position']['x']-x)<1 and abs(aft['kids'][kid]['geometry']['width']-w)<1,'G4_TEXT_READBACK'
   assert protected=={i:snapshot(i,afterlinks) for i in PROTECTED},'PROTECTED_CHANGED'
   print('G4_METHOD_TEXT_CONTAINMENT_PASS',len(texts),sorted(ids),flush=True);return
  if mode=='methodfonts':
