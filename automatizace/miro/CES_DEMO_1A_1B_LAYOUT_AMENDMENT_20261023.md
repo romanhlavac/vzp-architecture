@@ -30,10 +30,12 @@ Scope: **DEMO / WORKING**, no approved VZP target architecture, no business-doma
 |---|---|---|
 | G1 | PASS (DEMO scope) | No business event/subdomain decision modified. |
 | G2 | PASS | REST read-back: 70 frames, 703 original connectors, unchanged BP/DL child snapshots. |
-| G3 | PASS / proxy for new section rectangles; SC-05 size gap OPEN | New sections occupy free horizontal/vertical lanes; extra native sticky dimensions remain non-harmonized. |
+| G3 | PASS (frame geometry proxy); SC-05 note sizing OPEN | Independent parent-aware frame read-back: 31 scoped frames, 0 unintentional overlaps. One intentional nested reference within methodology is correctly excluded from collisions. |
 | G4 | **OPEN** | Miro MCP org call quota exhausted; no fresh independently reviewed native screenshot of this change. Prior historical G4 PASS does not extend to this revision. |
 
 [One-off guarded apply and structural read-back](https://github.com/romanhlavac/vzp-architecture/actions/runs/39975546202).
 [Independent resize pilot (not effective)](https://github.com/romanhlavac/vzp-architecture/actions/runs/39976370288).
 
 No Miro AI or production architecture change.
+
+[Final independent 1B read-only verification (16 frames / 703 connectors / G3 0 unintentional overlaps)](https://github.com/romanhlavac/vzp-architecture/actions/runs/39977173118).
