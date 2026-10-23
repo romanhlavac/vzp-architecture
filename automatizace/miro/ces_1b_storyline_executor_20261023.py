@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify','sc05','methodfonts','g4texts','g4audit')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify','sc05','methodfonts','g4texts','g4audit','g4inventory')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -145,6 +145,23 @@ def main():
  if mode=='g4audit':
   fid='3458764687949068244';s=snapshot(fid,links)
   print('G4_TEXT_GEOMETRY',json.dumps([{'id':k['id'],'position':k['position'],'geometry':k['geometry'],'footer':norm(k['data']['content']).startswith('Časově významné')} for k in s['kids'].values() if k['type']=='text']),flush=True);return
+ if mode=='g4inventory':
+  fid='3458764687949068244';before=snapshot(fid,links)
+  ids={'3458764687949762944','3458764687949762956','3458764687949762969','3458764687949762978','3458764688162542993'}
+  assert ids<=set(before['kids']),'INVENTORY_TEXT_SCOPE'
+  for kid in sorted(ids):
+   k=before['kids'][kid];assert k['type']=='text'
+   footer=kid=='3458764688162542993'
+   api('PATCH','texts/'+kid,{'position':{'x':2800 if footer else k['position']['x'],'y':k['position']['y'],'origin':'center'},'geometry':{'width':5100 if footer else 2440}})
+  afterlinks=page('connectors');aft=snapshot(fid,afterlinks)
+  assert before['frame']==aft['frame'] and before['edges']==aft['edges'] and set(before['kids'])==set(aft['kids']),'INVENTORY_ID_EDGE_DRIFT'
+  for kid,k in before['kids'].items():
+   if kid not in ids:assert k==aft['kids'][kid],'INVENTORY_OTHER_DRIFT'
+   else:
+    for key in ('id','type','data','style','parent'):assert k[key]==aft['kids'][kid][key],'INVENTORY_TEXT_CONTENT_DRIFT'
+    assert abs(aft['kids'][kid]['geometry']['width']-(5100 if kid=='3458764688162542993' else 2440))<1,'INVENTORY_TEXT_READBACK'
+  assert protected=={i:snapshot(i,afterlinks) for i in PROTECTED},'PROTECTED_CHANGED'
+  print('G4_INVENTORY_CONTAINMENT_PASS',sorted(ids),flush=True);return
  if mode=='g4texts':
   fid='3458764688162404596';before=snapshot(fid,links)
   texts=[k for k in before['kids'].values() if k['type']=='text']
