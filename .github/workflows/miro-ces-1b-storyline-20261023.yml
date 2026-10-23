@@ -17,7 +17,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
-      STORY_MODE: ${{ github.event.head_commit.message == 'Route authorized CES reference locally 20261023' && 'repair' || 'audit' }}
+      STORY_MODE: ${{ github.event.head_commit.message == 'Inspect CES unframed references 20261023' && 'orphans' || 'audit' }}
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
