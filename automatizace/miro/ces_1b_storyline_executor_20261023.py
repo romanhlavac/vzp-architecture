@@ -90,7 +90,7 @@ def plan(frames):
   if fid=='clusters':w,h=7600,6500
   elif fid=='boundary':w,h=7600,6500
   else:w,h=fm[fid]['geometry']['width'],fm[fid]['geometry']['height']
-  out.append((fid,step,left+w/2,26000+h/2,w,h));left+=w+1100
+  out.append((fid,step,left+w/2,30000+h/2,w,h));left+=w+1100
  return out
 
 def annotations(f,kind):
@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -116,12 +116,12 @@ def main():
   print('REFERENCE_NODES',json.dumps([{k:e.get(k) for k in ('id','position','geometry','parent')} for e in rs['kids'].values()]),flush=True)
   print('AUDIT_PASS_WRITES_0',flush=True);return
  if mode=='verify':
-  expected=['CES DEMO · 1B.05 · Evidence clustering','CES DEMO · 1B.07 · Boundary rationale / 1C','CES DEMO · 1B · Čtecí trasa a coverage','REFERENCE / ARCHIVE · mimo hlavní trasu']+['CES DEMO · '+sc+' · Proč tento scénář' for sc,*_ in SCENARIOS]+['CES DEMO · '+t for t in ['KROK 1 · 1B · MAIN','KROK 1 · 1C · PLANNED','KROK 2 · PLANNED','KROK 3 · PLANNED','KROK 4 · PLANNED','KROK 5 · PLANNED']]
+  expected=['CES DEMO · 1B.05 · Evidence clustering','CES DEMO · 1B.07 · Boundary rationale / 1C','CES DEMO · 1B · Čtecí trasa a coverage','REFERENCE / ARCHIVE · mimo hlavní trasu','REFERENCE · DDD notation · historická ilustrace']+['CES DEMO · '+sc+' · Proč tento scénář' for sc,*_ in SCENARIOS]+['CES DEMO · '+t for t in ['KROK 1 · 1B · MAIN','KROK 1 · 1C · PLANNED','KROK 2 · PLANNED','KROK 3 · PLANNED','KROK 4 · PLANNED','KROK 5 · PLANNED']]
   for title in expected:
    found=[f for f in fs if name(f)==title];assert len(found)==1,'MISSING_OR_DUPLICATE_REQUIRED_FRAME'
    kids=page('items',{'parent_item_id':found[0]['id']});assert kids and all(k['type']=='shape' for k in kids),'NATIVE_CARD_MISSING'
    print('VERIFIED_NATIVE_FRAME',found[0]['id'],len(kids),flush=True)
-  print('VERIFY_EXPECTED_15_FRAMES_PASS',flush=True)
+  print('VERIFY_EXPECTED_16_FRAMES_PASS',flush=True)
  if mode=='orphans':
   items=page('items')
   candidates=[o for o in items if o['type']!='frame' and not (o.get('parent') or {}).get('id') and 250000<o.get('position',{}).get('x',0)<290000 and 15000<o.get('position',{}).get('y',0)<34000]
@@ -142,6 +142,25 @@ def main():
   move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
   print('REFERENCE_PILOT_PASS',flush=True);return
+ if mode=='separate':
+  for fid,step,x,y,w,h in p:
+   if fid.isdigit():move(fid,x,y)
+  for f in fs:
+   t=name(f)
+   if t in ('CES DEMO · 1B.05 · Evidence clustering','CES DEMO · 1B.07 · Boundary rationale / 1C'):
+    move(f['id'],f['position']['x'],33250)
+   elif t.startswith('CES DEMO · SC-') and t.endswith(' · Proč tento scénář'):
+    move(f['id'],f['position']['x'],39250)
+   elif t=='CES DEMO · 1B · Čtecí trasa a coverage':move(f['id'],228438,35000)
+   elif t=='CES DEMO · KROK 1 · 1B · MAIN':move(f['id'],232000,28000)
+   elif t=='CES DEMO · KROK 1 · 1C · PLANNED':move(f['id'],313568,31100)
+  rf=ensure_frame('REFERENCE · DDD notation · historická ilustrace',268929,22891,11135,8333)
+  card(rf,'REFERENCE · HISTORICAL · mimo MAIN','Původní ilustrace DDD. Není výstupem kroků 1B–5 ani target návrhem VZP.',5567.5,150,10500,240,'#e2e8f0',60)
+  after_links=page('connectors')
+  for fid,bef in MOVE_BEFORE.items():
+   aft=snapshot(fid,after_links);assert bef['kids']==aft['kids'] and bef['edges']==aft['edges'],'SEPARATION_DRIFT'
+  assert protected=={i:snapshot(i,after_links) for i in PROTECTED},'PROTECTED_CHANGED'
+  print('SEPARATION_PASS',rf['id'],len(MOVE_BEFORE),'frames',flush=True);return
  if mode=='finish':
   inventory='3458764687949068244'
   inv=api('GET','frames/'+inventory);kids=page('items',{'parent_item_id':inventory})
@@ -222,7 +241,7 @@ def main():
  bboxes={}
  for fid,f in fm2.items():
   x,y=absolute(fid);g=f['geometry'];bboxes[fid]=(x-g['width']/2,y-g['height']/2,x+g['width']/2,y+g['height']/2)
- current=targets|(set(fm2)-before_ids)|{i for i,f in fm2.items() if name(f).startswith('CES DEMO ·') or name(f)=='REFERENCE / ARCHIVE · mimo hlavní trasu'}
+ current=targets|(set(fm2)-before_ids)|{i for i,f in fm2.items() if name(f).startswith('CES DEMO ·') or name(f) in ('REFERENCE / ARCHIVE · mimo hlavní trasu','REFERENCE · DDD notation · historická ilustrace')}
  conflicts=[]
  for aid in current:
   a=bboxes[aid]
