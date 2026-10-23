@@ -143,7 +143,7 @@ def main():
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
   print('REFERENCE_PILOT_PASS',flush=True);return
  if mode=='g4audit':
-  fid='3458764688162404596';s=snapshot(fid,links)
+  fid='3458764687949068244';s=snapshot(fid,links)
   print('G4_TEXT_GEOMETRY',json.dumps([{'id':k['id'],'position':k['position'],'geometry':k['geometry'],'footer':norm(k['data']['content']).startswith('Časově významné')} for k in s['kids'].values() if k['type']=='text']),flush=True);return
  if mode=='g4texts':
   fid='3458764688162404596';before=snapshot(fid,links)
