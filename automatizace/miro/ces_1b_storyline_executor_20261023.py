@@ -126,15 +126,13 @@ def main():
  targets={fid for fid,*_ in p if fid.isdigit()}|{REF}
  untouched={i:stable(f) for i,f in fm.items() if i not in targets}
  if mode=='repair':
-  before=snapshot(REF,links)
-  for eid,e in before['edges'].items():
-   if e.get('shape')=='curved':
-    api('PATCH','connectors/'+eid,{'shape':'straight'})
-    api('PATCH','connectors/'+eid,{'shape':'curved'})
-    print('ROUTE_RESET',eid,flush=True)
-  after=snapshot(REF,page('connectors'))
-  assert before==after,'REFERENCE_SEMANTIC_DRIFT'
-  print('ROUTE_REPAIR_PASS',flush=True);return
+  eid='3458764688199613665'
+  before=api('GET','connectors/'+eid)
+  api('PATCH','connectors/'+eid,{'shape':'curved','startItem':{'id':before['startItem']['id'],'snapTo':'bottom'},'endItem':{'id':before['endItem']['id'],'snapTo':'bottom'}})
+  after=api('GET','connectors/'+eid)
+  assert before['id']==after['id'] and before['style']==after['style'] and before.get('captions')==after.get('captions'),'CONNECTOR_DRIFT'
+  assert [before[k]['id'] for k in ('startItem','endItem')]==[after[k]['id'] for k in ('startItem','endItem')],'ENDPOINT_DRIFT'
+  print('REFERENCE_LOCAL_ROUTING_PASS',eid,flush=True)
  if mode=='reference':
   move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
