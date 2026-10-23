@@ -1,0 +1,26 @@
+name: CES 1B storyline native rearrangement
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces-1b-storyline-20261023.yml"
+      - "automatizace/miro/ces_1b_storyline_executor_20261023.py"
+permissions: {contents: read}
+concurrency:
+  group: miro-ces-1b-storyline
+  cancel-in-progress: false
+jobs:
+  execute:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 25
+    env:
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      STORY_MODE: audit
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/ces_1b_storyline_executor_20261023.py
+      - run: python3 automatizace/miro/ces_1b_storyline_executor_20261023.py
