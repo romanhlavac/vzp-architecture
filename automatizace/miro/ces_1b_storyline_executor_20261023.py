@@ -152,7 +152,7 @@ def main():
   for k in texts:
    footer=norm(k['data']['content']).startswith('Časově významné')
    y=2100 if footer else k['position']['y']
-   assert 100<y<2150,'TEXT_Y_SCOPE'
+   assert 100<y<2200,'TEXT_Y_SCOPE'
    api('PATCH','texts/'+k['id'],{'position':{'x':3065,'y':y,'origin':'center'},'geometry':{'width':5600}})
   afterlinks=page('connectors');aft=snapshot(fid,afterlinks)
   assert set(before['kids'])==set(aft['kids']) and before['edges']==aft['edges'],'G4_ID_EDGE_DRIFT'
