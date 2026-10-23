@@ -83,7 +83,7 @@ def main():
  f_id=iid(frame)
  def add(endpoint,key,content,x,y,w,color,font=38):
   current=listing("items",{"parent_item_id":f_id})
-  prior=[z for z in current if name(z)==content]
+  prior=[z for z in current if name(z)==re.sub(r"\\s+"," ",content).strip()]
   if len(prior)>1:raise RuntimeError("DUPLICATE_NODE_CONTENT_"+key)
   if prior:return prior[0]
   body={"data":{"content":content},"position":{"x":x,"y":y,"origin":"center"},"geometry":{"width":w},"parent":{"id":f_id}}
