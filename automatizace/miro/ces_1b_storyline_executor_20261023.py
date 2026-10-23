@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify','sc05')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify','sc05','methodfonts')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -142,6 +142,20 @@ def main():
   move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
   print('REFERENCE_PILOT_PASS',flush=True);return
+ if mode=='methodfonts':
+  fid='3458764688162404596';before=snapshot(fid,links)
+  for k in before['kids'].values():
+   if k['type'] in ('text','shape'):
+    size=str(int(max(44,float((k.get('style') or {}).get('fontSize') or 44))))
+    ep='texts' if k['type']=='text' else 'shapes'
+    api('PATCH',ep+'/'+k['id'],{'style':{'fontSize':size}})
+  for eid in before['edges']:api('PATCH','connectors/'+eid,{'style':{'fontSize':'64'}})
+  afterlinks=page('connectors');aft=snapshot(fid,afterlinks)
+  assert set(aft['kids'])==set(before['kids']) and set(aft['edges'])==set(before['edges']),'METHOD_ID_DRIFT'
+  for eid,e in before['edges'].items():
+   for key in ('startItem','endItem','captions','shape'):assert e[key]==aft['edges'][eid][key],'METHOD_EDGE_DRIFT'
+  assert protected=={i:snapshot(i,afterlinks) for i in PROTECTED},'PROTECTED_CHANGED'
+  print('METHOD_FONT_PASS',len(aft['kids']),len(aft['edges']),flush=True);return
  if mode=='sc05':
   fid='3458764688202201527';sk=page('items',{'parent_item_id':fid})
   low=next(k for k in sk if norm((k.get('data') or {}).get('content','')).startswith('Rozpor mezi referenčními údaji'))
