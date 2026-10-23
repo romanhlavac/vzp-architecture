@@ -4,7 +4,7 @@ import os,urllib.request,urllib.parse,urllib.error,json,collections,hashlib,time
 B=os.environ["MIRO_DIAGNOSTIC_BOARD_ID"];assert B=="uXjVHiylz-0="
 BASE="https://api.miro.com/v2/boards/"+urllib.parse.quote(B,safe="")+"/"
 T=os.environ["MIRO_DIAGNOSTIC_TOKEN"]; MODE=os.getenv("LAYOUT_MODE","audit")
-assert MODE in ("audit","apply","verify")
+assert MODE in ("audit","apply","verify","resizepilot")
 def api(method,path,body=None):
   q=urllib.request.Request(BASE+path,method=method,data=json.dumps(body).encode() if body else None,headers={"Authorization":"Bearer "+T,"Content-Type":"application/json","Accept":"application/json"})
   for n in range(4):
@@ -250,10 +250,24 @@ def apply_refinement():
  check_mode("verify")
  print("APPLY_PRESERVED_1A_AND_BUSINESS_EDGES",flush=True)
 
+def resize_one():
+  id="3458764688202201748"
+  pre=api("GET","sticky_notes/"+id)
+  print("BEFORE",pre["geometry"]["width"],pre["geometry"]["height"],str((pre.get("data") or {}).get("shape")),flush=True)
+  target=round(pre["geometry"]["height"]*0.55,1)
+  p={"geometry":{"height":target},"position":{"x":pre["position"]["x"],"y":pre["position"]["y"],"origin":"center"}}
+  api("PATCH","sticky_notes/"+id,p)
+  after=api("GET","sticky_notes/"+id)
+  assert pre["data"]==after["data"] and pre["style"]==after["style"] and pre["parent"]==after["parent"],"PILOT_SEMANTIC_DRIFT"
+  print("AFTER",after["geometry"]["width"],after["geometry"]["height"],flush=True)
+  if abs(after["geometry"]["height"]-target)>20:print("RESIZE_NOT_APPLIED",flush=True)
+  else:print("RESIZE_PILOT_PASS",flush=True)
+
 if __name__=="__main__":
  mode=os.getenv("LAYOUT_MODE","audit")
  if mode=="audit":main()
  elif mode=="apply":apply_refinement()
  elif mode=="verify":check_mode("verify")
+ elif mode=="resizepilot":resize_one()
  else:raise RuntimeError("INVALID_MODE")
 
