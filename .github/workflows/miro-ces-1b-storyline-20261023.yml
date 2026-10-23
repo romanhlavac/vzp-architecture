@@ -1,4 +1,4 @@
-name: CES 1B storyline native rearrangement
+name: CES 1B storyline native read-back
 on:
   push:
     branches: [main]
