@@ -107,7 +107,7 @@ def annotations(f,kind):
 
 def main():
  global FRAME_CACHE,LIVE_LINKS
- mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify','sc05','methodfonts','g4texts')
+ mode=os.environ.get('STORY_MODE','audit');assert mode in ('audit','apply','verify','reference','repair','finish','orphans','separate','polish','clarify','sc05','methodfonts','g4texts','g4audit')
  fs=page('items',{'type':'frame'});FRAME_CACHE=fs.copy();fm={f['id']:f for f in fs};p=plan(fs)
  for fid,step,x,y,w,h in p:print('PLAN',fid,step,x,y,w,h,flush=True)
  if mode=='audit':
@@ -142,6 +142,9 @@ def main():
   move(REF,322000,29435,'REFERENCE · Process Modelling · historická notace')
   assert protected=={i:snapshot(i,page('connectors')) for i in PROTECTED},'PROTECTED_CHANGED'
   print('REFERENCE_PILOT_PASS',flush=True);return
+ if mode=='g4audit':
+  fid='3458764688162404596';s=snapshot(fid,links)
+  print('G4_TEXT_GEOMETRY',json.dumps([{'id':k['id'],'position':k['position'],'geometry':k['geometry'],'footer':norm(k['data']['content']).startswith('Časově významné')} for k in s['kids'].values() if k['type']=='text']),flush=True);return
  if mode=='g4texts':
   fid='3458764688162404596';before=snapshot(fid,links)
   texts=[k for k in before['kids'].values() if k['type']=='text']
