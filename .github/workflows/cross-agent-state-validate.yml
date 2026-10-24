@@ -4,11 +4,15 @@ on:
     paths:
       - 'cross-agent/**'
       - 'tests/test_state_cli.py'
+      - 'tests/test_auto_sync*.py'
+      - '.claude/settings.json'
       - '.github/workflows/cross-agent-state-validate.yml'
   pull_request:
     paths:
       - 'cross-agent/**'
       - 'tests/test_state_cli.py'
+      - 'tests/test_auto_sync*.py'
+      - '.claude/settings.json'
       - '.github/workflows/cross-agent-state-validate.yml'
 permissions:
   contents: read
