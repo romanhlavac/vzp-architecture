@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "state_revision": 11,
+  "state_revision": 12,
   "storage_mode": "PILOT_NOT_CUTOVER",
   "authority": "OPERATIONAL_METADATA_ONLY",
   "migrated_from": {
@@ -126,6 +126,28 @@
       "workstream": "CROSS_AGENT_TEST",
       "timestamp_utc": "2026-10-24T23:09:23.474Z",
       "status": "READY_FOR_HANDOFF"
+    },
+    {
+      "revision": 12,
+      "event": "CONTEXT_UPDATE",
+      "agent": "GPT",
+      "workstream": "CROSS_AGENT_TEST",
+      "status": "OPEN"
     }
-  ]
+  ],
+  "continuity": {
+    "version": 1,
+    "latest_workstream": "CROSS_AGENT_TEST",
+    "streams": {
+      "CROSS_AGENT_TEST": {
+        "revision": 12,
+        "agent": "GPT",
+        "phase": "OPEN",
+        "work_code": "AUTO_CONTINUITY_V2_GPT_PILOT",
+        "next_code": "CLAUDE_NATIVE_PROMPT_TEST",
+        "artifact_system": "GITHUB",
+        "evidence_commit": "8b77979df634f57340c723b92853f3c683b12e21"
+      }
+    }
+  }
 }
