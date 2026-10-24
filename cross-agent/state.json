@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "state_revision": 3,
+  "storage_mode": "PILOT_NOT_CUTOVER",
+  "authority": "OPERATIONAL_METADATA_ONLY",
+  "migrated_from": {
+    "store": "Google Drive",
+    "state_revision": 2,
+    "status": "READY_WITH_OPEN_EXTERNAL_GATES"
+  },
+  "workstreams": {
+    "METHOD": {"status": "ACTIVE_WORKING", "owner": null},
+    "SOURCE": {"status": "IDENTITY_REVALIDATED", "owner": null},
+    "CES_1B": {"status": "WORKING_DEMO_VISUAL_OPEN", "owner": null},
+    "CES_DATA": {"status": "ACTIVATION_UNVERIFIED", "owner": null},
+    "GS": {"status": "LIVE_MASTER", "owner": null},
+    "ARCHI": {"status": "MODEL_MASTER_NOT_VERIFIED", "owner": null},
+    "CROSS_AGENT": {"status": "PILOT", "owner": null},
+    "CROSS_AGENT_TEST": {"status": "IDLE", "owner": null}
+  },
+  "acceptance": {
+    "gpt_github_read_write": "NOT_TESTED",
+    "github_stale_write_conflict": "NOT_TESTED",
+    "claude_live": "NOT_TESTED",
+    "cursor_live": "NOT_TESTED",
+    "cross_agent_handoff": "NOT_TESTED"
+  },
+  "events": [
+    {"revision": 3, "event": "MIGRATION_PILOT_INITIALIZED", "agent": "GPT", "workstream": "CROSS_AGENT", "status": "PILOT_NOT_CUTOVER"}
+  ]
+}
