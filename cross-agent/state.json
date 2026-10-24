@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "state_revision": 9,
+  "state_revision": 10,
   "storage_mode": "PILOT_NOT_CUTOVER",
   "authority": "OPERATIONAL_METADATA_ONLY",
   "migrated_from": {
@@ -39,7 +39,7 @@
     },
     "CROSS_AGENT_TEST": {
       "owner": "GPT",
-      "status": "IN_PROGRESS"
+      "status": "IN_PROGRESS_OPEN"
     }
   },
   "acceptance": {
@@ -107,6 +107,14 @@
       "workstream": "CROSS_AGENT_TEST",
       "timestamp_utc": "2026-10-24T23:08:46.392Z",
       "status": "IN_PROGRESS"
+    },
+    {
+      "revision": 10,
+      "event": "CHECKPOINT_OPEN",
+      "agent": "GPT",
+      "workstream": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-24T23:09:01.494Z",
+      "status": "IN_PROGRESS_OPEN"
     }
   ]
 }
