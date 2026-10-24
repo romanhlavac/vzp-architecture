@@ -1,6 +1,6 @@
 # VZP cross-agent state — migration package
 
-**Status: PILOT_NOT_CUTOVER.** No authenticated publication has been verified. The live Google Drive state (revision 2) remains authoritative until a validated cutover.
+**Status: PILOT_NOT_CUTOVER.** Authenticated publication and GPT GitHub native read/write/read-back with HTTP 409 stale-SHA rejection have passed. See [PILOT_ACCEPTANCE.md](PILOT_ACCEPTANCE.md). Actual Claude/Cursor and full cross-agent chain gates remain open. The live Google Drive state (revision 2) remains authoritative until a validated cutover.
 
 ## Purpose
 
