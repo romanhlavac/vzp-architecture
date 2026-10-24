@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "state_revision": 5,
+  "state_revision": 6,
   "storage_mode": "PILOT_NOT_CUTOVER",
   "authority": "OPERATIONAL_METADATA_ONLY",
   "migrated_from": {
@@ -38,8 +38,8 @@
       "owner": null
     },
     "CROSS_AGENT_TEST": {
-      "owner": null,
-      "status": "READY_FOR_HANDOFF"
+      "owner": "CLAUDE",
+      "status": "IN_PROGRESS"
     }
   },
   "acceptance": {
@@ -72,6 +72,14 @@
       "workstream": "CROSS_AGENT_TEST",
       "timestamp_utc": "2026-10-24T22:01:50.956Z",
       "status": "READY_FOR_HANDOFF"
+    },
+    {
+      "revision": 6,
+      "event": "CLAIM",
+      "agent": "CLAUDE",
+      "workstream": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-24T22:33:23Z",
+      "status": "IN_PROGRESS"
     }
   ]
 }
