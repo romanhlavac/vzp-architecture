@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "state_revision": 8,
+  "state_revision": 9,
   "storage_mode": "PILOT_NOT_CUTOVER",
   "authority": "OPERATIONAL_METADATA_ONLY",
   "migrated_from": {
@@ -38,8 +38,8 @@
       "owner": null
     },
     "CROSS_AGENT_TEST": {
-      "owner": null,
-      "status": "READY_FOR_HANDOFF"
+      "owner": "GPT",
+      "status": "IN_PROGRESS"
     }
   },
   "acceptance": {
@@ -99,6 +99,14 @@
       "verified_agent": "CLAUDE",
       "evidence_commit": "861af8f49951b957b3b14779f2619afaea16fda6",
       "evidence_doc": "cross-agent/PILOT_ACCEPTANCE.md"
+    },
+    {
+      "revision": 9,
+      "event": "CLAIM",
+      "agent": "GPT",
+      "workstream": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-24T23:08:46.392Z",
+      "status": "IN_PROGRESS"
     }
   ]
 }
