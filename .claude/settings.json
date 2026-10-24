@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/cross-agent/auto_sync.py\" context",
+            "timeout": 25
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/cross-agent/auto_sync.py\" stop",
+            "timeout": 360
+          }
+        ]
+      }
+    ]
+  }
+}
