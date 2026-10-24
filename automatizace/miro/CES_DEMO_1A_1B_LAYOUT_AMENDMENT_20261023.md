@@ -39,3 +39,15 @@ Scope: **DEMO / WORKING**, no approved VZP target architecture, no business-doma
 No Miro AI or production architecture change.
 
 [Final independent 1B read-only verification (16 frames / 703 connectors / G3 0 unintentional overlaps)](https://github.com/romanhlavac/vzp-architecture/actions/runs/39977173118).
+
+## Uzavření SC-05 2026-10-24 (fresh native Miro read-back)
+
+Dřívější tvrzení, že 7 sticky notes je nadměrně velkých, bylo **vyvráceno** čerstvým nativním Canvas render-schema read-backem. REST hodnoty width 991–1400 pocházely z odlišné reprezentace než native Miro Canvas (viditelné šířky 302/341/304/341/350/350/420). Referenční SC-01–04 mají 350/420 px. Rozdíl je typograficky malý a odpovídá validnímu širokému sticky aspect ratio. Všechny 7 notes zůstaly pod původním ID; žádné redundantní destructive replace/rewire.
+
+Pokus o cílený Canvas resize jedné sticky byl vrácen jako ambiguous write; nezávislý read-back potvrdil **NO CHANGE**. Neopakován hromadně. Jediná skutečná překryvová vada byla mezi horním nadpisem a podnadpisem (60 px). Nativní Miro Canvas update přemístil podnadpis `3458764688202201720` z lokální y=205, height=220 na y=285, height=140, přičemž původní text, font, barva i ID zůstaly zachovány.
+
+**Fresh G3 (SC-05)**: 17 native rectangles, 7 stickies, 11 connectors, 0 bounding-box card/text overlaps, všechny objekty uvnitř frame. Po opravě je frame strukturálně čistý. Historický parent-aware G3 celé 1A/1B: 31 scoped frames / 0 unintended frame overlaps, 703 connectors, 70 frames — [verified run](https://github.com/romanhlavac/vzp-architecture/actions/runs/39977173118).
+
+**G4**: Stále OPEN vůči přísnému kontraktu `native screenshot + independently reviewed readable visual`. Miro Canvas read-as-SVG a geometrická kontrola jsou dobrá editovatelná/strukturální evidence, nikoliv samy native pixel screenshot. REST nemá supported frame image export endpoint. **Nelze pravdivě uzavřít G4 PASS bez skutečného prohlédnutí živého native UI/renderu.** Předchozí G4 PASS platil staré revizi, nelze jej retroaktivně převzít.
+
+No additional domain decisions, system boundary decisions, source data modifications, historical changes or business approvals.
