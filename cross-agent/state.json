@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "state_revision": 3,
+  "state_revision": 4,
   "storage_mode": "PILOT_NOT_CUTOVER",
   "authority": "OPERATIONAL_METADATA_ONLY",
   "migrated_from": {
@@ -9,14 +9,38 @@
     "status": "READY_WITH_OPEN_EXTERNAL_GATES"
   },
   "workstreams": {
-    "METHOD": {"status": "ACTIVE_WORKING", "owner": null},
-    "SOURCE": {"status": "IDENTITY_REVALIDATED", "owner": null},
-    "CES_1B": {"status": "WORKING_DEMO_VISUAL_OPEN", "owner": null},
-    "CES_DATA": {"status": "ACTIVATION_UNVERIFIED", "owner": null},
-    "GS": {"status": "LIVE_MASTER", "owner": null},
-    "ARCHI": {"status": "MODEL_MASTER_NOT_VERIFIED", "owner": null},
-    "CROSS_AGENT": {"status": "PILOT", "owner": null},
-    "CROSS_AGENT_TEST": {"status": "IDLE", "owner": null}
+    "METHOD": {
+      "status": "ACTIVE_WORKING",
+      "owner": null
+    },
+    "SOURCE": {
+      "status": "IDENTITY_REVALIDATED",
+      "owner": null
+    },
+    "CES_1B": {
+      "status": "WORKING_DEMO_VISUAL_OPEN",
+      "owner": null
+    },
+    "CES_DATA": {
+      "status": "ACTIVATION_UNVERIFIED",
+      "owner": null
+    },
+    "GS": {
+      "status": "LIVE_MASTER",
+      "owner": null
+    },
+    "ARCHI": {
+      "status": "MODEL_MASTER_NOT_VERIFIED",
+      "owner": null
+    },
+    "CROSS_AGENT": {
+      "status": "PILOT",
+      "owner": null
+    },
+    "CROSS_AGENT_TEST": {
+      "owner": "GPT",
+      "status": "IN_PROGRESS"
+    }
   },
   "acceptance": {
     "gpt_github_read_write": "NOT_TESTED",
@@ -26,6 +50,20 @@
     "cross_agent_handoff": "NOT_TESTED"
   },
   "events": [
-    {"revision": 3, "event": "MIGRATION_PILOT_INITIALIZED", "agent": "GPT", "workstream": "CROSS_AGENT", "status": "PILOT_NOT_CUTOVER"}
+    {
+      "revision": 3,
+      "event": "MIGRATION_PILOT_INITIALIZED",
+      "agent": "GPT",
+      "workstream": "CROSS_AGENT",
+      "status": "PILOT_NOT_CUTOVER"
+    },
+    {
+      "revision": 4,
+      "event": "CLAIM",
+      "agent": "GPT",
+      "workstream": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-24T22:01:43.938Z",
+      "status": "IN_PROGRESS"
+    }
   ]
 }
