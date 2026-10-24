@@ -21,6 +21,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PROJECT_DIR}/cross-agent/prompt_context.py\"",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }
