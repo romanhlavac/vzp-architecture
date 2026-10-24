@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "state_revision": 4,
+  "state_revision": 5,
   "storage_mode": "PILOT_NOT_CUTOVER",
   "authority": "OPERATIONAL_METADATA_ONLY",
   "migrated_from": {
@@ -38,13 +38,13 @@
       "owner": null
     },
     "CROSS_AGENT_TEST": {
-      "owner": "GPT",
-      "status": "IN_PROGRESS"
+      "owner": null,
+      "status": "READY_FOR_HANDOFF"
     }
   },
   "acceptance": {
-    "gpt_github_read_write": "NOT_TESTED",
-    "github_stale_write_conflict": "NOT_TESTED",
+    "gpt_github_read_write": "PASS",
+    "github_stale_write_conflict": "PASS",
     "claude_live": "NOT_TESTED",
     "cursor_live": "NOT_TESTED",
     "cross_agent_handoff": "NOT_TESTED"
@@ -64,6 +64,14 @@
       "workstream": "CROSS_AGENT_TEST",
       "timestamp_utc": "2026-10-24T22:01:43.938Z",
       "status": "IN_PROGRESS"
+    },
+    {
+      "revision": 5,
+      "event": "CHECKPOINT_PASS",
+      "agent": "GPT",
+      "workstream": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-24T22:01:50.956Z",
+      "status": "READY_FOR_HANDOFF"
     }
   ]
 }
