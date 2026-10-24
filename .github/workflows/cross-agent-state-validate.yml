@@ -1,0 +1,30 @@
+name: Cross-agent state validation
+on:
+  push:
+    paths:
+      - 'cross-agent/**'
+      - 'tests/test_state_cli.py'
+      - '.github/workflows/cross-agent-state-validate.yml'
+  pull_request:
+    paths:
+      - 'cross-agent/**'
+      - 'tests/test_state_cli.py'
+      - '.github/workflows/cross-agent-state-validate.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check syntax and sanitized schema
+        run: |
+          python -m py_compile cross-agent/state_cli.py
+          python -c 'import sys,json;sys.path.insert(0,"cross-agent");from state_cli import validate;validate(json.load(open("cross-agent/state.json")))'
+      - name: Safe conflict tests
+        run: python -m unittest discover -s tests -v
