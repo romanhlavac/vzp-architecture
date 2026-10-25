@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 25,
+  "state_revision": 26,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -63,19 +63,16 @@
     },
     "CROSS_AGENT_TEST": {
       "status": "IN_PROGRESS_OPEN",
-      "owner": {
-        "agent": "GPT",
-        "run_id": "35638a516cc24baf91867f843aad762a"
-      },
+      "owner": null,
       "checkpoint": {
-        "revision": 25,
-        "event": "CHECKPOINT_OPEN",
+        "revision": 26,
+        "event": "HANDOFF_OPEN",
         "actor": {
           "agent": "GPT",
           "run_id": "35638a516cc24baf91867f843aad762a"
         },
         "scope": "CROSS_AGENT_TEST",
-        "timestamp_utc": "2026-10-25T12:06:11Z",
+        "timestamp_utc": "2026-10-25T12:06:18Z",
         "work_code": "ACCEPTANCE",
         "next_code": "USER_DECISION",
         "private_artifact_key": "8125cc170e744d70a0c4069fd1be62b5",
@@ -240,6 +237,22 @@
       },
       "scope": "CROSS_AGENT_TEST",
       "timestamp_utc": "2026-10-25T12:06:11Z",
+      "work_code": "ACCEPTANCE",
+      "next_code": "USER_DECISION",
+      "private_artifact_key": "8125cc170e744d70a0c4069fd1be62b5",
+      "evidence_commit": "22b47ce2c38ae6e42d6c0d85992a62315e611ef0",
+      "native_readback": true,
+      "authorization_key": null
+    },
+    {
+      "revision": 26,
+      "event": "HANDOFF_OPEN",
+      "actor": {
+        "agent": "GPT",
+        "run_id": "35638a516cc24baf91867f843aad762a"
+      },
+      "scope": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-25T12:06:18Z",
       "work_code": "ACCEPTANCE",
       "next_code": "USER_DECISION",
       "private_artifact_key": "8125cc170e744d70a0c4069fd1be62b5",
