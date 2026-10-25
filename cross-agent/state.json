@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "state_revision": 13,
+  "state_revision": 14,
   "storage_mode": "PILOT_NOT_CUTOVER",
   "authority": "OPERATIONAL_METADATA_ONLY",
   "migrated_from": {
@@ -140,6 +140,13 @@
       "agent": "GPT",
       "workstream": "CROSS_AGENT_TEST",
       "status": "OPEN"
+    },
+    {
+      "revision": 14,
+      "event": "CONTEXT_UPDATE",
+      "agent": "GPT",
+      "workstream": "CROSS_AGENT_TEST",
+      "status": "OPEN"
     }
   ],
   "continuity": {
@@ -147,13 +154,13 @@
     "latest_workstream": "CROSS_AGENT_TEST",
     "streams": {
       "CROSS_AGENT_TEST": {
-        "revision": 13,
+        "revision": 14,
         "agent": "GPT",
         "phase": "OPEN",
-        "work_code": "DEMO8_GPT_RESUME_PREFLIGHT",
-        "next_code": "CLAUDE_NATIVE_PROMPT_TEST",
+        "work_code": "PROMPT_DRIVEN_DESIGN_GH_STAGE",
+        "next_code": "CLAUDE_STANDARD_CHAT_GD_TEST",
         "artifact_system": "GITHUB",
-        "evidence_commit": "882c6842d226f3a19c1d3256f972a412bee1a591"
+        "evidence_commit": "46b491cd8c9002250d6b4c68940563b85e51316f"
       }
     }
   }
