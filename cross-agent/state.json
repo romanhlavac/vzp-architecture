@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 32,
+  "state_revision": 33,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -62,26 +62,23 @@
       "private_artifact_key": "b638e7915e254f18a930ac604f28c932"
     },
     "CROSS_AGENT_TEST": {
-      "status": "RECOVERY_OPEN",
-      "owner": {
-        "agent": "CLAUDE",
-        "run_id": "0c98ad70032aada5d15cedc336ed5978"
-      },
+      "status": "IN_PROGRESS_OPEN",
+      "owner": null,
       "checkpoint": {
-        "revision": 26,
-        "event": "HANDOFF_OPEN",
+        "revision": 33,
+        "event": "RECONCILE",
         "actor": {
-          "agent": "GPT",
-          "run_id": "35638a516cc24baf91867f843aad762a"
+          "agent": "CLAUDE",
+          "run_id": "0c98ad70032aada5d15cedc336ed5978"
         },
         "scope": "CROSS_AGENT_TEST",
-        "timestamp_utc": "2026-10-25T12:06:18Z",
-        "work_code": "ACCEPTANCE",
-        "next_code": "USER_DECISION",
+        "timestamp_utc": "2026-10-25T13:51:27Z",
+        "work_code": "RECOVERY",
+        "next_code": "CONTINUE",
         "private_artifact_key": "8125cc170e744d70a0c4069fd1be62b5",
-        "evidence_commit": "22b47ce2c38ae6e42d6c0d85992a62315e611ef0",
+        "evidence_commit": null,
         "native_readback": true,
-        "authorization_key": null
+        "authorization_key": "c460fcb9a610bc6f2e9d9ac3c2240220"
       },
       "private_artifact_key": "8125cc170e744d70a0c4069fd1be62b5"
     }
@@ -358,6 +355,22 @@
       "evidence_commit": null,
       "native_readback": false,
       "authorization_key": null
+    },
+    {
+      "revision": 33,
+      "event": "RECONCILE",
+      "actor": {
+        "agent": "CLAUDE",
+        "run_id": "0c98ad70032aada5d15cedc336ed5978"
+      },
+      "scope": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-25T13:51:27Z",
+      "work_code": "RECOVERY",
+      "next_code": "CONTINUE",
+      "private_artifact_key": "8125cc170e744d70a0c4069fd1be62b5",
+      "evidence_commit": null,
+      "native_readback": true,
+      "authorization_key": "c460fcb9a610bc6f2e9d9ac3c2240220"
     }
   ]
 }
