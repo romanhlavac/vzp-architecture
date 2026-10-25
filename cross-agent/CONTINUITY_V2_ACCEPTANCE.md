@@ -18,7 +18,7 @@ Scope: user wants free alternating ordinary prompts across GPT and Claude withou
 
 ## Gates (do not inflate)
 - `GPT_GITHUB_CONTINUITY_WRITE_READBACK = PASS`.
-- `GITHUB_CI = PENDING_LATEST_RUN` at publication of this checkpoint.
+- `GITHUB_CI = PASS` — verified workflow run `40143553614` at `main` `0b95ca26f13143081c31756f9055306fe83e05c2`, **34/34 unittest PASS**. This is code-level acceptance, not Claude runtime acceptance.
 - `CLAUDE_CODE_USER_PROMPT_SUBMIT_NATIVE = NOT_TESTED` (code/mock tests are not an actual Claude runtime execution).
 - `CLAUDE_STANDARD_CHAT_AUTO_SYNC = NOT_ESTABLISHED`.
 - `GPT_NATIVE_AUTO_PER_TURN_HOOK = NOT_ESTABLISHED`.
@@ -28,3 +28,9 @@ Scope: user wants free alternating ordinary prompts across GPT and Claude withou
 
 ## Required external validation
 Run actual authenticated Claude Code with this repository and inspect UserPromptSubmit's automatic injection of revision >= 12 and latest GPT checkpoint; perform separate native status publication without manually instructing handoff. GPT must then independently read and continue a genuine artifact work unit. A normal Claude.ai chat requires separate supported product integration; a Claude Code hook cannot prove that path.
+
+## Demo 4 native Claude Code execution contract
+- Native two-turn and GPT read-back test: [CLAUDE_CODE_NATIVE_ACCEPTANCE.md](CLAUDE_CODE_NATIVE_ACCEPTANCE.md).
+- Run it in actual **Claude Code**, not by locally calling a Python script or pasting expected metadata into a chat.
+- Ordinary claude.ai chat and ordinary ChatGPT do **not** gain OS-level hooks merely from these repository files.
+- Until actual native run evidence and safe shared private semantic working context are verified, `PILOT_NOT_CUTOVER` remains mandatory.
