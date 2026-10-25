@@ -12,7 +12,7 @@ continuity. The tested actor must make its own source reads/writes.
 | A2 GPT guards | Real stale blob SHA rejected; stale revision, foreign run and recovery fixtures produce STOP with unchanged remote blob |
 | B1 Claude reads | Two separate ordinary-Claude prompts read current GD methodology and current Git revision/blob/checkpoint; second independently restores open work |
 | B2 Claude write | Own run CLAIM, own checkpoint and private context if materially changed, Git read-back and CI |
-| B3 Claude guards | Isolated stale revision, foreign-run and recovery STOP; real stale SHA rejected; no changes to rejected baseline |
+| B3 Claude guards | Isolated stale revision, foreign-run and recovery STOP; server-side stale write rejected by an approved transport; no changes to rejected baseline |
 | C1 New GPT prompt | Finds Claude commit/context directly, verifies evidence, claims with new run and safely continues |
 | D Whole chain | A1/A2/B1/B2/B3/C1 PASS, no unresolved state conflict or confidential public output |
 | Cursor | NOT TESTED, nonblocking |
@@ -65,3 +65,21 @@ write/read-back own scoped checkpoint. Report each gate separately. Do not infer
 real Claude runtime solely from an agent string in public JSON: cross-check the
 owner's real Claude tool transcript or witnessed session. No CUTOVER_PASS until
 the whole chain is actually proven.
+
+## Transport-neutral concurrency contract — version 2.1.0
+
+This section supersedes transport-specific wording in earlier sections and historical evidence. Gate: SERVER_SIDE_STALE_WRITE_REJECTION_PASS; HTTP 409 is not universal.
+A: Contents API expected blob SHA and server-side stale-write rejection.
+B: non-force git push, permitted ONLY with ALL invariants below evidenced:
+1. Fresh exact branch HEAD, state blob SHA, revision and scope owner.
+2. New commit directly parented by that HEAD; no automatic pull, merge, rebase or retry after conflict.
+3. Execute transition() AND verify_transition(); verify agent plus unique run_id, expected revision and exact public diff.
+4. Non-force only. Force and force-with-lease forbidden.
+5. Non-fast-forward rejection => STOP/RECONCILE, no reconstruction against refreshed HEAD.
+6. Independent remote full read-back: HEAD, blob SHA, state revision, checkpoint and owner.
+7. Verify branch history cannot be rewritten uncontrolled; inspect actual protection/rules and permissions. Local policy is not server enforcement. Missing/unverified history protection => variant B BLOCKED for accepted operation, even if a particular non-force push succeeded.
+8. Only authorized scope and expected paths may change.
+9. Review strict public metadata BEFORE publication; no private locators, prompts, client content or credentials.
+
+Git protects its own update only, not a distributed transaction with GD/Miro/Slides.
+A successful conflict test alone does not prove all transport invariants. Report implementation, runtime provenance, transport qualification and overall acceptance separately. Keep ACTIVE_ACCEPTANCE_PENDING; no automatic CUTOVER_PASS.
