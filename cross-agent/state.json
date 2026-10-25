@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 15,
+  "state_revision": 16,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -41,8 +41,11 @@
       "private_artifact_key": null
     },
     "CROSS_AGENT": {
-      "status": "IN_PROGRESS_OPEN",
-      "owner": null,
+      "status": "IN_PROGRESS",
+      "owner": {
+        "agent": "GPT",
+        "run_id": "72e5620cae374107a9e04df1825496cb"
+      },
       "checkpoint": null,
       "private_artifact_key": null
     },
@@ -53,5 +56,22 @@
       "private_artifact_key": null
     }
   },
-  "events": []
+  "events": [
+    {
+      "revision": 16,
+      "event": "CLAIM",
+      "actor": {
+        "agent": "GPT",
+        "run_id": "72e5620cae374107a9e04df1825496cb"
+      },
+      "scope": "CROSS_AGENT",
+      "timestamp_utc": "2026-10-25T11:31:42Z",
+      "work_code": "IMPLEMENTATION",
+      "next_code": "CONTINUE",
+      "private_artifact_key": null,
+      "evidence_commit": null,
+      "native_readback": false,
+      "authorization_key": null
+    }
+  ]
 }
