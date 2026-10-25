@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 17,
+  "state_revision": 18,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -47,7 +47,7 @@
       "private_artifact_key": null
     },
     "CROSS_AGENT_TEST": {
-      "status": "IN_PROGRESS_OPEN",
+      "status": "RECOVERY_OPEN",
       "owner": {
         "agent": "GPT",
         "run_id": "72e5620cae374107a9e04df1825496cb"
@@ -102,6 +102,22 @@
       "private_artifact_key": null,
       "evidence_commit": "e3355c9ee80478e233ace0cd4959ebb07b08333c",
       "native_readback": true,
+      "authorization_key": null
+    },
+    {
+      "revision": 18,
+      "event": "RECOVERY_OPEN",
+      "actor": {
+        "agent": "GPT",
+        "run_id": "72e5620cae374107a9e04df1825496cb"
+      },
+      "scope": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-25T11:32:16Z",
+      "work_code": "RECOVERY",
+      "next_code": "RECONCILE",
+      "private_artifact_key": null,
+      "evidence_commit": null,
+      "native_readback": false,
       "authorization_key": null
     }
   ]
