@@ -1,13 +1,15 @@
-# Cutover runbook — GPT/Claude only
+# GPT ↔ ordinary Claude — corrected continuation runbook
 
-This request authorizes preparing two-agent continuity, **not** inventing a ChatGPT event hook or treating raw agent chat context as a shared durable document.
+**Current status: DESIGN_CORRECTED / PILOT_NOT_CUTOVER (2026-10-25).**
 
-1. Preflight: fresh-read actual VZP Project Instructions, manifest, kernel, Source Index and relevant modules; then current GD operational state and latest handoff, live GH `main`, `state.json` and native artifacts. If drift -> `STOP/RECONCILE`.
-2. Publish reviewed, public-safe overlay files to `romanhlavac/vzp-architecture`; GitHub Actions tests plus SHA readback must pass. No force updates. No client content.
-3. Claude Code: verify actual SessionStart injection and Stop `CHECKPOINT_OPEN` in isolated `CROSS_AGENT_TEST`. A tokenless GH Contents API does not validate git push; verify the actual Git credential path.
-4. GPT: verify actual GitHub state read, CLAIM and CHECKPOINT_PASS through connected GitHub tools, with exact commit SHAs and full read-back.
-5. Complete GPT → Claude → GPT handoff, foreign-writer STOP, stale expected revision STOP and OPEN/recovery case. Check no native artifacts were modified in the synthetic test.
-6. If all scoped gates PASS, publish a **single** new GitHub `ACTIVE_GPT_CLAUDE` state revision (preserve Cursor NOT_TESTED), then update the existing GD Project Skill, Quality Gates, Operating Protocol, Entry Point, Claude adapter and Skill Manifest in place with exact source IDs and hash read-back. Existing GDPR State/Log/Decision/Control become historical after verified pointer transition. Keep original 53 Sxx and all existing GD business evidence unchanged.
-7. If any publish/read-back fails, remain `PILOT_NOT_CUTOVER` and do not claim fully automatic synchronization.
+Previous mandatory Claude Code SessionStart/Stop and public-GitHub canonical state cutover requirements were design errors for the owner's clarified objective. Historical Git history preserves that experiment; it is OPTIONAL, not a gate.
 
-The original protocol expects Cursor to be tested for three-agent cutover. A separate **two-agent-scoped protocol change** must be authorized and consistently published before reducing that gate. This runbook cannot override the live GD baseline alone.
+**User requirement:** work continuity across ordinary prompts in ChatGPT and ordinary Claude (Cursor later), each agent acting only when directly prompted. Neither invokes the other. Each fetches current private GD state and relevant live artifact, carries out its scoped work, then writes a durable checkpoint with independent readback. No hooks required.
+
+Read [cross-agent/PROMPT_DRIVEN_CONTINUITY.md](cross-agent/PROMPT_DRIVEN_CONTINUITY.md), [cross-agent/PROMPT_DRIVEN_ACCEPTANCE.md](cross-agent/PROMPT_DRIVEN_ACCEPTANCE.md), and [cross-agent/CUTOVER_CHECKLIST.md](cross-agent/CUTOVER_CHECKLIST.md).
+
+Keep the existing private Google Drive State/Work Log/Decision Log/Write Control/hand-offs CANONICAL. GitHub pilot state is secondary public-safe metadata only, not a private context store. Do not archive or delete GD registries. Keep all 53 Source Index IDs/business authorities and actual native masters unchanged. Owners/approvers retain their decision rights.
+
+Before operational promotion: stage and read back public design; revise existing private GD Project Skill, Quality Gates, Operating Protocol, Entry Point, adapter and manifest on their SAME file IDs; verify standard-Claude two-turn prompt-driven live GD read/write, separate GPT continuation, conflicts and recovery. If GD publication/authenticated connector access is not available, report a blocked gate, do NOT claim cutover.
+
+Actual product hooks might help in a specific IDE, but cannot be a precondition to this architecture.
