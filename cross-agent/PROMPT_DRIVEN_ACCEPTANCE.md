@@ -1,5 +1,15 @@
 # Real ordinary-chat acceptance — version 2.0
 
+## Current acceptance status — 2026-10-25
+Documentation revision: post-cutover-1; protocol semantics remain 2.1.0.
+
+The Git-state / GD-project implementation is active. GPT ↔ ordinary Claude continuity achieved the separately reviewed CUTOVER_PASS on 2026-10-25.
+Evidence: CROSS_AGENT_TEST CHECKPOINT_PASS revision 35, commit 7eb4c0e0f2a77153feceb05efbdd632f38c21e03, successful CI run 40202011072, and the private immutable acceptance report/verdict resolved through the canonical private Entry Point.
+The schema-valid deployment=ACTIVE_ACCEPTANCE_PENDING remains unchanged: it is an operational enum, not the acceptance verdict and not a revocation of CUTOVER_PASS.
+Per-turn fresh bootstrap, Git operational authority, private GD project/method authority, run ownership, conditional writes, independent read-back and STOP/RECONCILE remain mandatory. Both transports A/B and all nine B invariants remain unchanged.
+Cursor, individual Miro/GS/Archi runtimes and business acceptance are outside this verdict. CUTOVER_PASS is not VZP customer architecture approval.
+Acceptance test procedures below remain the evidence standard; they do not reopen or require repetition of accepted tests without a newly evidenced defect.
+
 No Claude Code or hooks. No model impersonation. Separate user prompts are the
 trigger. User may relay test status but must not relay work content as proof of
 continuity. The tested actor must make its own source reads/writes.
@@ -82,4 +92,4 @@ B: non-force git push, permitted ONLY with ALL invariants below evidenced:
 9. Review strict public metadata BEFORE publication; no private locators, prompts, client content or credentials.
 
 Git protects its own update only, not a distributed transaction with GD/Miro/Slides.
-A successful conflict test alone does not prove all transport invariants. Report implementation, runtime provenance, transport qualification and overall acceptance separately. Keep ACTIVE_ACCEPTANCE_PENDING; no automatic CUTOVER_PASS.
+A successful conflict test alone does not prove all transport invariants. Report implementation, runtime provenance, transport qualification and overall acceptance separately. Keep the schema-valid deployment enum ACTIVE_ACCEPTANCE_PENDING; use the separately reviewed acceptance verdict, never infer it automatically.
