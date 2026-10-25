@@ -1,3 +1,6 @@
+> HISTORICAL / SUPERSEDED. Current operation: [PROTOCOL.md](PROTOCOL.md).
+> Hook and GD-state requirements below are not active gates. Old PASS is historical only.
+
 # Cross-agent GitHub pilot — native acceptance evidence
 
 Status: **PILOT_NOT_CUTOVER**. Test scope: CROSS_AGENT_TEST only.

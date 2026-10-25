@@ -1,3 +1,6 @@
+> HISTORICAL / SUPERSEDED. Current operation: [PROTOCOL.md](PROTOCOL.md).
+> Hook and GD-state requirements below are not active gates. Old PASS is historical only.
+
 # VZP continuity v2 — pilot mechanisms versus accepted goal
 
 **Status: HISTORICAL_IMPLEMENTATION_PILOT / PILOT_NOT_CUTOVER.**

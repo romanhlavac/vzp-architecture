@@ -1,3 +1,6 @@
+> HISTORICAL / SUPERSEDED. Current operation: [PROTOCOL.md](PROTOCOL.md).
+> Hook and GD-state requirements below are not active gates. Old PASS is historical only.
+
 # Cross-agent continuity v2 — live acceptance checkpoint (2026-10-25)
 
 Scope: user wants free alternating ordinary prompts across GPT and Claude without manual handoff and without triggering the other agent.

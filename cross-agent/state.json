@@ -1,167 +1,57 @@
 {
-  "schema_version": "1.0",
-  "state_revision": 14,
-  "storage_mode": "PILOT_NOT_CUTOVER",
-  "authority": "OPERATIONAL_METADATA_ONLY",
-  "migrated_from": {
-    "store": "Google Drive",
-    "state_revision": 2,
-    "status": "READY_WITH_OPEN_EXTERNAL_GATES"
-  },
+  "schema_version": "2.0",
+  "state_revision": 15,
+  "authority": "GIT_OPERATIONAL_STATE",
+  "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
     "METHOD": {
       "status": "ACTIVE_WORKING",
-      "owner": null
+      "owner": null,
+      "checkpoint": null,
+      "private_artifact_key": null
     },
     "SOURCE": {
       "status": "IDENTITY_REVALIDATED",
-      "owner": null
+      "owner": null,
+      "checkpoint": null,
+      "private_artifact_key": null
     },
     "CES_1B": {
       "status": "WORKING_DEMO_VISUAL_OPEN",
-      "owner": null
+      "owner": null,
+      "checkpoint": null,
+      "private_artifact_key": null
     },
     "CES_DATA": {
       "status": "ACTIVATION_UNVERIFIED",
-      "owner": null
+      "owner": null,
+      "checkpoint": null,
+      "private_artifact_key": null
     },
     "GS": {
       "status": "LIVE_MASTER",
-      "owner": null
+      "owner": null,
+      "checkpoint": null,
+      "private_artifact_key": null
     },
     "ARCHI": {
       "status": "MODEL_MASTER_NOT_VERIFIED",
-      "owner": null
+      "owner": null,
+      "checkpoint": null,
+      "private_artifact_key": null
     },
     "CROSS_AGENT": {
-      "status": "PILOT",
-      "owner": null
+      "status": "IN_PROGRESS_OPEN",
+      "owner": null,
+      "checkpoint": null,
+      "private_artifact_key": null
     },
     "CROSS_AGENT_TEST": {
+      "status": "IN_PROGRESS_OPEN",
       "owner": null,
-      "status": "READY_FOR_HANDOFF"
+      "checkpoint": null,
+      "private_artifact_key": null
     }
   },
-  "acceptance": {
-    "gpt_github_read_write": "PASS",
-    "github_stale_write_conflict": "PASS",
-    "claude_live": "PASS",
-    "cursor_live": "NOT_TESTED",
-    "cross_agent_handoff": "NOT_TESTED",
-    "claude_code_hooks": "NOT_TESTED",
-    "gpt_automatic_turn_sync": "NOT_ESTABLISHED",
-    "gpt_claude_auto_handoff": "NOT_TESTED"
-  },
-  "events": [
-    {
-      "revision": 3,
-      "event": "MIGRATION_PILOT_INITIALIZED",
-      "agent": "GPT",
-      "workstream": "CROSS_AGENT",
-      "status": "PILOT_NOT_CUTOVER"
-    },
-    {
-      "revision": 4,
-      "event": "CLAIM",
-      "agent": "GPT",
-      "workstream": "CROSS_AGENT_TEST",
-      "timestamp_utc": "2026-10-24T22:01:43.938Z",
-      "status": "IN_PROGRESS"
-    },
-    {
-      "revision": 5,
-      "event": "CHECKPOINT_PASS",
-      "agent": "GPT",
-      "workstream": "CROSS_AGENT_TEST",
-      "timestamp_utc": "2026-10-24T22:01:50.956Z",
-      "status": "READY_FOR_HANDOFF"
-    },
-    {
-      "revision": 6,
-      "event": "CLAIM",
-      "agent": "CLAUDE",
-      "workstream": "CROSS_AGENT_TEST",
-      "timestamp_utc": "2026-10-24T22:33:23Z",
-      "status": "IN_PROGRESS"
-    },
-    {
-      "revision": 7,
-      "event": "CHECKPOINT_PASS",
-      "agent": "CLAUDE",
-      "workstream": "CROSS_AGENT_TEST",
-      "timestamp_utc": "2026-10-24T22:33:41Z",
-      "status": "READY_FOR_HANDOFF"
-    },
-    {
-      "revision": 8,
-      "event": "ACCEPTANCE_REVIEW",
-      "agent": "GPT",
-      "workstream": "CROSS_AGENT_TEST",
-      "timestamp_utc": "2026-10-24T22:42:26.138Z",
-      "status": "READY_FOR_HANDOFF",
-      "verified_agent": "CLAUDE",
-      "evidence_commit": "861af8f49951b957b3b14779f2619afaea16fda6",
-      "evidence_doc": "cross-agent/PILOT_ACCEPTANCE.md"
-    },
-    {
-      "revision": 9,
-      "event": "CLAIM",
-      "agent": "GPT",
-      "workstream": "CROSS_AGENT_TEST",
-      "timestamp_utc": "2026-10-24T23:08:46.392Z",
-      "status": "IN_PROGRESS"
-    },
-    {
-      "revision": 10,
-      "event": "CHECKPOINT_OPEN",
-      "agent": "GPT",
-      "workstream": "CROSS_AGENT_TEST",
-      "timestamp_utc": "2026-10-24T23:09:01.494Z",
-      "status": "IN_PROGRESS_OPEN"
-    },
-    {
-      "revision": 11,
-      "event": "CHECKPOINT_PASS",
-      "agent": "GPT",
-      "workstream": "CROSS_AGENT_TEST",
-      "timestamp_utc": "2026-10-24T23:09:23.474Z",
-      "status": "READY_FOR_HANDOFF"
-    },
-    {
-      "revision": 12,
-      "event": "CONTEXT_UPDATE",
-      "agent": "GPT",
-      "workstream": "CROSS_AGENT_TEST",
-      "status": "OPEN"
-    },
-    {
-      "revision": 13,
-      "event": "CONTEXT_UPDATE",
-      "agent": "GPT",
-      "workstream": "CROSS_AGENT_TEST",
-      "status": "OPEN"
-    },
-    {
-      "revision": 14,
-      "event": "CONTEXT_UPDATE",
-      "agent": "GPT",
-      "workstream": "CROSS_AGENT_TEST",
-      "status": "OPEN"
-    }
-  ],
-  "continuity": {
-    "version": 1,
-    "latest_workstream": "CROSS_AGENT_TEST",
-    "streams": {
-      "CROSS_AGENT_TEST": {
-        "revision": 14,
-        "agent": "GPT",
-        "phase": "OPEN",
-        "work_code": "PROMPT_DRIVEN_DESIGN_GH_STAGE",
-        "next_code": "CLAUDE_STANDARD_CHAT_GD_TEST",
-        "artifact_system": "GITHUB",
-        "evidence_commit": "46b491cd8c9002250d6b4c68940563b85e51316f"
-      }
-    }
-  }
+  "events": []
 }

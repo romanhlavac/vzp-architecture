@@ -11,7 +11,7 @@ from state_cli import perform_transition, StateConflict, validate
 class TestState(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.live = json.loads((ROOT / "cross-agent" / "state.json").read_text())
+        cls.live = json.loads((ROOT / "tests" / "fixtures" / "legacy_state.json").read_text())
         cls.base = copy.deepcopy(cls.live)
         cls.base["state_revision"] = 3
         cls.base["workstreams"]["CROSS_AGENT_TEST"] = {"status": "IDLE", "owner": None}

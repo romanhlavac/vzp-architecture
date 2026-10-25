@@ -36,6 +36,9 @@ def now() -> str:
     return dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def validate(data: dict[str, Any]):
+    if isinstance(data, dict) and data.get("schema_version") == "2.0":
+        from prompt_state import validate as validate_current
+        return validate_current(data)
     if not isinstance(data, dict) or data.get("schema_version") != "1.0":
         raise ValueError("INVALID_SCHEMA")
     if not isinstance(data.get("state_revision"), int) or data["state_revision"] < 1:
@@ -58,6 +61,8 @@ def validate(data: dict[str, Any]):
 
 def perform_transition(data: dict[str, Any], event: str, agent: str, scope: str, expected_revision: int) -> dict[str, Any]:
     validate(data)
+    if data.get("schema_version") != "1.0":
+        raise StateConflict("LEGACY_WRITER_DISABLED_USE_PROMPT_STATE")
     if agent not in AGENTS or scope not in WORKSTREAMS or event not in SAFE_EVENTS:
         raise ValueError("INVALID_TRANSITION_INPUT")
     if data["state_revision"] != expected_revision:
@@ -127,6 +132,12 @@ class GitHubBackend:
         return state, response["sha"]
 
     def write(self, state: dict, expected_sha: str, message: str):
+        from prompt_state import validate as validate_current, verify_transition
+        validate_current(state)
+        before, fresh_sha = self.read()
+        if fresh_sha != expected_sha:
+            raise StateConflict("GITHUB_SHA_CONFLICT_STOP")
+        verify_transition(before, state)
         content = (json.dumps(validate(state), ensure_ascii=False, indent=2) + "\n").encode()
         result = self.request("PUT", self.api, {
             "message": message,

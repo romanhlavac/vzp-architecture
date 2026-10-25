@@ -21,6 +21,8 @@ def context_for_turn(state):
 def transition(state,*,expected_revision,agent,scope,phase,work_code,next_code,
                artifact_system="NONE",evidence_commit=""):
     validate(state)
+    if state.get("schema_version") != "1.0":
+        raise StateConflict("LEGACY_WRITER_DISABLED_USE_PROMPT_STATE")
     if state["state_revision"]!=expected_revision:
         raise StateConflict("STALE_BASELINE_STOP")
     if agent not in AGENTS or scope not in state["workstreams"]:
@@ -55,6 +57,9 @@ def transition(state,*,expected_revision,agent,scope,phase,work_code,next_code,
     return validate(out)
 
 def main():
+    raise StateConflict("LEGACY_WRITER_DISABLED_USE_PROMPT_STATE")
+
+def legacy_main():
     p=argparse.ArgumentParser()
     p.add_argument("action",choices=["read","publish"])
     p.add_argument("--repo",default="romanhlavac/vzp-architecture")

@@ -1,19 +1,10 @@
 name: Cross-agent state validation
 on:
   push:
-    paths:
-      - 'cross-agent/**'
-      - 'tests/test_state_cli.py'
-      - 'tests/test_auto_sync*.py'
-      - '.claude/settings.json'
-      - '.github/workflows/cross-agent-state-validate.yml'
+    paths: ['cross-agent/**', 'tests/**', '.claude/settings.json', '.github/workflows/cross-agent-state-validate.yml']
   pull_request:
-    paths:
-      - 'cross-agent/**'
-      - 'tests/test_state_cli.py'
-      - 'tests/test_auto_sync*.py'
-      - '.claude/settings.json'
-      - '.github/workflows/cross-agent-state-validate.yml'
+    paths: ['cross-agent/**', 'tests/**', '.claude/settings.json', '.github/workflows/cross-agent-state-validate.yml']
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -23,12 +14,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Check syntax and sanitized schema
-        run: |
-          python -m py_compile cross-agent/state_cli.py
-          python -c 'import sys,json;sys.path.insert(0,"cross-agent");from state_cli import validate;validate(json.load(open("cross-agent/state.json")))'
-      - name: Safe conflict tests
+      - name: Check schema and each state transition
+        env:
+          BEFORE_SHA: ${{ github.event.before || github.event.pull_request.base.sha }}
+        run: python cross-agent/check_ci.py
+      - name: Ownership, stale baseline, recovery and privacy tests
         run: python -m unittest discover -s tests -v

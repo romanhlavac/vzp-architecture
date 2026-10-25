@@ -137,6 +137,10 @@ def context():
 
 
 def main(argv=None):
+    print("SUPERSEDED_NO_HOOKS_NO_WRITE")
+    return 0
+
+def legacy_main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('action', choices=('context', 'stop', 'finish'))
     ap.add_argument('--workstream', default=os.getenv('VZP_WORKSTREAM', ''))

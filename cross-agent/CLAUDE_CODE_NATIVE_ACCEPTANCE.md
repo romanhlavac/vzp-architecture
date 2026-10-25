@@ -1,3 +1,6 @@
+> HISTORICAL / SUPERSEDED. Current operation: [PROTOCOL.md](PROTOCOL.md).
+> Hook and GD-state requirements below are not active gates. Old PASS is historical only.
+
 # Demo 4 — Native Claude Code acceptance (GPT → Claude → GPT)
 
 Status: **PROCEDURE READY / CLAUDE CODE NATIVE NOT TESTED / PILOT_NOT_CUTOVER**.

@@ -1,3 +1,6 @@
+> HISTORICAL / SUPERSEDED. Current operation: [PROTOCOL.md](PROTOCOL.md).
+> Hook and GD-state requirements below are not active gates. Old PASS is historical only.
+
 # GPT–Claude auto-sync implementation acceptance — 2026-10-25
 
 **Final scope status: IMPLEMENTED_PILOT / PILOT_NOT_CUTOVER.**

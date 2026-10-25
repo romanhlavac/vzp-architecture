@@ -1,17 +1,92 @@
-# VZP cross-agent continuity protocol — corrected design
+# Prompt-driven continuity — protocol 2.0
 
-**Status: OWNER_WORKING / PROMPT_DRIVEN_DESIGN / PILOT_NOT_CUTOVER (2026-10-25).**
+Owner-approved authority: Git operational state; private Google Drive project.
+No hooks, no agent invocation. This supersedes previous GD-state and hook designs.
+Deployment is ACTIVE_ACCEPTANCE_PENDING, not end-to-end acceptance.
 
-The active target is symmetric **prompt-driven continuity** across ordinary ChatGPT, ordinary Claude and future Cursor. See [PROMPT_DRIVEN_CONTINUITY.md](PROMPT_DRIVEN_CONTINUITY.md) for the full normative design proposal and [PROMPT_DRIVEN_ACCEPTANCE.md](PROMPT_DRIVEN_ACCEPTANCE.md) for the real-product test.
+## Authority and bootstrap
 
-**No Claude Code hooks, GPT lifecycle hooks, inter-agent invocation, local OS runtime, or background process are required.** Hooks are optional conveniences. They may not be mandatory gates for the user's cross-tool continuity requirement.
+On EVERY user prompt, both ordinary ChatGPT and ordinary claude.ai fresh-read
+private project instructions, manifest, kernel, Source Index and routed modules.
+Then read this protocol, `state.json` from current main with its blob SHA and
+commit, the selected scope checkpoint, and the referenced private/native artifacts.
+Do not reconstruct current work from an old chat or downloaded migration bundle.
+Cursor is NOT TESTED and nonblocking. No Claude Code dependency.
 
-Current authority is the **private Google Drive Project State / Work Log / Decision Log / Write Control / immutable handoffs**, referenced by the canonical Drive Entry Point. This repository remains public code/CI and a sanitized optional status projection. The public `cross-agent/state.json` is **PILOT_NOT_CUTOVER** and must not override confidential canonical GD state, Source Index or native live artifact masters. Do not archive GD operational registries to promote public GitHub.
+`state.json` is the only mutable operational registry. Its scope checkpoint,
+owner and artifact key are committed together. Git commits are immutable handoffs;
+use the exact commit plus state revision, not a moving main URL as evidence.
+Existing private GD operating registries are historical; business evidence and
+business decision authority remain on GD. Do not resume writing old GD State,
+Work Log or Write Control. Private governance defines exact canonical GD IDs.
 
-Per user prompt, each agent performs the same chain:
-`full fresh bootstrap -> private GD operational resume -> live artifact read -> scoped single-writer/staleness check -> work -> verified native readback -> private GD checkpoint/Work Log/State update`.
-Only material progress needs a checkpoint. Paused/failed work stays OPEN/RECOVERY; no false READY. Soft writer control is not atomic; conflicts stop.
+## Confidentiality and work context
 
-Acceptance: actual ordinary Claude chat must read private GD on two separate prompts, write/read back a harmless test checkpoint when authorized, then ordinary GPT must independently resume from it. No manually pasted prior answer; no hook runtime. Stale revision, foreign writer and recovery remain required fail-closed tests. Cursor is future separate onboarding.
+Public state accepts only the strict schema in `prompt_state.py`: finite codes,
+random opaque keys/run IDs, timestamps, revisions and public commit SHAs.
+No prompt, private URL/ID, filename revealing business context, business content,
+or arbitrary free text. Review every public change BEFORE upload; schema/CI
+cannot detect information intentionally encoded into an otherwise valid key.
+Commit messages are generic operation/scope/revision only. CI logs are public.
 
-**Supersession:** Previous sections of this file proposing mandatory Claude Code native hooks, full public-GitHub state cutover and Cursor-before-two-agent acceptance are historical. Git history retains them; they are not current target requirements. The private GD canonical operating protocol still requires in-place update and acceptance before claiming final implementation cutover.
+Full goal, last verified completion, WIP, versions, decisions, risks, blockers,
+next safe action and provenance belong to a private immutable context artifact.
+Use `VZP_CONTEXT_<random32hex>.md` in the private handoff folder resolved through
+Entry Point. Its random key alone goes into Git. Fetch by exact unique filename
+within that private folder, verify embedded key/scope and any native references.
+No matches or multiple matches => STOP. The file is not a second latest-state
+registry; only Git selects the active key. Existing method/source originals
+retain their IDs. Creating a new context snapshot does not replace a canonical
+method file and does not require in-place GD replacement in ordinary Claude.
+
+## Write transaction
+
+1. Fresh-read state + blob SHA; compare expected revision. Verify scope owner.
+2. Generate a unique 32-hex run ID for this execution. CLAIM requires owner null.
+   Owner is `{agent, run_id}`; another chat of the same agent is a foreign writer.
+3. Validate the exact transition locally using `prompt_state.py`, or reproduce
+   the documented transition exactly through the connector. Review privacy.
+4. Write the complete state through GitHub Contents API with EXPECTED blob SHA.
+   A connector without conditional SHA writes is WRITE_BLOCKED. Never force,
+   silently refresh the baseline, or merge around a conflict.
+5. Independently read back exact full content and blob/commit. A timeout or
+   uncertain write outcome requires read/reconcile, never blind retry.
+6. Before each native artifact write, recheck Git ownership AND native baseline.
+   Git CAS does not lock Drive, Miro, Slides, or other native services. If native
+   revision checking is unavailable, use cooperative serialization and STOP on
+   ambiguity; never describe it as an atomic distributed lock.
+7. Native read-back precedes saving new private context and Git checkpoint.
+   Read back that private context before publishing its opaque key in Git.
+   Unreferenced private snapshots after a failed Git update are staged/orphaned,
+   never authoritative; reconcile them without inventing a successful handoff.
+
+## Events
+
+| Event | Preconditions | Result |
+|---|---|---|
+| CLAIM | Fresh revision, owner null, no recovery | IN_PROGRESS, owner=this run; saved checkpoint retained |
+| CHECKPOINT_OPEN | Own run, native read-back | IN_PROGRESS_OPEN, owner retained |
+| HANDOFF_OPEN | Own run, native read-back | IN_PROGRESS_OPEN, owner null; unfinished work explicitly preserved |
+| CHECKPOINT_PASS | Own run, native read-back and evidence commit | READY_FOR_HANDOFF, owner null; this scope only, not overall acceptance |
+| RECOVERY_OPEN | Own run, uncertain/partial work | RECOVERY_OPEN, owner retained |
+| RECONCILE | Recovery, explicit owner authorization, verified native baseline | IN_PROGRESS_OPEN, owner null; never automatic completion |
+
+All mutations increase global revision exactly once and append a bounded event.
+The Git history retains older events. No mutation is needed for an informational
+prompt. No automatic lock expiry or ownership takeover. Native-readback flags
+are agent attestations requiring inspectable evidence; schema validation alone
+is not native or visual acceptance. Production RECONCILE requires owner-reviewed
+recovery; current automated recovery fixture is restricted to CROSS_AGENT_TEST.
+
+## Tool-neutral usage
+
+Download `prompt_state.py` and state into a temporary execution environment if
+Python is available. `transition state.json request.json output.json` prepares
+an upload; it does not publish. Request supplies expected_revision, actor, scope,
+event and optional evidence/context fields. `compare before.json after.json`
+verifies the whole diff. Ordinary chat with a SHA-capable GitHub connector may
+make the identical JSON update directly, then run CI and full read-back. A local
+script is a guard, not a simulated Claude runtime. `state_cli.GitHubBackend` is an
+optional authenticated backend, not a prerequisite and never a place for tokens.
+Legacy auto_sync/continuity_v2 entry points are disabled; old files/tests document
+historical behavior only. `.claude/settings.json` has no hooks.

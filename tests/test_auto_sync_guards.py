@@ -15,7 +15,7 @@ from state_cli import StateConflict, perform_transition
 
 class GuardTests(unittest.TestCase):
     def setUp(self):
-        self.state = json.loads((ROOT / 'cross-agent/state.json').read_text())
+        self.state = json.loads((ROOT / 'tests/fixtures/legacy_state.json').read_text())
         self.state['workstreams']['CROSS_AGENT_TEST'] = {'owner': 'CLAUDE', 'status': 'IN_PROGRESS'}
 
     def test_missing_revision_does_not_clone(self):
@@ -70,12 +70,9 @@ class GuardTests(unittest.TestCase):
         with self.assertRaisesRegex(StateConflict, 'WRITER_CONFLICT_STOP'):
             auto_sync.choose_event('finish', self.state, 'CROSS_AGENT_TEST', True)
 
-    def test_hook_paths_and_timeouts(self):
+    def test_hooks_are_disabled(self):
         config = json.loads((ROOT / '.claude/settings.json').read_text())
-        for name in ('SessionStart', 'Stop'):
-            command = config['hooks'][name][0]['hooks'][0]['command']
-            self.assertIn('"${CLAUDE_PROJECT_DIR}/cross-agent/auto_sync.py"', command)
-        self.assertGreaterEqual(config['hooks']['Stop'][0]['hooks'][0]['timeout'], 350)
+        self.assertFalse(config.get('hooks'))
 
     def test_git_errors_do_not_escape_to_stderr(self):
         with mock.patch('auto_sync.subprocess.run') as run:
