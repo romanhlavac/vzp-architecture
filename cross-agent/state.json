@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 21,
+  "state_revision": 22,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -62,7 +62,7 @@
       "private_artifact_key": "740a385cb89243d29d84eb4bcb68e59a"
     },
     "CROSS_AGENT_TEST": {
-      "status": "IN_PROGRESS",
+      "status": "RECOVERY_OPEN",
       "owner": {
         "agent": "CLAUDE",
         "run_id": "fb55e4074ff07593a3065fa8cfabc06c"
@@ -178,6 +178,22 @@
       "timestamp_utc": "2026-10-25T11:58:39Z",
       "work_code": "ACCEPTANCE",
       "next_code": "CONTINUE",
+      "private_artifact_key": "abed469f2ed64ee4a12077d4b34b9ad0",
+      "evidence_commit": null,
+      "native_readback": false,
+      "authorization_key": null
+    },
+    {
+      "revision": 22,
+      "event": "RECOVERY_OPEN",
+      "actor": {
+        "agent": "CLAUDE",
+        "run_id": "fb55e4074ff07593a3065fa8cfabc06c"
+      },
+      "scope": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-25T11:58:54Z",
+      "work_code": "RECOVERY",
+      "next_code": "RECONCILE",
       "private_artifact_key": "abed469f2ed64ee4a12077d4b34b9ad0",
       "evidence_commit": null,
       "native_readback": false,
