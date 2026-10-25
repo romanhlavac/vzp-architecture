@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 31,
+  "state_revision": 32,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -62,28 +62,28 @@
       "private_artifact_key": "b638e7915e254f18a930ac604f28c932"
     },
     "CROSS_AGENT_TEST": {
-      "status": "IN_PROGRESS",
+      "status": "IN_PROGRESS_OPEN",
       "owner": {
         "agent": "CLAUDE",
         "run_id": "0c98ad70032aada5d15cedc336ed5978"
       },
       "checkpoint": {
-        "revision": 26,
-        "event": "HANDOFF_OPEN",
+        "revision": 32,
+        "event": "CHECKPOINT_OPEN",
         "actor": {
-          "agent": "GPT",
-          "run_id": "35638a516cc24baf91867f843aad762a"
+          "agent": "CLAUDE",
+          "run_id": "0c98ad70032aada5d15cedc336ed5978"
         },
         "scope": "CROSS_AGENT_TEST",
-        "timestamp_utc": "2026-10-25T12:06:18Z",
+        "timestamp_utc": "2026-10-25T13:53:12Z",
         "work_code": "ACCEPTANCE",
-        "next_code": "USER_DECISION",
-        "private_artifact_key": "8125cc170e744d70a0c4069fd1be62b5",
-        "evidence_commit": "22b47ce2c38ae6e42d6c0d85992a62315e611ef0",
+        "next_code": "GPT_RESUME",
+        "private_artifact_key": "4361c8bc489a1bbde2d066f1d21bc45a",
+        "evidence_commit": "3a1feaef8e72296c702febd0320101d8eb8c92c4",
         "native_readback": true,
         "authorization_key": null
       },
-      "private_artifact_key": "8125cc170e744d70a0c4069fd1be62b5"
+      "private_artifact_key": "4361c8bc489a1bbde2d066f1d21bc45a"
     }
   },
   "events": [
@@ -341,6 +341,22 @@
       "private_artifact_key": "8125cc170e744d70a0c4069fd1be62b5",
       "evidence_commit": null,
       "native_readback": false,
+      "authorization_key": null
+    },
+    {
+      "revision": 32,
+      "event": "CHECKPOINT_OPEN",
+      "actor": {
+        "agent": "CLAUDE",
+        "run_id": "0c98ad70032aada5d15cedc336ed5978"
+      },
+      "scope": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-25T13:53:12Z",
+      "work_code": "ACCEPTANCE",
+      "next_code": "GPT_RESUME",
+      "private_artifact_key": "4361c8bc489a1bbde2d066f1d21bc45a",
+      "evidence_commit": "3a1feaef8e72296c702febd0320101d8eb8c92c4",
+      "native_readback": true,
       "authorization_key": null
     }
   ]
