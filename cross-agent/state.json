@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 36,
+  "state_revision": 37,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -41,28 +41,25 @@
       "private_artifact_key": null
     },
     "CROSS_AGENT": {
-      "status": "IN_PROGRESS",
-      "owner": {
-        "agent": "GPT",
-        "run_id": "55140175bd9649649fe64f6a3d80f330"
-      },
+      "status": "READY_FOR_HANDOFF",
+      "owner": null,
       "checkpoint": {
-        "revision": 30,
-        "event": "HANDOFF_OPEN",
+        "revision": 37,
+        "event": "CHECKPOINT_PASS",
         "actor": {
           "agent": "GPT",
-          "run_id": "0b4015c0f0deb91833821e3b6a1489ec"
+          "run_id": "55140175bd9649649fe64f6a3d80f330"
         },
         "scope": "CROSS_AGENT",
-        "timestamp_utc": "2026-10-25T13:32:32Z",
+        "timestamp_utc": "2026-10-25T14:36:15Z",
         "work_code": "IMPLEMENTATION",
         "next_code": "CONTINUE",
-        "private_artifact_key": "b638e7915e254f18a930ac604f28c932",
-        "evidence_commit": "1e88db788547066476cc390d93ffb7cb211ea0d3",
+        "private_artifact_key": "fad7f0014a9e4e3fa966e16d6d55b10a",
+        "evidence_commit": "7a136d7c20e8b4b745254302b471e61a46c4b336",
         "native_readback": true,
         "authorization_key": null
       },
-      "private_artifact_key": "b638e7915e254f18a930ac604f28c932"
+      "private_artifact_key": "fad7f0014a9e4e3fa966e16d6d55b10a"
     },
     "CROSS_AGENT_TEST": {
       "status": "READY_FOR_HANDOFF",
@@ -421,6 +418,22 @@
       "private_artifact_key": "b638e7915e254f18a930ac604f28c932",
       "evidence_commit": null,
       "native_readback": false,
+      "authorization_key": null
+    },
+    {
+      "revision": 37,
+      "event": "CHECKPOINT_PASS",
+      "actor": {
+        "agent": "GPT",
+        "run_id": "55140175bd9649649fe64f6a3d80f330"
+      },
+      "scope": "CROSS_AGENT",
+      "timestamp_utc": "2026-10-25T14:36:15Z",
+      "work_code": "IMPLEMENTATION",
+      "next_code": "CONTINUE",
+      "private_artifact_key": "fad7f0014a9e4e3fa966e16d6d55b10a",
+      "evidence_commit": "7a136d7c20e8b4b745254302b471e61a46c4b336",
+      "native_readback": true,
       "authorization_key": null
     }
   ]
