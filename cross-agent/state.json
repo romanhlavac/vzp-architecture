@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 57,
+  "state_revision": 58,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -78,8 +78,11 @@
       "claim_origin_key": null
     },
     "CROSS_AGENT_TEST": {
-      "status": "IN_PROGRESS_OPEN",
-      "owner": null,
+      "status": "IN_PROGRESS",
+      "owner": {
+        "agent": "GPT",
+        "run_id": "f6d83e4d4fcc81c44500bda6b92a1e25"
+      },
       "checkpoint": {
         "revision": 57,
         "event": "HANDOFF_OPEN",
@@ -97,26 +100,10 @@
         "authorization_key": null
       },
       "private_artifact_key": "240e60093a8692d11b7b31a20fdccf9e",
-      "claim_origin_key": null
+      "claim_origin_key": "a1a1f84d7d38821ff4b41cf308319e40"
     }
   },
   "events": [
-    {
-      "revision": 28,
-      "event": "HANDOFF_OPEN",
-      "actor": {
-        "agent": "GPT",
-        "run_id": "6a60a273f72842ed8200cc41c790b161"
-      },
-      "scope": "CROSS_AGENT",
-      "timestamp_utc": "2026-10-25T13:02:46Z",
-      "work_code": "IMPLEMENTATION",
-      "next_code": "USER_DECISION",
-      "private_artifact_key": "3d1e20378ee7484385eec32adbc869a7",
-      "evidence_commit": "64fcde5e16efbd95bfca56957cc6c93daa7c0848",
-      "native_readback": true,
-      "authorization_key": null
-    },
     {
       "revision": 29,
       "event": "CLAIM",
@@ -599,6 +586,23 @@
       "evidence_commit": null,
       "native_readback": true,
       "authorization_key": null
+    },
+    {
+      "revision": 58,
+      "event": "CLAIM",
+      "actor": {
+        "agent": "GPT",
+        "run_id": "f6d83e4d4fcc81c44500bda6b92a1e25"
+      },
+      "scope": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-26T19:07:02Z",
+      "work_code": "ACCEPTANCE",
+      "next_code": "CONTINUE",
+      "private_artifact_key": "240e60093a8692d11b7b31a20fdccf9e",
+      "evidence_commit": null,
+      "native_readback": false,
+      "authorization_key": null,
+      "claim_origin_key": "a1a1f84d7d38821ff4b41cf308319e40"
     }
   ]
 }
