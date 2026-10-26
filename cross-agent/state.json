@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 41,
+  "state_revision": 42,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -59,29 +59,26 @@
       "private_artifact_key": null
     },
     "CROSS_AGENT": {
-      "status": "IN_PROGRESS",
-      "owner": {
-        "agent": "GPT",
-        "run_id": "6548014884ad4a96bcd9d09d445becda"
-      },
+      "status": "READY_FOR_HANDOFF",
+      "owner": null,
       "checkpoint": {
-        "revision": 37,
+        "revision": 42,
         "event": "CHECKPOINT_PASS",
         "actor": {
           "agent": "GPT",
-          "run_id": "55140175bd9649649fe64f6a3d80f330"
+          "run_id": "6548014884ad4a96bcd9d09d445becda"
         },
         "scope": "CROSS_AGENT",
-        "timestamp_utc": "2026-10-25T14:36:15Z",
+        "timestamp_utc": "2026-10-26T15:06:56Z",
         "work_code": "IMPLEMENTATION",
         "next_code": "CONTINUE",
-        "private_artifact_key": "fad7f0014a9e4e3fa966e16d6d55b10a",
-        "evidence_commit": "7a136d7c20e8b4b745254302b471e61a46c4b336",
+        "private_artifact_key": "d661e3f26fa14d45abaa1ee93ce426c8",
+        "evidence_commit": "0afa4a71f89f57a2195a54c905b3ce76bc7b7ab5",
         "native_readback": true,
         "authorization_key": null
       },
-      "private_artifact_key": "fad7f0014a9e4e3fa966e16d6d55b10a",
-      "claim_origin_key": "7dcaf30fac4f49dbb709bb4bbe7c2c18"
+      "private_artifact_key": "d661e3f26fa14d45abaa1ee93ce426c8",
+      "claim_origin_key": null
     },
     "CROSS_AGENT_TEST": {
       "status": "READY_FOR_HANDOFF",
@@ -522,6 +519,22 @@
       "native_readback": false,
       "authorization_key": null,
       "claim_origin_key": "7dcaf30fac4f49dbb709bb4bbe7c2c18"
+    },
+    {
+      "revision": 42,
+      "event": "CHECKPOINT_PASS",
+      "actor": {
+        "agent": "GPT",
+        "run_id": "6548014884ad4a96bcd9d09d445becda"
+      },
+      "scope": "CROSS_AGENT",
+      "timestamp_utc": "2026-10-26T15:06:56Z",
+      "work_code": "IMPLEMENTATION",
+      "next_code": "CONTINUE",
+      "private_artifact_key": "d661e3f26fa14d45abaa1ee93ce426c8",
+      "evidence_commit": "0afa4a71f89f57a2195a54c905b3ce76bc7b7ab5",
+      "native_readback": true,
+      "authorization_key": null
     }
   ]
 }
