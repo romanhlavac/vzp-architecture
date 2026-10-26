@@ -18,7 +18,7 @@ AGENTS = {'GPT','CLAUDE','CURSOR'}
 STATUSES = {'ACTIVE_WORKING','IDENTITY_REVALIDATED','WORKING_DEMO_VISUAL_OPEN',
             'ACTIVATION_UNVERIFIED','LIVE_MASTER','MODEL_MASTER_NOT_VERIFIED',
             'IDLE','IN_PROGRESS','IN_PROGRESS_OPEN','READY_FOR_HANDOFF','RECOVERY_OPEN'}
-EVENTS = {'CLAIM','CHECKPOINT_OPEN','HANDOFF_OPEN','CHECKPOINT_PASS','RECOVERY_OPEN','RECONCILE'}
+EVENTS = {'CLAIM','CHECKPOINT_OPEN','HANDOFF_OPEN','CHECKPOINT_PASS','RECOVERY_OPEN','RECONCILE','OWNER_AUTHORIZED_RELEASE'}
 WORK_CODES = {'IMPLEMENTATION','ACCEPTANCE','PROJECT_WORK','RECOVERY'}
 NEXT_CODES = {'CONTINUE','CLAUDE_READ','CLAUDE_WRITE','GPT_RESUME','RECONCILE','USER_DECISION'}
 MAX_EVENTS = 30
@@ -44,7 +44,11 @@ def identity(owner):
     require(owner['agent'] in AGENTS and hexvalue(owner['run_id'],32),'INVALID_RUN_STOP')
 
 def record(r):
-    keys(r,'revision event actor scope timestamp_utc work_code next_code private_artifact_key evidence_commit native_readback authorization_key')
+    require(isinstance(r,dict),'PUBLIC_SCHEMA_STOP')
+    extra = {k:r[k] for k in ('claim_origin_key','expected_owner') if k in r}
+    if 'claim_origin_key' in extra: require(hexvalue(extra['claim_origin_key'],32),'PRIVATE_LOCATOR_STOP')
+    if 'expected_owner' in extra: identity(extra['expected_owner'])
+    keys({k:v for k,v in r.items() if k not in extra},'revision event actor scope timestamp_utc work_code next_code private_artifact_key evidence_commit native_readback authorization_key')
     identity(r['actor'])
     require(integer(r['revision']) and r['event'] in EVENTS and r['scope'] in SCOPES,'INVALID_EVENT_STOP')
     require(r['work_code'] in WORK_CODES and r['next_code'] in NEXT_CODES,'PUBLIC_CODE_STOP')
@@ -56,8 +60,13 @@ def record(r):
     except ValueError: raise Stop('INVALID_TIME_STOP') from None
     if r['event']=='CHECKPOINT_PASS':
         require(r['native_readback'] and r['evidence_commit'] is not None,'EVIDENCE_REQUIRED_STOP')
-    if r['event']=='RECONCILE':
+    if r['event'] in {'RECONCILE', 'OWNER_AUTHORIZED_RELEASE'}:
         require(r['authorization_key'] is not None and r['native_readback'],'RECONCILE_AUTHORIZATION_REQUIRED_STOP')
+    require('claim_origin_key' not in r or r['event']=='CLAIM','PUBLIC_SCHEMA_STOP')
+    require('expected_owner' not in r or r['event']=='OWNER_AUTHORIZED_RELEASE','PUBLIC_SCHEMA_STOP')
+    if r['event']=='OWNER_AUTHORIZED_RELEASE':
+        require('expected_owner' in r,'EXPECTED_OWNER_STOP')
+        require(r['private_artifact_key'] is not None and r['work_code']=='RECOVERY', 'RELEASE_EVIDENCE_STOP')
 
 def validate(state):
     keys(state,'schema_version state_revision authority deployment workstreams events')
@@ -67,7 +76,8 @@ def validate(state):
     require(integer(state['state_revision']),'INVALID_REVISION_STOP')
     require(isinstance(state['workstreams'],dict) and set(state['workstreams'])==SCOPES,'SCOPE_STOP')
     for scope,w in state['workstreams'].items():
-        keys(w,'status owner checkpoint private_artifact_key')
+        keys({k:v for k,v in w.items() if k!='claim_origin_key'},'status owner checkpoint private_artifact_key')
+        if 'claim_origin_key' in w: require(hexvalue(w['claim_origin_key'],32,True),'PRIVATE_LOCATOR_STOP')
         require(w['status'] in STATUSES,'INVALID_SCOPE_STOP')
         require(hexvalue(w['private_artifact_key'],32,True),'PRIVATE_LOCATOR_STOP')
         if w['owner'] is not None: identity(w['owner'])
@@ -88,20 +98,34 @@ def validate(state):
 
 def transition(state, *, expected_revision, actor, scope, event, work_code='ACCEPTANCE',
                next_code='CONTINUE', private_artifact_key=None, evidence_commit=None,
-               native_readback=False, authorization_key=None, recovery_authorized=False, timestamp_utc=None):
+               native_readback=False, authorization_key=None, recovery_authorized=False, timestamp_utc=None, claim_origin_key=None, origin_verified=False, expected_owner=None):
     validate(state)
     identity(actor)
+    require(type(recovery_authorized) is bool and type(origin_verified) is bool and type(native_readback) is bool,'INVALID_EVIDENCE_STOP')
     require(type(expected_revision) is int and expected_revision==state['state_revision'],'STALE_REVISION_STOP')
     require(scope in SCOPES and event in EVENTS,'TRANSITION_STOP')
     current=state['workstreams'][scope]
     owner=current['owner']
-    if current['status']=='RECOVERY_OPEN':
+    if event == 'OWNER_AUTHORIZED_RELEASE':
+        # Explicit scope/owner mandate plus verified native evidence; never age/timeout.
+        require(current['status'] in {'IN_PROGRESS', 'IN_PROGRESS_OPEN'}
+                and owner is not None, 'RELEASE_STATE_STOP')
+        identity(expected_owner)
+        require(owner == expected_owner, 'EXPECTED_OWNER_STOP')
+        require(recovery_authorized is True and authorization_key is not None
+                and native_readback is True and private_artifact_key is not None
+                and work_code == 'RECOVERY', 'RELEASE_AUTHORIZATION_REQUIRED_STOP')
+    elif current['status']=='RECOVERY_OPEN':
         require(event=='RECONCILE','RECOVERY_STOP')
-        require(recovery_authorized and authorization_key is not None and native_readback,'RECONCILE_AUTHORIZATION_REQUIRED_STOP')
+        require(recovery_authorized is True and authorization_key is not None and native_readback,'RECONCILE_AUTHORIZATION_REQUIRED_STOP')
     else:
         require(event!='RECONCILE','NOT_IN_RECOVERY_STOP')
         if event=='CLAIM': require(owner is None,'FOREIGN_WRITER_STOP')
         else: require(owner==actor,'FOREIGN_WRITER_STOP')
+    if event == 'CLAIM':
+        require(origin_verified is True and hexvalue(claim_origin_key,32), 'CLAIM_ORIGIN_REQUIRED_STOP')
+    elif claim_origin_key is not None:
+        require(claim_origin_key == current.get('claim_origin_key'), 'CLAIM_ORIGIN_IMMUTABLE_STOP')
     if event in {'CLAIM','RECOVERY_OPEN'}:
         require(private_artifact_key in (None,current['private_artifact_key']),'UNVERIFIED_CONTEXT_STOP')
     if event=='CHECKPOINT_PASS': require(native_readback and evidence_commit is not None,'EVIDENCE_REQUIRED_STOP')
@@ -111,25 +135,55 @@ def transition(state, *, expected_revision, actor, scope, event, work_code='ACCE
     w=result['workstreams'][scope]
     w['status']={'CLAIM':'IN_PROGRESS','CHECKPOINT_OPEN':'IN_PROGRESS_OPEN',
         'HANDOFF_OPEN':'IN_PROGRESS_OPEN','CHECKPOINT_PASS':'READY_FOR_HANDOFF',
-        'RECOVERY_OPEN':'RECOVERY_OPEN','RECONCILE':'IN_PROGRESS_OPEN'}[event]
-    w['owner']=None if event in {'HANDOFF_OPEN','CHECKPOINT_PASS','RECONCILE'} else copy.deepcopy(actor)
-    if private_artifact_key is not None: w['private_artifact_key']=private_artifact_key
+        'RECOVERY_OPEN':'RECOVERY_OPEN','RECONCILE':'IN_PROGRESS_OPEN',
+        'OWNER_AUTHORIZED_RELEASE':'IN_PROGRESS_OPEN'}[event]
+    w['owner']=None if event in {'HANDOFF_OPEN','CHECKPOINT_PASS','RECONCILE','OWNER_AUTHORIZED_RELEASE'} else copy.deepcopy(actor)
+    if event == 'CLAIM': w['claim_origin_key']=claim_origin_key
+    elif event in {'HANDOFF_OPEN','CHECKPOINT_PASS','RECONCILE','OWNER_AUTHORIZED_RELEASE'} and 'claim_origin_key' in w: w['claim_origin_key']=None
+    if private_artifact_key is not None and event!='OWNER_AUTHORIZED_RELEASE': w['private_artifact_key']=private_artifact_key
     result['state_revision']+=1
     r={'revision':result['state_revision'],'event':event,'actor':copy.deepcopy(actor),'scope':scope,
        'timestamp_utc':timestamp_utc or dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
        'work_code':work_code,'next_code':next_code,'private_artifact_key':w['private_artifact_key'],
        'evidence_commit':evidence_commit,'native_readback':native_readback,'authorization_key':authorization_key}
+    if event == 'CLAIM': r['claim_origin_key']=claim_origin_key
+    if event == 'OWNER_AUTHORIZED_RELEASE':
+        r['expected_owner']=copy.deepcopy(expected_owner)
+        r['private_artifact_key']=private_artifact_key
     # CLAIM/RECOVERY retain the last saved work checkpoint; events record the claim.
-    if event not in {'CLAIM','RECOVERY_OPEN'}: w['checkpoint']=copy.deepcopy(r)
+    if event not in {'CLAIM','RECOVERY_OPEN','OWNER_AUTHORIZED_RELEASE'}: w['checkpoint']=copy.deepcopy(r)
     result['events']=(result['events']+[r])[-MAX_EVENTS:]
     return validate(result)
 
-def verify_transition(before, after, *, recovery_authorized=False):
+def finalize_phase(state, *, expected_revision, actor, scope, completed=False,
+                   private_artifact_key=None, evidence_commit=None,
+                   native_readback=False, work_code='IMPLEMENTATION',
+                   next_code='CONTINUE', timestamp_utc=None):
+    """Ordinary prompt boundary: release owner without asking the user.
+
+    Caller MUST invoke and independently read-back the resulting Git commit
+    before reporting a completed turn. This is NOT a background hook and cannot
+    release a crashed, disconnected or unverified run.
+    """
+    require(type(completed) is bool, 'INVALID_FINALIZE_MODE_STOP')
+    require(native_readback and private_artifact_key is not None,
+            'FINALIZATION_EVIDENCE_REQUIRED_STOP')
+    event = 'CHECKPOINT_PASS' if completed else 'HANDOFF_OPEN'
+    return transition(
+        state, expected_revision=expected_revision, actor=actor, scope=scope,
+        event=event, work_code=work_code, next_code=next_code,
+        private_artifact_key=private_artifact_key,
+        evidence_commit=evidence_commit, native_readback=native_readback,
+        timestamp_utc=timestamp_utc
+    )
+
+
+def verify_transition(before, after, *, recovery_authorized=False, origin_verified=False):
     validate(before); validate(after)
     require(after['state_revision']==before['state_revision']+1 and after['events'],'REVISION_STEP_STOP')
     r=after['events'][-1]
     kwargs={k:v for k,v in r.items() if k!='revision'}
-    expected=transition(before,expected_revision=before['state_revision'],recovery_authorized=recovery_authorized,**kwargs)
+    expected=transition(before,expected_revision=before['state_revision'],recovery_authorized=recovery_authorized,origin_verified=origin_verified,**kwargs)
     require(expected==after,'UNAUTHORIZED_STATE_DIFF_STOP')
     return after
 
@@ -141,11 +195,13 @@ def main():
     sub=ap.add_subparsers(dest='command',required=True)
     v=sub.add_parser('validate'); v.add_argument('state')
     t=sub.add_parser('transition'); t.add_argument('state'); t.add_argument('request'); t.add_argument('output')
-    c=sub.add_parser('compare'); c.add_argument('before'); c.add_argument('after'); c.add_argument('--recovery-authorized',action='store_true')
+    f=sub.add_parser('finalize'); f.add_argument('state'); f.add_argument('request'); f.add_argument('output')
+    c=sub.add_parser('compare'); c.add_argument('before'); c.add_argument('after'); c.add_argument('--recovery-authorized',action='store_true'); c.add_argument('--origin-verified',action='store_true')
     args=ap.parse_args()
     read=lambda p:json.loads(Path(p).read_text())
     if args.command=='validate': validate(read(args.state))
-    elif args.command=='compare': verify_transition(read(args.before),read(args.after),recovery_authorized=args.recovery_authorized)
+    elif args.command=='compare': verify_transition(read(args.before),read(args.after),recovery_authorized=args.recovery_authorized,origin_verified=args.origin_verified)
+    elif args.command=='finalize': save_local(args.output,finalize_phase(read(args.state),**read(args.request)))
     else: save_local(args.output,transition(read(args.state),**read(args.request)))
     print('PASS')
 

@@ -131,13 +131,13 @@ class GitHubBackend:
         state = validate(json.loads(binary))
         return state, response["sha"]
 
-    def write(self, state: dict, expected_sha: str, message: str):
+    def write(self, state: dict, expected_sha: str, message: str, *, origin_verified=False, recovery_authorized=False):
         from prompt_state import validate as validate_current, verify_transition
         validate_current(state)
         before, fresh_sha = self.read()
         if fresh_sha != expected_sha:
             raise StateConflict("GITHUB_SHA_CONFLICT_STOP")
-        verify_transition(before, state)
+        verify_transition(before, state, origin_verified=origin_verified, recovery_authorized=recovery_authorized)
         content = (json.dumps(validate(state), ensure_ascii=False, indent=2) + "\n").encode()
         result = self.request("PUT", self.api, {
             "message": message,
