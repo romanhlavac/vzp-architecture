@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 41,
+  "state_revision": 42,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -59,11 +59,8 @@
       "private_artifact_key": null
     },
     "CROSS_AGENT": {
-      "status": "IN_PROGRESS",
-      "owner": {
-        "agent": "GPT",
-        "run_id": "6548014884ad4a96bcd9d09d445becda"
-      },
+      "status": "IN_PROGRESS_OPEN",
+      "owner": null,
       "checkpoint": {
         "revision": 37,
         "event": "CHECKPOINT_PASS",
@@ -81,7 +78,7 @@
         "authorization_key": null
       },
       "private_artifact_key": "fad7f0014a9e4e3fa966e16d6d55b10a",
-      "claim_origin_key": "7dcaf30fac4f49dbb709bb4bbe7c2c18"
+      "claim_origin_key": null
     },
     "CROSS_AGENT_TEST": {
       "status": "READY_FOR_HANDOFF",
@@ -522,6 +519,26 @@
       "native_readback": false,
       "authorization_key": null,
       "claim_origin_key": "7dcaf30fac4f49dbb709bb4bbe7c2c18"
+    },
+    {
+      "revision": 42,
+      "event": "OWNER_AUTHORIZED_RELEASE",
+      "actor": {
+        "agent": "GPT",
+        "run_id": "afeb1a28f7ba42bfbcfdd97fc6881d48"
+      },
+      "scope": "CROSS_AGENT",
+      "timestamp_utc": "2026-10-26T15:02:54Z",
+      "work_code": "RECOVERY",
+      "next_code": "CONTINUE",
+      "private_artifact_key": "0cf13f599aaf40bc9e77c696db306399",
+      "evidence_commit": null,
+      "native_readback": true,
+      "authorization_key": "26fddc72e9a746da99dcb9c9e15ef115",
+      "expected_owner": {
+        "agent": "GPT",
+        "run_id": "6548014884ad4a96bcd9d09d445becda"
+      }
     }
   ]
 }
