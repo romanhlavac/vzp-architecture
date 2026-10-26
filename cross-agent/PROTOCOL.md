@@ -1,4 +1,21 @@
-# Prompt-driven continuity — protocol 2.0
+# Prompt-driven continuity — protocol 2.1.1
+
+## Amendment 2.1.1 — prompt-boundary release
+
+The original 2.1.0 transport and privacy contract still applies. An owned
+workstream MUST be finalized before the agent returns its terminal response:
+read back native changes, persist and verify immutable private context,
+call `finalize_phase` in `prompt_state.py`, publish through approved CAS,
+and independently read back the remote Git revision and owner.
+
+The default for unfinished work, Human Review pauses and multi-phase Work is
+`HANDOFF_OPEN` (owner null, WIP retained). Fully evidenced completed work
+may use `CHECKPOINT_PASS` (owner null). The operator chooses the internal
+completion outcome automatically; the user need not request a release.
+
+No chat hook, timer, expiry, or background agent is assumed. An interrupted
+process can leave a claim stranded and cannot silently release it. A subsequent
+writer must STOP and use the guarded orphan protocol below.
 
 ## Current acceptance status — 2026-10-25
 Documentation revision: post-cutover-1; protocol semantics remain 2.1.0.
