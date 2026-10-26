@@ -62,4 +62,3 @@ features. Symmetric unit tests using GPT/CLAUDE labels are not Claude runtime
 execution. Report new runtime checks separately. Deployment enum is unchanged.
 During rollout, a Git/GD protocol mismatch is STOP for mutations; publish the
 canonical private documents in-place and manifest last before normal use.
-
