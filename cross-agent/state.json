@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 50,
+  "state_revision": 51,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -79,10 +79,7 @@
     },
     "CROSS_AGENT_TEST": {
       "status": "IN_PROGRESS_OPEN",
-      "owner": {
-        "agent": "CLAUDE",
-        "run_id": "7ec4a2be311c9f8a6b33caa35f6f553d"
-      },
+      "owner": null,
       "checkpoint": {
         "revision": 50,
         "event": "CHECKPOINT_OPEN",
@@ -100,26 +97,10 @@
         "authorization_key": null
       },
       "private_artifact_key": "352c027ecb948c3c7a4920d44376aee4",
-      "claim_origin_key": "737d884b579d0b9127fa6cbc7949b4b6"
+      "claim_origin_key": null
     }
   },
   "events": [
-    {
-      "revision": 21,
-      "event": "CLAIM",
-      "actor": {
-        "agent": "CLAUDE",
-        "run_id": "fb55e4074ff07593a3065fa8cfabc06c"
-      },
-      "scope": "CROSS_AGENT_TEST",
-      "timestamp_utc": "2026-10-25T12:00:31Z",
-      "work_code": "ACCEPTANCE",
-      "next_code": "CONTINUE",
-      "private_artifact_key": "abed469f2ed64ee4a12077d4b34b9ad0",
-      "evidence_commit": null,
-      "native_readback": false,
-      "authorization_key": null
-    },
     {
       "revision": 22,
       "event": "CHECKPOINT_OPEN",
@@ -595,6 +576,26 @@
       "evidence_commit": null,
       "native_readback": true,
       "authorization_key": null
+    },
+    {
+      "revision": 51,
+      "event": "OWNER_AUTHORIZED_RELEASE",
+      "actor": {
+        "agent": "GPT",
+        "run_id": "8ba907749865472aa19caeaae8d146b0"
+      },
+      "scope": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-26T16:09:34Z",
+      "work_code": "RECOVERY",
+      "next_code": "CONTINUE",
+      "private_artifact_key": "ce771d9cdff54fb5a6cedd925fca9515",
+      "evidence_commit": null,
+      "native_readback": true,
+      "authorization_key": "9bb4f3c9671d41d3a8dacb1dadaa6748",
+      "expected_owner": {
+        "agent": "CLAUDE",
+        "run_id": "7ec4a2be311c9f8a6b33caa35f6f553d"
+      }
     }
   ]
 }
