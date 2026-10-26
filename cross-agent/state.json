@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 59,
+  "state_revision": 60,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -78,8 +78,11 @@
       "claim_origin_key": null
     },
     "CROSS_AGENT_TEST": {
-      "status": "IN_PROGRESS_OPEN",
-      "owner": null,
+      "status": "IN_PROGRESS",
+      "owner": {
+        "agent": "CLAUDE",
+        "run_id": "c18f8bd8356d053e6046eed430ff0ef5"
+      },
       "checkpoint": {
         "revision": 59,
         "event": "HANDOFF_OPEN",
@@ -97,26 +100,10 @@
         "authorization_key": null
       },
       "private_artifact_key": "e9c1952768b51670e7da9e63c3d97a90",
-      "claim_origin_key": null
+      "claim_origin_key": "ed1471445c09aeafb80ac337cf0a6ecd"
     }
   },
   "events": [
-    {
-      "revision": 30,
-      "event": "HANDOFF_OPEN",
-      "actor": {
-        "agent": "GPT",
-        "run_id": "0b4015c0f0deb91833821e3b6a1489ec"
-      },
-      "scope": "CROSS_AGENT",
-      "timestamp_utc": "2026-10-25T13:32:32Z",
-      "work_code": "IMPLEMENTATION",
-      "next_code": "CONTINUE",
-      "private_artifact_key": "b638e7915e254f18a930ac604f28c932",
-      "evidence_commit": "1e88db788547066476cc390d93ffb7cb211ea0d3",
-      "native_readback": true,
-      "authorization_key": null
-    },
     {
       "revision": 31,
       "event": "CLAIM",
@@ -600,6 +587,23 @@
       "evidence_commit": null,
       "native_readback": true,
       "authorization_key": null
+    },
+    {
+      "revision": 60,
+      "event": "CLAIM",
+      "actor": {
+        "agent": "CLAUDE",
+        "run_id": "c18f8bd8356d053e6046eed430ff0ef5"
+      },
+      "scope": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-26T19:29:08Z",
+      "work_code": "ACCEPTANCE",
+      "next_code": "CONTINUE",
+      "private_artifact_key": "e9c1952768b51670e7da9e63c3d97a90",
+      "evidence_commit": null,
+      "native_readback": false,
+      "authorization_key": null,
+      "claim_origin_key": "ed1471445c09aeafb80ac337cf0a6ecd"
     }
   ]
 }
