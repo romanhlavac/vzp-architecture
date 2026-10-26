@@ -14,6 +14,7 @@ class PromptStateTests(unittest.TestCase):
    w.update(status='IDLE',owner=None,checkpoint=None,private_artifact_key=None)
   self.actor={'agent':'GPT','run_id':'1'*32}
  def move(self,s,event,**kw):
+  if event=='CLAIM': kw.update(claim_origin_key='a'*32,origin_verified=True)
   return transition(s,expected_revision=s['state_revision'],actor=self.actor,scope='CROSS_AGENT_TEST',event=event,**kw)
  def test_live_schema(self): validate(json.loads((ROOT/'cross-agent/state.json').read_text()))
  def test_claim_open_handoff_preserves_unfinished(self):
@@ -51,7 +52,7 @@ class PromptStateTests(unittest.TestCase):
   with self.assertRaisesRegex(Stop,'PRIVATE_LOCATOR_STOP'):self.move(self.move(self.state,'CLAIM'),'CHECKPOINT_OPEN',native_readback=True,private_artifact_key='private-drive-id')
  def test_cross_scope_tampering(self):
   s=self.move(self.state,'CLAIM');s['workstreams']['METHOD']['status']='IN_PROGRESS_OPEN'
-  with self.assertRaisesRegex(Stop,'UNAUTHORIZED_STATE_DIFF_STOP'):verify_transition(self.state,s)
+  with self.assertRaisesRegex(Stop,'UNAUTHORIZED_STATE_DIFF_STOP'):verify_transition(self.state,s,origin_verified=True)
  def test_backend_stale_sha_no_put(self):
   api=GitHubBackend('example/repo','test','synthetic-test-only')
   with mock.patch.object(api,'read',return_value=(self.state,'a'*40)), mock.patch.object(api,'request') as request:
@@ -61,7 +62,7 @@ class PromptStateTests(unittest.TestCase):
  def test_backend_readback_detects_drift(self):
   s=self.move(self.state,'CLAIM');api=GitHubBackend('example/repo','test','synthetic-test-only')
   with mock.patch.object(api,'read',side_effect=[(self.state,'a'*40),(self.state,'c'*40)]),mock.patch.object(api,'request',return_value={'commit':{'sha':'d'*40},'content':{'sha':'b'*40}}):
-   with self.assertRaisesRegex(StateConflict,'WRITE_READBACK_MISMATCH_STOP'):api.write(s,'a'*40,'cross-agent: checkpoint')
+   with self.assertRaisesRegex(StateConflict,'WRITE_READBACK_MISMATCH_STOP'):api.write(s,'a'*40,'cross-agent: checkpoint',origin_verified=True)
  def test_legacy_transition_cannot_mutate_new_state(self):
   from state_cli import perform_transition
   with self.assertRaisesRegex(StateConflict,'LEGACY_WRITER_DISABLED'):

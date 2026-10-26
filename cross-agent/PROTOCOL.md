@@ -1,6 +1,6 @@
-# Prompt-driven continuity — protocol 2.1.1
+# Prompt-driven continuity — protocol 2.2.0
 
-## Amendment 2.1.1 — prompt-boundary release
+## Prompt-boundary release
 
 The original 2.1.0 transport and privacy contract still applies. An owned
 workstream MUST be finalized before the agent returns its terminal response:
@@ -15,10 +15,10 @@ completion outcome automatically; the user need not request a release.
 
 No chat hook, timer, expiry, or background agent is assumed. An interrupted
 process can leave a claim stranded and cannot silently release it. A subsequent
-writer must STOP and use the guarded orphan protocol below.
+writer must STOP and use the OWNER_AUTHORIZED_RELEASE contract below.
 
 ## Current acceptance status — 2026-10-25
-Documentation revision: post-cutover-1; protocol semantics remain 2.1.0.
+Historical acceptance baseline: protocol 2.1.0; current implementation contract 2.2.0.
 
 The Git-state / GD-project implementation is active. GPT ↔ ordinary Claude continuity achieved the separately reviewed CUTOVER_PASS on 2026-10-25.
 Evidence: CROSS_AGENT_TEST CHECKPOINT_PASS revision 35, commit 7eb4c0e0f2a77153feceb05efbdd632f38c21e03, successful CI run 40202011072, and the private immutable acceptance report/verdict resolved through the canonical private Entry Point.
@@ -87,16 +87,80 @@ method file and does not require in-place GD replacement in ordinary Claude.
    Unreferenced private snapshots after a failed Git update are staged/orphaned,
    never authoritative; reconcile them without inventing a successful handoff.
 
+## Lock governance and provenance — 2.2.0
+
+Read-only prompts do not CLAIM. Before protected writes, fresh-read main HEAD,
+state blob SHA, revision, scope owner and native baseline. A foreign agent OR
+run means STOP for conflicting mutations; safe read-only assistance continues.
+
+Create a private immutable `VZP_ORIGIN_<32hex-key>.json` in the canonical handoff
+folder. Required fields: key, scope, actor (agent/run_id), created_utc (real UTC),
+request_id (generated unique 32hex), purpose and platform. Optional chat_title,
+chat_id, chat_url, message_id and message_url are included only if actually
+available. Generated request_id is NOT a native message ID. Never invent links
+or create public conversation shares. Resolve exactly one file by folder/name,
+verify identity and complete provider read-back before CLAIM. `lock_origin.py`
+validates the private record and prepares the claim; it does not perform I/O.
+
+Publish owner and `claim_origin_key` together through one validated CLAIM and
+approved CAS; independent Git read-back is mandatory. A failed Git write leaves
+a staged/orphan private origin, never active ownership. `claim_origin_key` is
+separate from the latest work `private_artifact_key`, immutable while owned,
+and cleared on release (the CLAIM event/Git history preserves its value).
+The state schema 2.0 accepts this narrow optional field and two event extensions:
+CLAIM carries claim_origin_key; OWNER_AUTHORIZED_RELEASE carries expected_owner.
+Old snapshots and history remain readable without rewrite. Older writers that
+do not understand these fields MUST stop and load the current guard. Missing
+historical origins are LEGACY_ORIGIN_UNAVAILABLE, never reconstructed guesses.
+
+Conflict reporting is private: stream, owning agent, verified start/purpose,
+chat title/link if known, status and latest checkpoint; recommend asking that
+agent to release. If no chat can be resolved, say so and offer explicitly
+project-owner-authorized release from another session. Technical IDs belong in
+extended diagnostics, not the ordinary user message. `conflict_details()` does
+not claim lookup success when a current origin cannot be resolved.
+
+OWNER_AUTHORIZED_RELEASE requires all of: actual explicit project-owner mandate
+in current context for the exact scope and expected old agent/run; fresh exact
+revision/blob SHA; available provenance (or explicit legacy unavailability);
+verified last changes/native artifacts; immutable private reconciliation audit
+and authorization evidence; transition() and verify_transition(); approved CAS;
+full remote read-back. Boolean flags/opaque keys are attestations, not proof or
+permission. CI checks public structure, not private mandate or runtime identity.
+The new session uses its own run ID, never impersonates the previous owner.
+An authorized GPT may perform the operation when Claude lacks Git permission.
+Without mandate, matching owner, permissions or reliable evidence: STOP/RECONCILE.
+No retry, force, takeover, age-based expiry or background orchestration.
+
+Result: IN_PROGRESS_OPEN, owner=null. Preserve last work checkpoint, working
+context and OPEN items; append an audit event rather than fabricating completion.
+RECOVERY_OPEN still requires the existing explicit RECONCILE path. Delayed old
+Git writers fail owner/revision/CAS guards; native systems without CAS require
+fresh ownership checks and cooperative serialization, not a distributed-lock claim.
+
+At normal completion or controlled interruption, invoke finalize_phase() with
+verified private working context/native read-back: HANDOFF_OPEN for unfinished
+work, CHECKPOINT_PASS only for evidenced completion. No special user release
+request is needed for the owning live run. Crashed sessions cannot execute this
+function; there are no hooks, leases, heartbeats, watchdogs or timeout release.
+
+The prior 2.1.0 CUTOVER_PASS is preserved and does not accept these new 2.2.0
+features. Symmetric unit tests using GPT/CLAUDE labels are not Claude runtime
+execution. Report new runtime checks separately. Deployment enum is unchanged.
+During rollout, a Git/GD protocol mismatch is STOP for mutations; publish the
+canonical private documents in-place and manifest last before normal use.
+
 ## Events
 
 | Event | Preconditions | Result |
 |---|---|---|
-| CLAIM | Fresh revision, owner null, no recovery | IN_PROGRESS, owner=this run; saved checkpoint retained |
+| CLAIM | Fresh revision, owner null, no recovery, verified private origin | IN_PROGRESS, owner=this run; saved checkpoint retained |
 | CHECKPOINT_OPEN | Own run, native read-back | IN_PROGRESS_OPEN, owner retained |
 | HANDOFF_OPEN | Own run, native read-back | IN_PROGRESS_OPEN, owner null; unfinished work explicitly preserved |
 | CHECKPOINT_PASS | Own run, native read-back and evidence commit | READY_FOR_HANDOFF, owner null; this scope only, not overall acceptance |
 | RECOVERY_OPEN | Own run, uncertain/partial work | RECOVERY_OPEN, owner retained |
 | RECONCILE | Recovery, explicit owner authorization, verified native baseline | IN_PROGRESS_OPEN, owner null; never automatic completion |
+| OWNER_AUTHORIZED_RELEASE | Exact expected owner, explicit scope mandate, private audit, native read-back, CAS | IN_PROGRESS_OPEN, owner null; last work checkpoint/context retained |
 
 All mutations increase global revision exactly once and append a bounded event.
 The Git history retains older events. No mutation is needed for an informational

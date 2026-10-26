@@ -3,13 +3,13 @@ name: Cross-agent lifecycle regression
 on:
   push:
     paths:
-      - "cross-agent/prompt_state.py"
+      - "cross-agent/**"
       - "cross-agent/state.json"
       - "cross-agent/tests/test_orphan_finalization.py"
       - ".github/workflows/cross-agent-lifecycle-regression.yml"
   pull_request:
     paths:
-      - "cross-agent/prompt_state.py"
+      - "cross-agent/**"
       - "cross-agent/tests/test_orphan_finalization.py"
       - ".github/workflows/cross-agent-lifecycle-regression.yml"
   workflow_dispatch:
@@ -28,4 +28,4 @@ jobs:
       - name: Syntax
         run: python -m py_compile cross-agent/prompt_state.py cross-agent/tests/test_orphan_finalization.py
       - name: Lifecycle regressions
-        run: python -m unittest discover -s cross-agent/tests -p test_orphan_finalization.py -v
+        run: python -m unittest discover -s cross-agent/tests -v

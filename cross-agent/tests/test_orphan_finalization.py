@@ -6,23 +6,24 @@ root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root))
 from prompt_state import Stop, transition, finalize_phase, verify_transition
 base = json.loads((root / "state.json").read_text())
+base["workstreams"]["CROSS_AGENT_TEST"].update(status="IN_PROGRESS", owner={"agent":"CLAUDE", "run_id":"b"*32})
 gpt = {"agent":"GPT", "run_id":"a"*32}
 class LifecycleTests(unittest.TestCase):
     def test_orphan_requires_approval(self):
         with self.assertRaises(Stop):
             transition(base, expected_revision=base["state_revision"], actor=gpt,
-                       scope="CES_1B", event="ORPHAN_RECONCILE")
+                       scope="CROSS_AGENT_TEST", event="OWNER_AUTHORIZED_RELEASE")
     def test_orphan_authorized_and_verified(self):
         result = transition(base, expected_revision=base["state_revision"], actor=gpt,
-            scope="CES_1B", event="ORPHAN_RECONCILE", work_code="RECOVERY",
+            scope="CROSS_AGENT_TEST", event="OWNER_AUTHORIZED_RELEASE", expected_owner=base["workstreams"]["CROSS_AGENT_TEST"]["owner"], work_code="RECOVERY",
             authorization_key="b"*32, private_artifact_key="c"*32,
             native_readback=True, recovery_authorized=True)
-        self.assertIsNone(result["workstreams"]["CES_1B"]["owner"])
-        self.assertEqual(result["workstreams"]["CES_1B"]["status"], "IN_PROGRESS_OPEN")
+        self.assertIsNone(result["workstreams"]["CROSS_AGENT_TEST"]["owner"])
+        self.assertEqual(result["workstreams"]["CROSS_AGENT_TEST"]["status"], "IN_PROGRESS_OPEN")
         verify_transition(base,result,recovery_authorized=True)
     def test_missing_recovery_evidence(self):
-        good=dict(expected_revision=base["state_revision"], actor=gpt, scope="CES_1B",
-                  event="ORPHAN_RECONCILE", work_code="RECOVERY",
+        good=dict(expected_revision=base["state_revision"], actor=gpt, scope="CROSS_AGENT_TEST",
+                  event="OWNER_AUTHORIZED_RELEASE", expected_owner=base["workstreams"]["CROSS_AGENT_TEST"]["owner"], work_code="RECOVERY",
                   authorization_key="b"*32, private_artifact_key="c"*32,
                   native_readback=True, recovery_authorized=True)
         for delta in ({"native_readback":False}, {"authorization_key":None},
@@ -34,19 +35,19 @@ class LifecycleTests(unittest.TestCase):
     def test_foreign_handoff_rejected(self):
         with self.assertRaisesRegex(Stop,"FOREIGN_WRITER_STOP"):
             transition(base, expected_revision=base["state_revision"], actor=gpt,
-                       scope="CES_1B", event="HANDOFF_OPEN", native_readback=True)
+                       scope="CROSS_AGENT_TEST", event="HANDOFF_OPEN", native_readback=True)
     def test_recovery_requires_existing_owner(self):
         altered=copy.deepcopy(base)
-        altered["workstreams"]["CES_1B"]["owner"]=None
-        altered["workstreams"]["CES_1B"]["status"]="IN_PROGRESS_OPEN"
+        altered["workstreams"]["CROSS_AGENT_TEST"]["owner"]=None
+        altered["workstreams"]["CROSS_AGENT_TEST"]["status"]="IN_PROGRESS_OPEN"
         with self.assertRaises(Stop):
             transition(altered, expected_revision=altered["state_revision"],actor=gpt,
-                       scope="CES_1B",event="ORPHAN_RECONCILE",work_code="RECOVERY",
+                       scope="CROSS_AGENT_TEST",event="OWNER_AUTHORIZED_RELEASE", expected_owner=base["workstreams"]["CROSS_AGENT_TEST"]["owner"],work_code="RECOVERY",
                        authorization_key="b"*32,private_artifact_key="c"*32,
                        native_readback=True,recovery_authorized=True)
     def test_orphan_integrity_and_no_silent_replay(self):
         result=transition(base, expected_revision=base["state_revision"],actor=gpt,
-                          scope="CES_1B",event="ORPHAN_RECONCILE",work_code="RECOVERY",
+                          scope="CROSS_AGENT_TEST",event="OWNER_AUTHORIZED_RELEASE", expected_owner=base["workstreams"]["CROSS_AGENT_TEST"]["owner"],work_code="RECOVERY",
                           authorization_key="b"*32,private_artifact_key="c"*32,
                           native_readback=True,recovery_authorized=True)
         with self.assertRaises(Stop):
@@ -57,7 +58,7 @@ class LifecycleTests(unittest.TestCase):
             verify_transition(base,altered,recovery_authorized=True)
     def test_finalization_requires_evidence_and_owner(self):
         active=transition(base,expected_revision=base["state_revision"],
-                          actor=gpt,scope="METHOD",event="CLAIM")
+                          actor=gpt,scope="METHOD",event="CLAIM",claim_origin_key="f"*32,origin_verified=True)
         for kwargs in ({"private_artifact_key":None,"native_readback":True},
                        {"private_artifact_key":"c"*32,"native_readback":False}):
             with self.assertRaises(Stop):
@@ -69,7 +70,7 @@ class LifecycleTests(unittest.TestCase):
                            private_artifact_key="c"*32,native_readback=True)
     def test_completed_checkpoint_needs_commit(self):
         active=transition(base,expected_revision=base["state_revision"],
-                          actor=gpt,scope="METHOD",event="CLAIM")
+                          actor=gpt,scope="METHOD",event="CLAIM",claim_origin_key="f"*32,origin_verified=True)
         kwargs=dict(expected_revision=active["state_revision"],actor=gpt,
                     scope="METHOD",completed=True,
                     private_artifact_key="c"*32,native_readback=True)
@@ -81,7 +82,7 @@ class LifecycleTests(unittest.TestCase):
         verify_transition(active,result)
     def test_normal_finalization(self):
         active = transition(base, expected_revision=base["state_revision"], actor=gpt,
-                            scope="METHOD", event="CLAIM")
+                            scope="METHOD", event="CLAIM",claim_origin_key="f"*32,origin_verified=True)
         out = finalize_phase(active, expected_revision=active["state_revision"],
                              actor=gpt, scope="METHOD", native_readback=True,
                              private_artifact_key="c"*32)
