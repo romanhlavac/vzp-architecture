@@ -7,7 +7,8 @@ class ProvenanceTests(unittest.TestCase):
     def setUp(self):
         self.base=json.loads((Path(__file__).resolve().parents[1]/'state.json').read_text())
         self.scope='CROSS_AGENT_TEST'
-        self.base['workstreams'][self.scope]['owner']=None
+        self.base['workstreams'][self.scope].update(status='IDLE', owner=None, claim_origin_key=None)
+        validate(self.base)
         self.a={'agent':'GPT','run_id':'a'*32}
         self.b={'agent':'CLAUDE','run_id':'b'*32}
     def move(self,s,event,actor=None,**kw):
@@ -16,6 +17,17 @@ class ProvenanceTests(unittest.TestCase):
         return self.move(self.base,'CLAIM',claim_origin_key='c'*32,origin_verified=True)
     def release_args(self,s):
         return dict(expected_revision=s['state_revision'],scope=self.scope,actor=self.b,event='OWNER_AUTHORIZED_RELEASE',expected_owner=self.a,authorization_key='d'*32,private_artifact_key='e'*32,native_readback=True,recovery_authorized=True,work_code='RECOVERY')
+    def test_fixture_accepts_owned_snapshot(self):
+        from unittest.mock import patch
+        snapshot=self.claim()
+        original=copy.deepcopy(snapshot)
+        with patch.object(Path, 'read_text', return_value=json.dumps(snapshot)):
+            fixture=ProvenanceTests(); fixture.setUp()
+        validate(fixture.base)
+        self.assertEqual(fixture.base['workstreams'][self.scope]['status'], 'IDLE')
+        self.assertIsNone(fixture.base['workstreams'][self.scope]['owner'])
+        fixture.claim()
+        self.assertEqual(snapshot, original)
     def test_origin_required(self):
         for kw in ({},{'claim_origin_key':'c'*32},{'claim_origin_key':'https://private','origin_verified':True},{'claim_origin_key':'c'*32,'origin_verified':1}):
             with self.subTest(kw=kw),self.assertRaises(Stop):self.move(self.base,'CLAIM',**kw)
