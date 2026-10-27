@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 43,
+  "state_revision": 44,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -32,10 +32,14 @@
       "private_artifact_key": null
     },
     "CES_1B": {
-      "status": "IN_PROGRESS_OPEN",
-      "owner": null,
+      "status": "IN_PROGRESS",
+      "owner": {
+        "agent": "CLAUDE",
+        "run_id": "0034d2eac7c90e55203f3c3d4fba40d4"
+      },
       "checkpoint": null,
-      "private_artifact_key": null
+      "private_artifact_key": null,
+      "claim_origin_key": "77fa470f17252b01439eca866dd9796a"
     },
     "CES_DATA": {
       "status": "ACTIVATION_UNVERIFIED",
@@ -552,6 +556,23 @@
         "agent": "CLAUDE",
         "run_id": "ae3eafbd7c67b12c486d274a7be2ab90"
       }
+    },
+    {
+      "revision": 44,
+      "event": "CLAIM",
+      "actor": {
+        "agent": "CLAUDE",
+        "run_id": "0034d2eac7c90e55203f3c3d4fba40d4"
+      },
+      "scope": "CES_1B",
+      "timestamp_utc": "2026-10-27T08:00:39Z",
+      "work_code": "IMPLEMENTATION",
+      "next_code": "CONTINUE",
+      "private_artifact_key": null,
+      "evidence_commit": null,
+      "native_readback": false,
+      "authorization_key": null,
+      "claim_origin_key": "77fa470f17252b01439eca866dd9796a"
     }
   ]
 }
