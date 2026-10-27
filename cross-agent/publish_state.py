@@ -20,7 +20,8 @@ from transport_guard import qualify
 
 
 def github(repo, path):
-    result = subprocess.run(['gh', 'api', f'repos/{repo}/{path}'], capture_output=True)
+    endpoint = f'repos/{repo}' + (f'/{path}' if path else '')
+    result = subprocess.run(['gh', 'api', endpoint], capture_output=True)
     if result.returncode:
         raise ValueError(f'WRITE_BLOCKED_GITHUB_READ_EXIT_{result.returncode}')
     return json.loads(result.stdout)
