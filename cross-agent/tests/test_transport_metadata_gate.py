@@ -10,8 +10,20 @@ from unittest.mock import patch
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from prompt_state import transition, Stop
 from prepublish_message import git, snapshot, inspect_candidate, canonical_message, STATE_PATH
-from publish_state import create_candidate, publish, server_gates
+from publish_state import create_candidate, publish, server_gates, github
 from transport_guard import qualify
+
+
+class GitHubEndpointTests(unittest.TestCase):
+    def test_repository_endpoint_has_no_trailing_slash(self):
+        with patch('publish_state.subprocess.run') as run:
+            run.return_value.returncode = 0
+            run.return_value.stdout = b'{}'
+            for path, expected in (('', 'repos/example/repository'),
+                                   ('rules/branches/test%2Ffixture',
+                                    'repos/example/repository/rules/branches/test%2Ffixture')):
+                github('example/repository', path)
+                run.assert_called_with(['gh', 'api', expected], capture_output=True)
 
 
 class TransportMetadataGateTests(unittest.TestCase):
