@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import ces_demo_layout_1a_1b_refine_20261023 as baseline
 api, page = baseline.api, baseline.page
 MODE=os.getenv("RECONCILE_MODE","audit")
-assert MODE in ("audit","repair")
+assert MODE in ("audit","repair","repair2")
 M=baseline.FRAME_IDS["L2"]
 def get(i): return api("GET","frames/"+i)
 def closest(val,base,tol=3):return abs(val-base)<tol
@@ -27,6 +27,20 @@ def main():
   assert len(page("items",{"parent_item_id":orphan["id"]}))==0,"ORPHAN_NOT_EMPTY"
   print("AUDIT_PASSED",len(fs),"parent_width",round(bounds["width"]),"map_top",round(old.get("y",0)-(l2["geometry"]["height"]/2)),"orphan_unparented",flush=True)
   if MODE!="repair":return
+  if MODE=="repair2":
+    # After REST 400 on moving the ancestor, don't move it or retry.
+    # Idempotent repair only of orphan parentage and existing map's local center.
+    target={"parent":{"id":parentid},"position":{"x":14184+4280/2,"y":2798+7400/2,"origin":"center"}}
+    api("PATCH","items/"+orphan["id"],target)
+    o=api("GET","items/"+orphan["id"])
+    assert str((o.get("parent") or {}).get("id"))==parentid,"NESTED_PARENT_FAIL"
+    print("ORPHAN_PARENT_CONFIRMED",flush=True)
+    api("PATCH","frames/"+M,{"position":{"x":18700+4600/2,"y":2798+7400/2,"origin":"center"}})
+    m=get(M)
+    assert abs(m["position"]["x"]-(18700+4600/2))<10 and abs(m["position"]["y"]-(2798+7400/2))<10,"MAP_PLACEMENT_FAIL"
+    assert str((m.get("parent") or {}).get("id"))==parentid,"MAP_PARENT_FAIL"
+    print("REPAIR2_CONFIRMED",flush=True)
+    return
   # Only these three items may change. Positions are parent-local centers.
   px=p["x"]+2366
   patch=[("frames/"+parentid,{"position":{"x":px,"y":p["y"],"origin":"center"}}),
