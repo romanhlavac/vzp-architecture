@@ -1,4 +1,4 @@
-# Risk-based governance 2.3.0
+# Risk-based governance 2.3.1
 
 Operation classes A/B/C are distinct from Git concurrency transports A/B.
 Git is the only shared operational-state authority; private Drive owns methodology,
@@ -59,7 +59,20 @@ Update canonical documents in place and manifest last with actual hashes/bytes.
 Partial rollout or version/hash mismatch requires STOP/RECONCILE. Governed rollback
 restores verified baselines without deleting history or forcing updates.
 
-B ACTIVE requires verified relevant deployment/runtime gates, not a config flag.
-Until then B remains INACTIVE; strict C remains available. Historical CUTOVER_PASS
-and synthetic actor tests are not ordinary-Claude runtime acceptance. Checks not
-performed are OPEN. Source Index/Sxx and business approvals are unchanged.
+## Per-operation qualification — 2.3.1
+
+B is available after coordinated deployment when this operation's own eligibility,
+native permissions, private evidence transport and read-back are verified. There
+is no global all-agent activation gate. A blocked Git transport for any agent does
+not block another agent or an eligible private B operation, including by that same
+agent. The configuration selects this policy; it is not evidence or authorization.
+
+C requires the current writer's qualified Git transport and the existing strict
+origin/CLAIM/CAS/read-back protocol. Unavailable or unqualified transport stops C
+for that writer; never bypass a proxy, force-push or impersonate another agent.
+Report qualification per runtime, transport and operation. Reuse evidence only
+within its demonstrated scope; retest changed or defective capabilities, not the
+whole interoperability chain on every prompt. Cross-agent end-to-end acceptance
+remains a separate test and never becomes B's prerequisite. Real Claude execution
+and synthetic tests must be reported separately. Source Index/Sxx, native visual
+acceptance and business approvals are unchanged.
