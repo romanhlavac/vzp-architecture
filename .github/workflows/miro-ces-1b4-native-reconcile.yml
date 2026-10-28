@@ -18,7 +18,7 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
-      RECONCILE_MODE: maponly
+      RECONCILE_MODE: audit
     steps:
       - uses: actions/checkout@v4
         with: {persist-credentials: false}
