@@ -1,0 +1,26 @@
+name: VZP CES 1B4 native frame reconcile
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/miro-ces-1b4-native-reconcile.yml"
+      - "automatizace/miro/ces_1b4_native_reconcile.py"
+permissions: {contents: read}
+concurrency:
+  group: vzp-ces-1b4-native-reconcile
+  cancel-in-progress: false
+jobs:
+  reconcile:
+    if: github.repository == 'romanhlavac/vzp-architecture' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: miro-external-probe
+    timeout-minutes: 25
+    env:
+      MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
+      MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
+      RECONCILE_MODE: audit
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+      - run: python3 -m py_compile automatizace/miro/ces_1b4_native_reconcile.py
+      - run: python3 automatizace/miro/ces_1b4_native_reconcile.py
