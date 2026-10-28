@@ -1,4 +1,4 @@
-# Prompt-driven continuity — protocol 2.3.0
+# Prompt-driven continuity — protocol 2.3.1
 
 ## Prompt-boundary release
 
@@ -200,9 +200,10 @@ B: non-force git push, permitted ONLY with ALL invariants below evidenced:
 Git protects its own update only, not a distributed transaction with GD/Miro/Slides.
 A successful conflict test alone does not prove all transport invariants. Report implementation, runtime provenance, transport qualification and overall acceptance separately. Keep the schema-valid deployment enum ACTIVE_ACCEPTANCE_PENDING; use the separately reviewed acceptance verdict, never infer it automatically.
 
-## Operation risk classification — 2.3.0
+## Operation risk classification — 2.3.1
 
 RISK_POLICY.md is normative for operation classes A/B/C and private Drive evidence.
 Existing write transactions, origin/CLAIM, checkpoint and CAS requirements apply
 to class C. B does not modify shared Git state or bypass transition guards.
-Deployment of this policy is separate from B activation; runtime acceptance OPEN.
+Qualification is per runtime, transport and operation, as defined in RISK_POLICY.md.
+Blocked C transport never disables eligible isolated B work.

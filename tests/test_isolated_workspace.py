@@ -86,6 +86,11 @@ class Opener:
 
 
 class ApiTests(unittest.TestCase):
+    policy = json.loads((ROOT / 'automatizace/miro/isolated_copy_activation.json').read_text())
+    operation = Operation(writes=True, new_private_workspace=True, fresh_bootstrap=True,
+        authorized=True, permissions_verified=True, private_verified=True,
+        exclusive_writer=True, receipt_available=True)
+
     def test_http_classification_no_put_retry(self):
         for code in (400, 401, 403, 404, 409, 429):
             with self.subTest(code=code):
@@ -212,20 +217,30 @@ class ApiTests(unittest.TestCase):
         self.assertNotIn('upload-artifact', text)
         self.assertNotIn('MIRO_RECEIPT_CERT_PEM', text)
 
-    def test_work_copy_requires_activation_and_rejects_ci(self):
+    def test_work_copy_rejects_old_global_activation_and_ci(self):
         with patch.dict(m.os.environ, {'GITHUB_ACTIONS':'true'}), self.assertRaises(m.Stop):
-            m.work_copy(None, 'source', {}, 'copy', None, 'folder', 'a'*32, {'status':'ACTIVE'})
-        with patch.dict(m.os.environ, {}, clear=True), self.assertRaisesRegex(m.Stop, 'INACTIVE_STOP'):
-            m.work_copy(None, 'source', {}, 'copy', None, 'folder', 'a'*32, {'status':'INACTIVE'})
+            m.work_copy(None, 'source', {}, 'copy', None, 'folder', 'a'*32, self.policy, operation=self.operation)
+        with patch.dict(m.os.environ, {}, clear=True), self.assertRaisesRegex(m.Stop, 'CONFIG_STOP'):
+            m.work_copy(None, 'source', {}, 'copy', None, 'folder', 'a'*32, {'status':'INACTIVE'}, operation=self.operation)
+
+    def test_missing_operation_evidence_and_shared_targets_stop_before_write(self):
+        for field, value in [('private_verified', False), ('permissions_verified', False),
+                             ('receipt_available', False), ('exclusive_writer', False),
+                             ('canonical_or_shared_target', True), ('promotion', True)]:
+            with self.subTest(field=field), patch.dict(m.os.environ, {}, clear=True), \
+                 patch.object(m, 'apply_copy') as mutation, self.assertRaises((Ineligible, m.Stop)):
+                m.work_copy(None, 'source', {}, 'copy', None, 'folder', 'a'*32,
+                            self.policy, operation=replace(self.operation, **{field: value}))
+            mutation.assert_not_called()
 
     def test_unverified_private_intent_stops_before_mutation(self):
         store=unittest.mock.Mock()
         store.read.return_value={'content':{},'parent':'folder','private':False,'unique':True}
         with patch.dict(m.os.environ, {}, clear=True), patch.object(m,'reconcile',return_value=[]), patch.object(m,'apply_copy') as mutation, self.assertRaisesRegex(m.Stop,'EVIDENCE_STOP'):
-            m.work_copy(None,'source',{},'copy',store,'folder','a'*32,{'status':'ACTIVE'})
+            m.work_copy(None,'source',{},'copy',store,'folder','a'*32,self.policy, operation=self.operation)
         mutation.assert_not_called()
 
-    def test_private_intent_then_mutation_then_outcome(self):
+    def test_private_copy_without_git_transport_preserves_receipt_order(self):
         saved={}; order=[]
         class Store:
             def put_immutable(self, folder, name, value):
@@ -233,8 +248,8 @@ class ApiTests(unittest.TestCase):
             def read(self, key):
                 return {'content':saved[key],'parent':'folder','private':True,'unique':True}
         def mutate(*args): order.append('MUTATION')
-        with patch.dict(m.os.environ, {}, clear=True), patch.object(m,'reconcile',return_value=[]), patch.object(m,'apply_copy',side_effect=mutate):
-            m.work_copy(None,'source',{},'copy',Store(),'folder','a'*32,{'status':'ACTIVE'})
+        with patch.dict(m.os.environ, {}, clear=True), patch('prompt_state.transition', side_effect=AssertionError('Git transport unavailable')), patch.object(m,'reconcile',return_value=[]), patch.object(m,'apply_copy',side_effect=mutate):
+            m.work_copy(None,'source',{},'copy',Store(),'folder','a'*32,self.policy, operation=self.operation)
         self.assertEqual(order,['INTENT','MUTATION','OUTCOME'])
 
 
