@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 64,
+  "state_revision": 65,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -72,8 +72,11 @@
       "private_artifact_key": null
     },
     "CROSS_AGENT": {
-      "status": "IN_PROGRESS_OPEN",
-      "owner": null,
+      "status": "IN_PROGRESS",
+      "owner": {
+        "agent": "GPT",
+        "run_id": "052e4cfd019e4676b333b63163e62c7a"
+      },
       "checkpoint": {
         "revision": 64,
         "event": "HANDOFF_OPEN",
@@ -91,7 +94,7 @@
         "authorization_key": null
       },
       "private_artifact_key": "47051ce3614841038f07795b0c781acf",
-      "claim_origin_key": null
+      "claim_origin_key": "c476298ea9f14803b2254f408e851115"
     },
     "CROSS_AGENT_TEST": {
       "status": "IN_PROGRESS_OPEN",
@@ -117,22 +120,6 @@
     }
   },
   "events": [
-    {
-      "revision": 35,
-      "event": "CHECKPOINT_PASS",
-      "actor": {
-        "agent": "GPT",
-        "run_id": "296fd91dec774c88929953ff7825cb54"
-      },
-      "scope": "CROSS_AGENT_TEST",
-      "timestamp_utc": "2026-10-25T14:23:26Z",
-      "work_code": "ACCEPTANCE",
-      "next_code": "CONTINUE",
-      "private_artifact_key": "282449de0d214521b9a5fa9e770987e6",
-      "evidence_commit": "1a4baaecf5cd60c9c8e98f699eaf2a2fb15ae660",
-      "native_readback": true,
-      "authorization_key": null
-    },
     {
       "revision": 36,
       "event": "CLAIM",
@@ -619,6 +606,23 @@
       "evidence_commit": "5341a252610a688e93b15d2fde66ca6181f0f29d",
       "native_readback": true,
       "authorization_key": null
+    },
+    {
+      "revision": 65,
+      "event": "CLAIM",
+      "actor": {
+        "agent": "GPT",
+        "run_id": "052e4cfd019e4676b333b63163e62c7a"
+      },
+      "scope": "CROSS_AGENT",
+      "timestamp_utc": "2026-10-28T16:04:40Z",
+      "work_code": "IMPLEMENTATION",
+      "next_code": "CONTINUE",
+      "private_artifact_key": "47051ce3614841038f07795b0c781acf",
+      "evidence_commit": null,
+      "native_readback": false,
+      "authorization_key": null,
+      "claim_origin_key": "c476298ea9f14803b2254f408e851115"
     }
   ]
 }
