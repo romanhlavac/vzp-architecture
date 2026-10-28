@@ -128,6 +128,23 @@ class ApiTests(unittest.TestCase):
             m.Client('secret', Opener([])).request('PATCH', '/v2/boards/synthetic')
         self.assertIsNone(m.NoRedirect().redirect_request(None, None, 302, '', {}, 'https://example.invalid'))
 
+    def test_offset_pagination_and_total_drift(self):
+        pages = [{'data':[{'id':'1'}], 'total':2, 'offset':0},
+                 {'data':[{'id':'2'}], 'total':2, 'offset':1}]
+        opener = Opener([Response(p) for p in pages])
+        self.assertEqual(len(m.Client('secret', opener).collection('/v2/boards', pagination='offset')), 2)
+        self.assertIn('offset=1', opener.calls[1].full_url)
+        pages[1]['total'] = 3
+        with self.assertRaisesRegex(m.Stop, 'PAGINATION_STOP'):
+            m.Client('secret', Opener([Response(p) for p in pages])).collection('/v2/boards', pagination='offset')
+
+    def test_unverified_space_inheritance_rejected(self):
+        src = {'items':[], 'connectors':[]}
+        dest = dict(src, board={'id':'new', 'name':'copy', 'policy':{'sharingPolicy':m.PRIVATE},
+                    'owner':{'id':'owner'}, 'project':{'id':'shared-space'}}, members=[{'id':'owner'}])
+        with self.assertRaisesRegex(m.Stop, 'PRIVACY_STOP'):
+            m.validate_copy(src, dest, 'copy', 'source')
+
     def test_unique_name_and_bad_identity(self):
         self.assertNotEqual(m.unique_name('100'), m.unique_name('101'))
         with self.assertRaises(m.Stop):

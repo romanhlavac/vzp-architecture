@@ -97,10 +97,14 @@ class Client:
                     continue
                 raise Stop('GET_UNAVAILABLE' if method == 'GET' else 'AMBIGUOUS_WRITE') from None
 
-    def collection(self, path, params=None):
+    def collection(self, path, params=None, pagination='cursor'):
+        require(pagination in {'cursor', 'offset'}, 'CONFIG_STOP')
         params = dict(params or {})
         params['limit'] = 50
+        if pagination == 'offset':
+            params['offset'] = 0
         result, cursors, ids = [], set(), set()
+        expected_total = None
         for _ in range(1000):
             page = self.request('GET', path + '?' + urllib.parse.urlencode(params))
             require(isinstance(page, dict) and isinstance(page.get('data'), list), 'PAGINATION_STOP')
@@ -109,6 +113,19 @@ class Client:
                         'PAGINATION_STOP')
                 ids.add(item['id'])
                 result.append(item)
+            if pagination == 'offset':
+                total = page.get('total')
+                require(type(total) is int and total >= len(result) and
+                        page.get('offset') == params['offset'] and not page.get('cursor'),
+                        'PAGINATION_STOP')
+                if expected_total is None:
+                    expected_total = total
+                require(total == expected_total, 'PAGINATION_STOP')
+                if len(result) == total:
+                    return result
+                require(bool(page['data']), 'PAGINATION_STOP')
+                params['offset'] += len(page['data'])
+                continue
             cursor = page.get('cursor')
             if not cursor:
                 require(not (page.get('links') or {}).get('next'), 'PAGINATION_STOP')
@@ -136,7 +153,7 @@ def snapshot(client, board_id):
     require(str(board.get('id')) == board_id, 'IDENTITY_STOP')
     items = client.collection(path + '/items')
     connectors = client.collection(path + '/connectors')
-    members = client.collection(path + '/members')
+    members = client.collection(path + '/members', pagination='offset')
     tail = client.request('GET', path)
     require(board == tail, 'SOURCE_CHANGED_STOP')
     return {'board': board, 'items': sorted(items, key=lambda x: x['id']),
@@ -202,6 +219,9 @@ def validate_copy(source, copied, name, source_id):
     board = copied['board']
     require(str(board.get('id')) != source_id and board.get('name') == name, 'IDENTITY_STOP')
     privacy(board)
+    # Space/project inheritance cannot be proven private by sharingPolicy alone.
+    require(not any(board.get(k) for k in ('project', 'projectId', 'project_id',
+                                          'space', 'spaceId', 'space_id')), 'PRIVACY_STOP')
     owner = (board.get('owner') or {}).get('id')
     require(owner and len(copied['members']) == 1 and
             copied['members'][0].get('id') == owner, 'PRIVACY_STOP')
@@ -211,7 +231,7 @@ def validate_copy(source, copied, name, source_id):
 
 
 def reconcile(client, name):
-    boards = client.collection('/v2/boards', {'query': name})
+    boards = client.collection('/v2/boards', {'query': name}, pagination='offset')
     return [b for b in boards if b.get('name') == name]
 
 
@@ -260,10 +280,12 @@ def main():
         scopes = scopes.replace(',', ' ').split()
     require(isinstance(scopes, list) and {'boards:read', 'boards:write'} <= set(scopes), 'TOKEN_SCOPE_STOP')
     check_git(json.loads(Path('cross-agent/state.json').read_text()))
+    print('SOURCE_INVENTORY_START', flush=True)
     before = snapshot(client, source_id)
     auth_team = auth.get('team') or {}
     board_team = before['board'].get('team') or {}
     require(auth_team.get('id') and auth_team.get('id') == board_team.get('id'), 'IDENTITY_STOP')
+    print('SOURCE_INDEPENDENT_VERIFICATION_START', flush=True)
     require(before == snapshot(client, source_id), 'SOURCE_CHANGED_STOP')
     if phase == 'audit':
         print('AUDIT_READ_ONLY_PASS; API_INVENTORY_ONLY; NATIVE_G1_G4_OPEN; APPLY_NOT_AUTHORIZED')
