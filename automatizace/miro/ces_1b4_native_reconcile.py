@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import ces_demo_layout_1a_1b_refine_20261023 as baseline
 api, page = baseline.api, baseline.page
 MODE=os.getenv("RECONCILE_MODE","audit")
-assert MODE in ("audit","repair","repair2")
+assert MODE in ("audit","repair","repair2","maponly")
 M=baseline.FRAME_IDS["L2"]
 def get(i): return api("GET","frames/"+i)
 def closest(val,base,tol=3):return abs(val-base)<tol
@@ -27,6 +27,14 @@ def main():
   assert len(page("items",{"parent_item_id":orphan["id"]}))==0,"ORPHAN_NOT_EMPTY"
   print("AUDIT_PASSED",len(fs),"parent_width",round(bounds["width"]),"map_top",round(old.get("y",0)-(l2["geometry"]["height"]/2)),"orphan_unparented",flush=True)
   if MODE=="audit":return
+  if MODE=="maponly":
+    # Isolated non-destructive correction of an already existing framed map.
+    api("PATCH","frames/"+M,{"position":{"x":18700+4600/2,"y":2798+7400/2,"origin":"center"}})
+    m=get(M)
+    assert str((m.get("parent") or {}).get("id"))==parentid,"MAP_PARENT_FAIL"
+    assert abs(m["position"]["x"]-(18700+4600/2))<10 and abs(m["position"]["y"]-(2798+7400/2))<10,"MAP_CENTER_FAIL"
+    print("MAPONLY_READBACK_PASS",flush=True)
+    return
   if MODE=="repair2":
     # After REST 400 on moving the ancestor, don't move it or retry.
     # Idempotent repair only of orphan parentage and existing map's local center.
