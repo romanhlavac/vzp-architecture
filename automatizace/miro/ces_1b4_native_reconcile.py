@@ -26,7 +26,7 @@ def main():
   assert closest((l2.get("geometry") or {}).get("height",0),7400,10)
   assert len(page("items",{"parent_item_id":orphan["id"]}))==0,"ORPHAN_NOT_EMPTY"
   print("AUDIT_PASSED",len(fs),"parent_width",round(bounds["width"]),"map_top",round(old.get("y",0)-(l2["geometry"]["height"]/2)),"orphan_unparented",flush=True)
-  if MODE!="repair":return
+  if MODE=="audit":return
   if MODE=="repair2":
     # After REST 400 on moving the ancestor, don't move it or retry.
     # Idempotent repair only of orphan parentage and existing map's local center.
