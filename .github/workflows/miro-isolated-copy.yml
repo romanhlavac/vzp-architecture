@@ -1,14 +1,14 @@
-name: Miro isolated workspace audit and copy
+name: Miro isolated workspace read-only audit
 
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: Audit or copy after separately verified policy activation
+        description: Read-only inventory audit
         required: true
         default: audit
         type: choice
-        options: [audit, apply]
+        options: [audit]
 
 permissions:
   contents: read
@@ -26,35 +26,11 @@ jobs:
     env:
       MIRO_DIAGNOSTIC_TOKEN: ${{ secrets.MIRO_DIAGNOSTIC_TOKEN }}
       MIRO_DIAGNOSTIC_BOARD_ID: ${{ secrets.MIRO_DIAGNOSTIC_BOARD_ID }}
-      MIRO_RECEIPT_CERT_PEM: ${{ secrets.MIRO_RECEIPT_CERT_PEM }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Read-only audit or fail-closed preparation
         env:
-          COPY_PHASE: ${{ inputs.mode == 'apply' && 'prepare' || 'audit' }}
+          COPY_PHASE: audit
         run: python3 automatizace/miro/isolated_board_copy.py
-      - name: Persist encrypted intent before any mutation
-        id: intent
-        if: inputs.mode == 'apply'
-        uses: actions/upload-artifact@v4
-        with:
-          name: isolated-copy-intent-${{ github.run_id }}
-          path: private-copy/intent.p7m
-          if-no-files-found: error
-          retention-days: 7
-      - name: Copy once with independent read-back
-        if: inputs.mode == 'apply' && steps.intent.outcome == 'success'
-        env:
-          COPY_PHASE: apply
-          INTENT_PERSISTED: 'true'
-        run: python3 automatizace/miro/isolated_board_copy.py
-      - name: Preserve encrypted receipt including failed verification
-        if: always() && inputs.mode == 'apply' && steps.intent.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: isolated-copy-receipt-${{ github.run_id }}
-          path: private-copy/receipt.p7m
-          if-no-files-found: warn
-          retention-days: 7

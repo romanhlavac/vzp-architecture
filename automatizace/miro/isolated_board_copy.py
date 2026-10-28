@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
 """Fail-closed isolated copy. No locators, payloads or exception text in stdout.
 
-Audit is read-only. Prepare persists an encrypted intent before apply is allowed.
+Public CI is read-only. Work persists and verifies private Drive intent/outcome.
 Only one PUT per run, no mutation retry, no deletion, sharing or promotion API.
-Activation requires a separate governed cutover and private recipient acceptance.
+Activation requires governed cutover; private evidence never enters public CI.
 """
 from __future__ import annotations
 
 import collections
-import datetime as dt
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
-import ssl
-import subprocess
-import tempfile
 import time
 import urllib.error
 import urllib.parse
@@ -28,7 +24,7 @@ PRIVATE = {'access': 'private', 'teamAccess': 'private',
            'organizationAccess': 'private', 'inviteToAccountAndBoardLinkAccess': 'no_access'}
 SAFE_CODES = {'HTTP_400', 'HTTP_401', 'HTTP_403', 'HTTP_404', 'HTTP_409', 'HTTP_429',
               'HTTP_5XX', 'HTTP_OTHER', 'AMBIGUOUS_WRITE', 'GET_UNAVAILABLE',
-              'INACTIVE_STOP', 'RECIPIENT_STOP', 'CONFIG_STOP', 'PRIVACY_STOP',
+              'INACTIVE_STOP', 'EVIDENCE_STOP', 'CONFIG_STOP', 'PRIVACY_STOP',
               'IDENTITY_STOP', 'SOURCE_CHANGED_STOP', 'CENSUS_STOP',
               'PAGINATION_STOP', 'RECONCILE_REQUIRED', 'TOKEN_SCOPE_STOP',
               'GIT_OWNER_STOP', 'INVENTORY_STOP', 'INTERNAL_STOP'}
@@ -178,43 +174,6 @@ def check_git(state, scope='CES_1B'):
     require(w['owner'] is None and w['status'] != 'RECOVERY_OPEN', 'GIT_OWNER_STOP')
 
 
-def recipient(cert, activation):
-    require(activation.get('status') == 'ACTIVE' and activation.get('policy_version') == '2.3.0',
-            'INACTIVE_STOP')
-    require(re.fullmatch('[0-9a-f]{32}', activation.get('private_acceptance_key') or '') is not None,
-            'RECIPIENT_STOP')
-    try:
-        pem = cert.read_text()
-        der = ssl.PEM_cert_to_DER_cert(pem)
-        require(hashlib.sha256(der).hexdigest() == activation.get('recipient_sha256'), 'RECIPIENT_STOP')
-        subprocess.run(['openssl', 'x509', '-in', str(cert), '-noout', '-checkend', '86400'],
-                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        dates = subprocess.run(['openssl', 'x509', '-in', str(cert), '-noout', '-startdate'],
-                               check=True, capture_output=True, text=True).stdout.strip().split('=', 1)[1]
-        start = dt.datetime.strptime(dates, '%b %d %H:%M:%S %Y %Z').replace(tzinfo=dt.timezone.utc)
-        require(start <= dt.datetime.now(dt.timezone.utc), 'RECIPIENT_STOP')
-    except Stop:
-        raise
-    except Exception:
-        raise Stop('RECIPIENT_STOP') from None
-
-
-def seal(receipt, cert, output):
-    output.parent.mkdir(exist_ok=True, parents=True)
-    with tempfile.TemporaryDirectory() as directory:
-        plain = Path(directory) / 'receipt.json'
-        plain.write_bytes(encoded(receipt))
-        plain.chmod(0o600)
-        target = Path(directory) / 'sealed.p7m'
-        try:
-            subprocess.run(['openssl', 'cms', '-encrypt', '-binary', '-aes-256-cbc',
-                '-in', str(plain), '-out', str(target), '-outform', 'DER', str(cert)],
-                check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            output.write_bytes(target.read_bytes())
-        except Exception:
-            raise Stop('RECIPIENT_STOP') from None
-
-
 def validate_copy(source, copied, name, source_id):
     board = copied['board']
     require(str(board.get('id')) != source_id and board.get('name') == name, 'IDENTITY_STOP')
@@ -267,7 +226,7 @@ def apply_copy(client, source_id, before, name, evidence):
 def main():
     os.umask(0o077)
     phase = os.environ.get('COPY_PHASE', 'audit')
-    require(phase in {'audit', 'prepare', 'apply'}, 'CONFIG_STOP')
+    require(phase == 'audit', 'CONFIG_STOP')
     require(os.environ.get('GITHUB_REPOSITORY') == 'romanhlavac/vzp-architecture' and
             os.environ.get('GITHUB_REF') == 'refs/heads/main', 'CONFIG_STOP')
     source_id = os.environ.get('MIRO_DIAGNOSTIC_BOARD_ID', '').strip()
@@ -287,36 +246,37 @@ def main():
     require(auth_team.get('id') and auth_team.get('id') == board_team.get('id'), 'IDENTITY_STOP')
     print('SOURCE_INDEPENDENT_VERIFICATION_START', flush=True)
     require(before == snapshot(client, source_id), 'SOURCE_CHANGED_STOP')
-    if phase == 'audit':
-        print('AUDIT_READ_ONLY_PASS; API_INVENTORY_ONLY; NATIVE_G1_G4_OPEN; APPLY_NOT_AUTHORIZED')
-        return
-    require(os.environ.get('GITHUB_RUN_ATTEMPT') == '1', 'RECONCILE_REQUIRED')
-    activation = json.loads(ACTIVATION.read_text())
-    cert = Path('private-copy/recipient.pem')
-    cert.parent.mkdir(exist_ok=True)
-    cert.write_text(os.environ.get('MIRO_RECEIPT_CERT_PEM', ''))
-    recipient(cert, activation)
-    name = unique_name(os.environ.get('GITHUB_RUN_ID', ''))
-    evidence_path = Path('private-copy/staged.json')
-    if phase == 'prepare':
-        require(not reconcile(client, name), 'RECONCILE_REQUIRED')
-        evidence = {'phase': 'PREPARED_NO_WRITE', 'name': name, 'source_board_id': source_id,
-                    'source_before': before, 'run_id': os.environ['GITHUB_RUN_ID'],
-                    'git_sha': os.environ.get('GITHUB_SHA'), 'native_acceptance': 'G1_G4_OPEN'}
-        seal(evidence, cert, Path('private-copy/intent.p7m'))
-        evidence_path.write_bytes(encoded(evidence))
-        print('ENCRYPTED_INTENT_PREPARED_NO_WRITE')
-        return
-    require(evidence_path.is_file() and os.environ.get('INTENT_PERSISTED') == 'true', 'RECIPIENT_STOP')
-    evidence = json.loads(evidence_path.read_text())
-    require(evidence['name'] == name and evidence['source_board_id'] == source_id and
-            evidence['source_before'] == before and evidence['git_sha'] == os.environ.get('GITHUB_SHA'),
-            'SOURCE_CHANGED_STOP')
+    print('AUDIT_READ_ONLY_PASS; API_INVENTORY_ONLY; NATIVE_G1_G4_OPEN; NO_CI_MUTATION')
+
+
+def work_copy(client, source_id, before, name, store, folder, operation_key, activation):
+    """Work-only orchestration; store is an authorized private Drive adapter.
+
+    put_immutable returns an ID; read returns content, parent, private and unique.
+    Those properties must come from native service read-back, not local flags.
+    No adapter credentials, file IDs or receipt bodies are printed or returned to CI.
+    """
+    require(not os.environ.get('GITHUB_ACTIONS'), 'CONFIG_STOP')
+    require(activation.get('status') == 'ACTIVE', 'INACTIVE_STOP')
+    require(re.fullmatch('[0-9a-f]{32}', operation_key) is not None, 'IDENTITY_STOP')
+    def persist(kind, value):
+        receipt_name = 'VZP_' + kind + '_' + operation_key + '.json'
+        file_id = store.put_immutable(folder, receipt_name, value)
+        back = store.read(file_id)
+        require(back['content'] == value and back['parent'] == folder and
+                back['private'] is True and back['unique'] is True, 'EVIDENCE_STOP')
+        return file_id
+    evidence = {'operation_key': operation_key, 'name': name,
+                'source_board_id': source_id, 'source_before': before,
+                'phase': 'INTENT_NO_WRITE', 'native_acceptance': 'G1_G4_OPEN'}
+    require(not reconcile(client, name), 'RECONCILE_REQUIRED')
+    persist('INTENT', evidence)
+    # A native evidence adapter must snapshot values, never retain mutable references.
     try:
         apply_copy(client, source_id, before, name, evidence)
     finally:
-        seal(evidence, cert, Path('private-copy/receipt.p7m'))
-    print('COPY_API_READBACK_PASS; NATIVE_G1_G4_OPEN; NO_PROMOTION')
+        persist('OUTCOME', evidence)
+    return evidence
 
 
 if __name__ == '__main__':
