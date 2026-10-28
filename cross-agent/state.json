@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 56,
+  "state_revision": 57,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -94,7 +94,7 @@
       "claim_origin_key": null
     },
     "CROSS_AGENT_TEST": {
-      "status": "IN_PROGRESS",
+      "status": "RECOVERY_OPEN",
       "owner": {
         "agent": "CLAUDE",
         "run_id": "b24fd0371c39acd5d6c0c57806ca876c"
@@ -120,22 +120,6 @@
     }
   },
   "events": [
-    {
-      "revision": 27,
-      "event": "CLAIM",
-      "actor": {
-        "agent": "GPT",
-        "run_id": "6a60a273f72842ed8200cc41c790b161"
-      },
-      "scope": "CROSS_AGENT",
-      "timestamp_utc": "2026-10-25T13:00:06Z",
-      "work_code": "IMPLEMENTATION",
-      "next_code": "CONTINUE",
-      "private_artifact_key": "740a385cb89243d29d84eb4bcb68e59a",
-      "evidence_commit": null,
-      "native_readback": false,
-      "authorization_key": null
-    },
     {
       "revision": 28,
       "event": "HANDOFF_OPEN",
@@ -611,6 +595,22 @@
       "native_readback": false,
       "authorization_key": null,
       "claim_origin_key": "fde0b4e28500c6d75fe68fc844ded0f0"
+    },
+    {
+      "revision": 57,
+      "event": "RECOVERY_OPEN",
+      "actor": {
+        "agent": "CLAUDE",
+        "run_id": "b24fd0371c39acd5d6c0c57806ca876c"
+      },
+      "scope": "CROSS_AGENT_TEST",
+      "timestamp_utc": "2026-10-28T14:36:02Z",
+      "work_code": "RECOVERY",
+      "next_code": "RECONCILE",
+      "private_artifact_key": "282449de0d214521b9a5fa9e770987e6",
+      "evidence_commit": null,
+      "native_readback": false,
+      "authorization_key": null
     }
   ]
 }
