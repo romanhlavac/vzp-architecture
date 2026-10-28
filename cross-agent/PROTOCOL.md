@@ -1,4 +1,4 @@
-# Prompt-driven continuity — protocol 2.2.0
+# Prompt-driven continuity — protocol 2.3.0
 
 ## Prompt-boundary release
 
@@ -89,7 +89,7 @@ method file and does not require in-place GD replacement in ordinary Claude.
 
 ## Lock governance and provenance — 2.2.0
 
-Read-only prompts do not CLAIM. Before protected writes, fresh-read main HEAD,
+Read-only prompts do not CLAIM. Before class C protected writes, fresh-read main HEAD,
 state blob SHA, revision, scope owner and native baseline. A foreign agent OR
 run means STOP for conflicting mutations; safe read-only assistance continues.
 
@@ -199,3 +199,10 @@ B: non-force git push, permitted ONLY with ALL invariants below evidenced:
 
 Git protects its own update only, not a distributed transaction with GD/Miro/Slides.
 A successful conflict test alone does not prove all transport invariants. Report implementation, runtime provenance, transport qualification and overall acceptance separately. Keep the schema-valid deployment enum ACTIVE_ACCEPTANCE_PENDING; use the separately reviewed acceptance verdict, never infer it automatically.
+
+## Operation risk classification — 2.3.0
+
+RISK_POLICY.md is normative for operation classes A/B/C and private Drive evidence.
+Existing write transactions, origin/CLAIM, checkpoint and CAS requirements apply
+to class C. B does not modify shared Git state or bypass transition guards.
+Deployment of this policy is separate from B activation; runtime acceptance OPEN.

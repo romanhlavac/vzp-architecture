@@ -160,10 +160,6 @@ class ApiTests(unittest.TestCase):
             with self.assertRaises(m.Stop):
                 m.privacy({'policy': {'sharingPolicy':bad}})
 
-    def test_inactive_gate_blocks_before_cert(self):
-        with self.assertRaisesRegex(m.Stop, 'INACTIVE_STOP'):
-            m.recipient(Path('missing'), {'status':'INACTIVE'})
-
     def test_native_acceptance_not_implied(self):
         src = {'items':[{'id':'x','type':'frame'}], 'connectors':[]}
         dest = dict(src, board={'id':'new', 'name':'copy', 'policy':{'sharingPolicy':m.PRIVATE}, 'owner':{'id':'owner'}}, members=[{'id':'owner'}])
@@ -209,26 +205,37 @@ class ApiTests(unittest.TestCase):
         self.assertTrue(all(c.args[0]=='GET' for c in client.request.call_args_list))
         self.assertNotIn('synthetic', out.getvalue())
 
-    def test_cms_roundtrip_synthetic_fixture_only(self):
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory); cert=root/'cert.pem'; key=root/'key.pem'; sealed=root/'receipt.p7m'; plain=root/'plain.json'
-            subprocess.run(['openssl','req','-x509','-newkey','rsa:2048','-nodes','-days','1',
-                '-subj','/CN=synthetic-unit-test','-keyout',str(key),'-out',str(cert)],
-                check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
-            m.seal({'fixture':True}, cert, sealed)
-            subprocess.run(['openssl','cms','-decrypt','-binary','-inform','DER','-in',str(sealed),
-                '-recip',str(cert),'-inkey',str(key),'-out',str(plain)],
-                check=True,stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
-            self.assertEqual(json.loads(plain.read_text()), {'fixture':True})
-
-    def test_workflow_audit_default_only_mode_input_and_encrypted_artifacts(self):
+    def test_public_ci_only_audit_and_no_artifacts(self):
         text=(ROOT/'.github/workflows/miro-isolated-copy.yml').read_text()
-        self.assertNotIn('push:',text); self.assertNotIn('pull_request:',text)
-        self.assertIn('default: audit',text); self.assertIn('environment: miro-external-probe',text)
-        self.assertIn('cancel-in-progress: false',text)
-        self.assertNotIn('inputs.board',text); self.assertNotIn('inputs.url',text)
-        self.assertIn('path: private-copy/intent.p7m',text)
-        self.assertIn('path: private-copy/receipt.p7m',text)
+        self.assertNotIn('push:', text)
+        self.assertIn('options: [audit]', text)
+        self.assertNotIn('upload-artifact', text)
+        self.assertNotIn('MIRO_RECEIPT_CERT_PEM', text)
+
+    def test_work_copy_requires_activation_and_rejects_ci(self):
+        with patch.dict(m.os.environ, {'GITHUB_ACTIONS':'true'}), self.assertRaises(m.Stop):
+            m.work_copy(None, 'source', {}, 'copy', None, 'folder', 'a'*32, {'status':'ACTIVE'})
+        with patch.dict(m.os.environ, {}, clear=True), self.assertRaisesRegex(m.Stop, 'INACTIVE_STOP'):
+            m.work_copy(None, 'source', {}, 'copy', None, 'folder', 'a'*32, {'status':'INACTIVE'})
+
+    def test_unverified_private_intent_stops_before_mutation(self):
+        store=unittest.mock.Mock()
+        store.read.return_value={'content':{},'parent':'folder','private':False,'unique':True}
+        with patch.dict(m.os.environ, {}, clear=True), patch.object(m,'reconcile',return_value=[]), patch.object(m,'apply_copy') as mutation, self.assertRaisesRegex(m.Stop,'EVIDENCE_STOP'):
+            m.work_copy(None,'source',{},'copy',store,'folder','a'*32,{'status':'ACTIVE'})
+        mutation.assert_not_called()
+
+    def test_private_intent_then_mutation_then_outcome(self):
+        saved={}; order=[]
+        class Store:
+            def put_immutable(self, folder, name, value):
+                order.append(name.split('_')[1]); saved[name]=copy.deepcopy(value); return name
+            def read(self, key):
+                return {'content':saved[key],'parent':'folder','private':True,'unique':True}
+        def mutate(*args): order.append('MUTATION')
+        with patch.dict(m.os.environ, {}, clear=True), patch.object(m,'reconcile',return_value=[]), patch.object(m,'apply_copy',side_effect=mutate):
+            m.work_copy(None,'source',{},'copy',Store(),'folder','a'*32,{'status':'ACTIVE'})
+        self.assertEqual(order,['INTENT','MUTATION','OUTCOME'])
 
 
 if __name__ == '__main__':
