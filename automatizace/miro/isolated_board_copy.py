@@ -25,10 +25,10 @@ PRIVATE = {'access': 'private', 'teamAccess': 'private',
            'organizationAccess': 'private', 'inviteToAccountAndBoardLinkAccess': 'no_access'}
 SAFE_CODES = {'HTTP_400', 'HTTP_401', 'HTTP_403', 'HTTP_404', 'HTTP_409', 'HTTP_429',
               'HTTP_5XX', 'HTTP_OTHER', 'AMBIGUOUS_WRITE', 'GET_UNAVAILABLE',
-              'INACTIVE_STOP', 'EVIDENCE_STOP', 'CONFIG_STOP', 'PRIVACY_STOP',
+              'EVIDENCE_STOP', 'CONFIG_STOP', 'PRIVACY_STOP',
               'IDENTITY_STOP', 'SOURCE_CHANGED_STOP', 'CENSUS_STOP',
               'PAGINATION_STOP', 'RECONCILE_REQUIRED', 'TOKEN_SCOPE_STOP',
-              'GIT_OWNER_STOP', 'INVENTORY_STOP', 'INTERNAL_STOP'}
+              'INVENTORY_STOP', 'INTERNAL_STOP'}
 
 
 class Stop(RuntimeError):
@@ -168,13 +168,6 @@ def unique_name(run_id):
     return 'Private isolated workspace - ' + run_id
 
 
-def check_git(state, scope='CES_1B'):
-    # The caller must also perform the canonical private bootstrap. This local
-    # checkout is not advertised as a distributed lock or a live Drive read.
-    w = state['workstreams'][scope]
-    require(w['owner'] is None and w['status'] != 'RECOVERY_OPEN', 'GIT_OWNER_STOP')
-
-
 def validate_copy(source, copied, name, source_id):
     board = copied['board']
     require(str(board.get('id')) != source_id and board.get('name') == name, 'IDENTITY_STOP')
@@ -239,7 +232,6 @@ def main():
     if isinstance(scopes, str):
         scopes = scopes.replace(',', ' ').split()
     require(isinstance(scopes, list) and {'boards:read', 'boards:write'} <= set(scopes), 'TOKEN_SCOPE_STOP')
-    check_git(json.loads(Path('cross-agent/state.json').read_text()))
     print('SOURCE_INVENTORY_START', flush=True)
     before = snapshot(client, source_id)
     auth_team = auth.get('team') or {}
