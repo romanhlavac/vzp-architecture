@@ -1,5 +1,6 @@
 """Real local Git object fixtures, never a claim of Claude runtime execution."""
 import copy
+import datetime
 import json
 from pathlib import Path
 import sys
@@ -157,6 +158,46 @@ class TransportMetadataGateTests(unittest.TestCase):
                 publish(self.repo,'example/repo','test/fixture',self.before['head'],
                     self.before['blob'],self.request,self.evidence)
             self.assertFalse(any('push' in c.args for c in network.call_args_list))
+
+    def test_publisher_freezes_missing_timestamp_across_publication(self):
+        real_datetime = datetime.datetime
+        class Clock(real_datetime):
+            current = real_datetime(2026, 10, 28, tzinfo=datetime.timezone.utc)
+            @classmethod
+            def now(cls, tz=None):
+                return cls.current
+        for timestamp in ('missing', None, '2026-10-26T00:00:00Z'):
+            with self.subTest(timestamp=timestamp):
+                request = dict(self.request)
+                if timestamp == 'missing':
+                    request.pop('timestamp_utc')
+                else:
+                    request['timestamp_utc'] = timestamp
+                original = copy.deepcopy(request)
+                published = []
+                Clock.current = real_datetime(2026, 10, 28, tzinfo=datetime.timezone.utc)
+                def network_git(repo, *args, **kwargs):
+                    if 'ls-remote' in args:
+                        return (self.before['head']+'\trefs/heads/test/fixture\n').encode()
+                    if 'push' in args:
+                        published.append(args[-1].split(':')[0])
+                        Clock.current += datetime.timedelta(seconds=10)
+                        return b''
+                    return git(repo, *args, **kwargs)
+                def fetch(*args):
+                    return snapshot(self.repo, published[0]) if published else self.before
+                with patch('publish_state.dt.datetime', Clock), \
+                     patch('publish_state.fetch_snapshot', side_effect=fetch), \
+                     patch('publish_state.server_gates', return_value={}), \
+                     patch('publish_state.git', side_effect=network_git):
+                    result = publish(self.repo, 'example/repo', 'test/fixture',
+                                     self.before['head'], self.before['blob'], request, self.evidence)
+                self.assertEqual(len(published), 1)
+                self.assertEqual(result['readback'], 'SERVER_SIDE_STALE_WRITE_REJECTION_PASS')
+                self.assertEqual(request, original)
+                event = snapshot(self.repo, published[0])['state']['events'][-1]
+                expected = timestamp if isinstance(timestamp, str) and timestamp != 'missing' else '2026-10-28T00:00:00Z'
+                self.assertEqual(event['timestamp_utc'], expected)
 
     def test_wrong_baseline_blob_revision_and_owner(self):
         for delta in ({'blob':'f'*40},{'revision':99},{'owner':self.request['actor']}):

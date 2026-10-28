@@ -6,6 +6,7 @@ Private request/evidence files stay outside the repository. Run this module
 from the reviewed checkout even when the target branch has older code.
 """
 import argparse
+import datetime as dt
 import json
 from pathlib import Path
 import re
@@ -86,6 +87,11 @@ def publish(repo, repository, branch, expected_head, expected_blob, request, evi
                 'revision': before['state']['state_revision'],
                 'owner': before['state']['workstreams'][request['scope']]['owner']}
     gates = server_gates(repository, branch)
+    # Freeze once before creating immutable objects; every qualification must
+    # reproduce the same event even if publication crosses a second boundary.
+    request = dict(request)
+    if request.get('timestamp_utc') is None:
+        request['timestamp_utc'] = dt.datetime.now(dt.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     candidate = create_candidate(repo, before, request)
     e = dict(evidence, **gates, transport='B', fresh_baseline=True,
              transition_verified=True, scope_diff_verified=True,
