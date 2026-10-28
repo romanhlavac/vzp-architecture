@@ -1,11 +1,19 @@
 import copy, json, sys, unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from prompt_state import transition, verify_transition, validate, Stop
+from prompt_state import transition, verify_transition, validate, Stop, SCOPES
+
+def isolated_state():
+    # Unit fixtures must not inherit operational ownership or recovery status.
+    return {'schema_version': '2.0', 'state_revision': 1,
+            'authority': 'GIT_OPERATIONAL_STATE', 'deployment': 'ACTIVE_ACCEPTANCE_PENDING',
+            'workstreams': {scope: {'status': 'IDLE', 'owner': None,
+                                   'checkpoint': None, 'private_artifact_key': None}
+                            for scope in SCOPES}, 'events': []}
 
 class ProvenanceTests(unittest.TestCase):
     def setUp(self):
-        self.base=json.loads((Path(__file__).resolve().parents[1]/'state.json').read_text())
+        self.base=isolated_state()
         self.scope='CROSS_AGENT_TEST'
         self.base['workstreams'][self.scope]['owner']=None
         self.a={'agent':'GPT','run_id':'a'*32}
@@ -44,7 +52,7 @@ class ProvenanceTests(unittest.TestCase):
         with self.assertRaises(Stop):self.move(r,'HANDOFF_OPEN',native_readback=True)
         with self.assertRaises(Stop):self.move(s,'CLAIM',actor=self.b,claim_origin_key='f'*32,origin_verified=True)
     def test_other_scope_tamper(self):
-        s=self.claim();r=transition(s,**self.release_args(s));r['workstreams']['GS']['status']='IDLE'
+        s=self.claim();r=transition(s,**self.release_args(s));r['workstreams']['GS']['status']='IN_PROGRESS_OPEN'
         with self.assertRaises(Stop):verify_transition(s,r,recovery_authorized=True)
     def test_legacy_read_and_release(self):
         s=self.claim();del s['workstreams'][self.scope]['claim_origin_key'];validate(s)
