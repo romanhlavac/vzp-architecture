@@ -205,7 +205,7 @@ class ApiTests(unittest.TestCase):
                'GITHUB_REF':'refs/heads/main','MIRO_DIAGNOSTIC_BOARD_ID':'synthetic-source',
                'MIRO_DIAGNOSTIC_TOKEN':'synthetic-secret'}
         client = unittest.mock.Mock(); client.request.return_value={'scopes':['boards:read','boards:write'], 'team':{'id':'synthetic-team'}}
-        with patch.dict(m.os.environ, env), patch.object(m, 'Client', return_value=client), patch.object(m, 'snapshot', return_value={'board':{'team':{'id':'synthetic-team'}}}), patch.object(m, 'check_git'), patch('sys.stdout', new_callable=io.StringIO) as out:
+        with patch.dict(m.os.environ, env), patch.object(m, 'Client', return_value=client), patch.object(m, 'snapshot', return_value={'board':{'team':{'id':'synthetic-team'}}}), patch.object(Path, 'read_text', side_effect=AssertionError('read-only audit must not require shared state')), patch('sys.stdout', new_callable=io.StringIO) as out:
             m.main()
         self.assertTrue(all(c.args[0]=='GET' for c in client.request.call_args_list))
         self.assertNotIn('synthetic', out.getvalue())
