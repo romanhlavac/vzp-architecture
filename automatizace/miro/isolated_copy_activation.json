@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "status": "INACTIVE",
+  "policy_version": "2.3.0",
+  "recipient_sha256": null,
+  "private_acceptance_key": null
+}
