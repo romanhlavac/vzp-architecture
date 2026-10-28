@@ -3,7 +3,7 @@
 
 Public CI is read-only. Work persists and verifies private Drive intent/outcome.
 Only one PUT per run, no mutation retry, no deletion, sharing or promotion API.
-Activation requires governed cutover; private evidence never enters public CI.
+Eligibility is checked per operation; private evidence never enters public CI.
 """
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ import json
 import os
 from pathlib import Path
 import re
+import sys
 import time
 import urllib.error
 import urllib.parse
@@ -249,7 +250,7 @@ def main():
     print('AUDIT_READ_ONLY_PASS; API_INVENTORY_ONLY; NATIVE_G1_G4_OPEN; NO_CI_MUTATION')
 
 
-def work_copy(client, source_id, before, name, store, folder, operation_key, activation):
+def work_copy(client, source_id, before, name, store, folder, operation_key, activation, *, operation):
     """Work-only orchestration; store is an authorized private Drive adapter.
 
     put_immutable returns an ID; read returns content, parent, private and unique.
@@ -257,7 +258,12 @@ def work_copy(client, source_id, before, name, store, folder, operation_key, act
     No adapter credentials, file IDs or receipt bodies are printed or returned to CI.
     """
     require(not os.environ.get('GITHUB_ACTIONS'), 'CONFIG_STOP')
-    require(activation.get('status') == 'ACTIVE', 'INACTIVE_STOP')
+    # Qualification belongs to this operation, not another agent's Git transport.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'cross-agent'))
+    from risk_policy import classify
+    require(activation == {'schema_version': 2, 'status': 'PER_OPERATION',
+            'policy_version': '2.3.1', 'evidence_transport': 'PRIVATE_DRIVE'}, 'CONFIG_STOP')
+    require(classify(operation) == 'B', 'CONFIG_STOP')
     require(re.fullmatch('[0-9a-f]{32}', operation_key) is not None, 'IDENTITY_STOP')
     def persist(kind, value):
         receipt_name = 'VZP_' + kind + '_' + operation_key + '.json'
