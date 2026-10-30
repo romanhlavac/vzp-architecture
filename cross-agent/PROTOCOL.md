@@ -1,4 +1,4 @@
-# Prompt-driven continuity — protocol 2.3.2
+# Prompt-driven continuity — protocol 2.3.3
 
 ## Prompt-boundary release
 
@@ -213,3 +213,7 @@ Blocked C transport never disables eligible isolated B work.
 Use the **direct raw private Drive upload** contract in `cross-agent/RISK_POLICY.md` for immutable origin/context/intent/outcome: the actual UTF-8 `text/plain` file is uploaded to the verified canonical private Handoffs parent via `import_document(...,upload_mode="keep_source_file_type",parent_folder_id=...)`, or an authorized equivalent `upload_file` with real `file_uri`. Do not require intermediate Google Doc creation and export. Verify complete file content, hash, exact parent, exact filename uniqueness and effective private access **before relying on the evidence**.
 
 All other 2.3.1 contracts including public Git-only operational-state authority, origin/CLAIM/CAS, foreign-run guard, stale-write rejection, rollback discipline, B isolation, privacy, native read-back, and no hooks remain unchanged. If the private transport fails, STOP/RECONCILE rather than bypassing restrictions. GPT qualification is not Claude qualification; report real Claude tests separately.
+
+## Claude provider-native equivalent accepted (2.3.3)
+
+The exact tool name `import_document` is **not required** for private evidence. In ordinary Claude's tested connected Drive surface, direct `create_file` with raw `text/plain`, `disableConversionToGoogleType=true`, a verified `parentId`, unique `title` and exact `textContent` (or authentic `base64Content`) qualifies as a provider-specific equivalent of GPT `import_document` / authorized `upload_file`. The normative requirements are exactly one directly created unconverted file, owner-only private scope, read-back verified content/size/SHA-256, parent, uniqueness, and the existing event order. See `cross-agent/RISK_POLICY.md`. No new Git state schema, transport or guard. User-relayed Claude result with independently verified private Drive artifacts supports this provider-specific test only.
