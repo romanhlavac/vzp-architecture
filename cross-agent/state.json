@@ -1,6 +1,6 @@
 {
   "schema_version": "2.0",
-  "state_revision": 77,
+  "state_revision": 78,
   "authority": "GIT_OPERATIONAL_STATE",
   "deployment": "ACTIVE_ACCEPTANCE_PENDING",
   "workstreams": {
@@ -73,29 +73,26 @@
       "private_artifact_key": null
     },
     "CROSS_AGENT": {
-      "status": "IN_PROGRESS",
-      "owner": {
-        "agent": "GPT",
-        "run_id": "59595aea0b1249637ba360b729dec067"
-      },
+      "status": "READY_FOR_HANDOFF",
+      "owner": null,
       "checkpoint": {
-        "revision": 76,
-        "event": "HANDOFF_OPEN",
+        "revision": 78,
+        "event": "CHECKPOINT_PASS",
         "actor": {
           "agent": "GPT",
-          "run_id": "431190f5cc6187091439ad303dc4a086"
+          "run_id": "59595aea0b1249637ba360b729dec067"
         },
         "scope": "CROSS_AGENT",
-        "timestamp_utc": "2026-10-30T13:09:22Z",
-        "work_code": "IMPLEMENTATION",
-        "next_code": "CLAUDE_READ",
-        "private_artifact_key": "2dc66aa434e47985ea4f706549c7efce",
-        "evidence_commit": "873618df5035f16cbc923e3c222859d44b719ba3",
+        "timestamp_utc": "2026-10-30T13:38:22Z",
+        "work_code": "ACCEPTANCE",
+        "next_code": "CONTINUE",
+        "private_artifact_key": "f12f6ff7a549def87a7fd555ebfdbe4c",
+        "evidence_commit": "593b7069a6e2f9114238441ae699634de265d431",
         "native_readback": true,
         "authorization_key": null
       },
-      "private_artifact_key": "2dc66aa434e47985ea4f706549c7efce",
-      "claim_origin_key": "4ebe1995a3244fc3d0ddc6dde148e73f"
+      "private_artifact_key": "f12f6ff7a549def87a7fd555ebfdbe4c",
+      "claim_origin_key": null
     },
     "CROSS_AGENT_TEST": {
       "status": "IN_PROGRESS_OPEN",
@@ -121,23 +118,6 @@
     }
   },
   "events": [
-    {
-      "revision": 48,
-      "event": "CLAIM",
-      "actor": {
-        "agent": "CLAUDE",
-        "run_id": "0e74a204e3327b0cddd87681098e8e07"
-      },
-      "scope": "CES_1B",
-      "timestamp_utc": "2026-10-27T14:44:57Z",
-      "work_code": "IMPLEMENTATION",
-      "next_code": "CONTINUE",
-      "private_artifact_key": "2d88487c1244c8a60fe9b2b8c8ea6038",
-      "evidence_commit": null,
-      "native_readback": false,
-      "authorization_key": null,
-      "claim_origin_key": "54d4d23be82a59e7aeddf6fc9718f7d1"
-    },
     {
       "revision": 49,
       "event": "HANDOFF_OPEN",
@@ -623,6 +603,22 @@
       "native_readback": false,
       "authorization_key": null,
       "claim_origin_key": "4ebe1995a3244fc3d0ddc6dde148e73f"
+    },
+    {
+      "revision": 78,
+      "event": "CHECKPOINT_PASS",
+      "actor": {
+        "agent": "GPT",
+        "run_id": "59595aea0b1249637ba360b729dec067"
+      },
+      "scope": "CROSS_AGENT",
+      "timestamp_utc": "2026-10-30T13:38:22Z",
+      "work_code": "ACCEPTANCE",
+      "next_code": "CONTINUE",
+      "private_artifact_key": "f12f6ff7a549def87a7fd555ebfdbe4c",
+      "evidence_commit": "593b7069a6e2f9114238441ae699634de265d431",
+      "native_readback": true,
+      "authorization_key": null
     }
   ]
 }
