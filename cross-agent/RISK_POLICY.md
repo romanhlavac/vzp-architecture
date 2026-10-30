@@ -1,4 +1,4 @@
-# Risk-based governance 2.3.1
+# Risk-based governance 2.3.2
 
 Operation classes A/B/C are distinct from Git concurrency transports A/B.
 Git is the only shared operational-state authority; private Drive owns methodology,
@@ -76,3 +76,9 @@ whole interoperability chain on every prompt. Cross-agent end-to-end acceptance
 remains a separate test and never becomes B's prerequisite. Real Claude execution
 and synthetic tests must be reported separately. Source Index/Sxx, native visual
 acceptance and business approvals are unchanged.
+
+## Direct immutable evidence transport (2.3.2)
+
+For B intent/outcome and C origin/context use **direct** raw UTF-8 `text/plain` upload into the *current Entry Point's canonical private Handoffs folder*, rather than creating a temporary Google Doc and exporting/re-uploading it. Qualified connected Google Drive transport: `import_document(source_file=<actual local/uploaded text/plain source>, upload_mode="keep_source_file_type", parent_folder_id=<verified Handoffs folder>)`. An already-authorized `upload_file` using an actual `file_uri` and the same exact parent is equivalent. Neither may assume placement in root, silently move a file, share to widen access, or stage unverified data in a public location.
+
+Before accepting each immutable record independently re-read complete bytes/content, matching key, hash/size, exact parent, unique exact filename and effective privacy/owner readability. Preserve B intent -> one isolated native mutation -> native read-back -> B outcome, and C origin -> CLAIM/CAS -> native read-back -> context -> checkpoint. On unsupported connector, blocked write, ambiguous timeout, or any failed invariant, reconcile by exact operation identity without blind retry and STOP if no authorized qualified transport exists. This is a transport selection, **not** a waiver of safety checks, Git concurrency controls, privacy or separate Claude runtime acceptance. One real GPT run does not constitute a real Claude test.
