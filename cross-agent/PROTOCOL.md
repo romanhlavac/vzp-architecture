@@ -1,4 +1,4 @@
-# Prompt-driven continuity — protocol 2.3.1
+# Prompt-driven continuity — protocol 2.3.2
 
 ## Prompt-boundary release
 
@@ -207,3 +207,9 @@ Existing write transactions, origin/CLAIM, checkpoint and CAS requirements apply
 to class C. B does not modify shared Git state or bypass transition guards.
 Qualification is per runtime, transport and operation, as defined in RISK_POLICY.md.
 Blocked C transport never disables eligible isolated B work.
+
+## Direct private evidence upload — scoped transport repair (2.3.2)
+
+Use the **direct raw private Drive upload** contract in `cross-agent/RISK_POLICY.md` for immutable origin/context/intent/outcome: the actual UTF-8 `text/plain` file is uploaded to the verified canonical private Handoffs parent via `import_document(...,upload_mode="keep_source_file_type",parent_folder_id=...)`, or an authorized equivalent `upload_file` with real `file_uri`. Do not require intermediate Google Doc creation and export. Verify complete file content, hash, exact parent, exact filename uniqueness and effective private access **before relying on the evidence**.
+
+All other 2.3.1 contracts including public Git-only operational-state authority, origin/CLAIM/CAS, foreign-run guard, stale-write rejection, rollback discipline, B isolation, privacy, native read-back, and no hooks remain unchanged. If the private transport fails, STOP/RECONCILE rather than bypassing restrictions. GPT qualification is not Claude qualification; report real Claude tests separately.
